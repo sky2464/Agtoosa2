@@ -109,3 +109,97 @@ def cmd_graph_export(args: Any, workspace_root: Path) -> int:
         print(json.dumps(data, indent=2))
 
     return 0
+
+
+def cmd_graph_explain(args: Any, workspace_root: Path) -> int:
+    """Explain a symbol or file."""
+    from agtoosa.graph.query import explain_node
+
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    store = GraphStore(db_path)
+    res = explain_node(store, args.target)
+
+    if not res:
+        print(f"❌ Entity not found matching: '{args.target}'")
+        return 1
+
+    node = res["node"]
+    line_info = f":L{node['start_line']}" if node.get("start_line") else ""
+    print(f"📖 {node['node_type'].upper()}: {node['name']}")
+    print(f"   • Location: {node['path']}{line_info}")
+    if node.get("docstring"):
+        print(f"   • Description: {node['docstring']}")
+
+    if res["incoming"]:
+        print(f"\n   📥 Ingress / Callers / Importers ({len(res['incoming'])}):")
+        for inc in res["incoming"][:10]:
+            print(f"     - [{inc['edge_type'].upper()}] {inc['type']}: {inc['name']} ({inc['path']})")
+
+    if res["outgoing"]:
+        print(f"\n   📤 Egress / Callees / Imports ({len(res['outgoing'])}):")
+        for out in res["outgoing"][:10]:
+            print(f"     - [{out['edge_type'].upper()}] {out['type']}: {out['name']} ({out['path']})")
+
+    return 0
+
+
+def cmd_graph_path(args: Any, workspace_root: Path) -> int:
+    """Find directed path between two entities."""
+    from agtoosa.graph.query import find_path
+
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    store = GraphStore(db_path)
+    chain = find_path(store, args.source, args.target)
+
+    if not chain:
+        print(f"❌ No directed path found between '{args.source}' and '{args.target}'.")
+        return 1
+
+    print(f"🧭 Directed Path ({len(chain) - 1} hops):\n")
+    for idx, step in enumerate(chain):
+        n = step["node"]
+        edge = step.get("edge")
+        if edge:
+            print(f"       │  [{edge['edge_type'].upper()}]")
+            print(f"       ▼")
+        print(f"  [{idx + 1}] {n.get('node_type', 'node').upper()}: {n.get('name', n.get('id'))} ({n.get('path', '')})")
+
+    return 0
+
+
+def cmd_graph_impact(args: Any, workspace_root: Path) -> int:
+    """Analyze blast radius when an entity is changed."""
+    from agtoosa.graph.query import compute_impact
+
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    store = GraphStore(db_path)
+    depth = getattr(args, "depth", 3)
+    res = compute_impact(store, args.target, max_depth=depth)
+
+    if not res:
+        print(f"❌ Entity not found matching: '{args.target}'")
+        return 1
+
+    target = res["target"]
+    print(f"💥 Blast Radius Analysis for: {target['node_type'].upper()} {target['name']} ({target['path']})")
+    print(f"   • Total Affected Entities: {res['impacted_count']} (up to depth {depth})")
+
+    if res["impacted"]:
+        print("\n   ⚠️  Upstream Callers & Dependent Files:")
+        for imp in res["impacted"]:
+            indent = " " * (imp["depth"] * 2)
+            print(f"   {indent}└─ [Hop {imp['depth']}] {imp['node_type'].upper()}: {imp['name']} ({imp['path']}) via {imp['relationship']}")
+
+    return 0

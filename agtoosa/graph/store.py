@@ -3,6 +3,7 @@
 from __future__ import annotations
 import json
 import sqlite3
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
@@ -20,12 +21,16 @@ class GraphStore:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
-    def _get_connection(self) -> sqlite3.Connection:
+    @contextmanager
+    def _get_connection(self):
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL;")
-        conn.execute("PRAGMA foreign_keys=ON;")
-        return conn
+        try:
+            with conn:
+                yield conn
+        finally:
+            conn.close()
 
     def _init_db(self) -> None:
         with self._get_connection() as conn:
@@ -44,6 +49,12 @@ class GraphStore:
                     end_line INTEGER,
                     docstring TEXT,
                     metadata_json TEXT
+                );
+
+                CREATE TABLE IF NOT EXISTS file_fingerprints (
+                    path TEXT PRIMARY KEY,
+                    content_hash TEXT NOT NULL,
+                    mtime REAL NOT NULL
                 );
 
                 CREATE TABLE IF NOT EXISTS edges (
@@ -98,7 +109,32 @@ class GraphStore:
         with self._get_connection() as conn:
             conn.execute("DELETE FROM edges;")
             conn.execute("DELETE FROM nodes;")
+            conn.execute("DELETE FROM file_fingerprints;")
             conn.execute("INSERT INTO nodes_fts(nodes_fts) VALUES('rebuild');")
+
+    def get_fingerprints(self) -> Dict[str, str]:
+        """Return mapping of rel_path -> content_hash."""
+        with self._get_connection() as conn:
+            rows = conn.execute("SELECT path, content_hash FROM file_fingerprints;").fetchall()
+            return {r[0]: r[1] for r in rows}
+
+    def set_fingerprint(self, path: str, content_hash: str, mtime: float) -> None:
+        with self._get_connection() as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO file_fingerprints (path, content_hash, mtime) VALUES (?, ?, ?);",
+                (path, content_hash, mtime)
+            )
+
+    def remove_file(self, rel_path: str) -> None:
+        """Remove all nodes and edges belonging to a file path."""
+        with self._get_connection() as conn:
+            conn.execute("DELETE FROM file_fingerprints WHERE path = ?;", (rel_path,))
+            node_rows = conn.execute("SELECT id FROM nodes WHERE path = ?;", (rel_path,)).fetchall()
+            node_ids = [r[0] for r in node_rows]
+            if node_ids:
+                placeholders = ",".join("?" for _ in node_ids)
+                conn.execute(f"DELETE FROM edges WHERE source_id IN ({placeholders}) OR target_id IN ({placeholders});", node_ids + node_ids)
+                conn.execute("DELETE FROM nodes WHERE path = ?;", (rel_path,))
 
     def insert_batch(self, nodes: List[Node], edges: List[Edge]) -> None:
         """Insert a batch of nodes and edges transactionally."""

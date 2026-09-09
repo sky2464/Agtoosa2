@@ -20,7 +20,8 @@
 
 | ID | Title | Type | Estimate | Status | Primary Deliverable |
 |---|---|---|---|---|---|
-| **DEV-001** | Core Foundation & AST Knowledge Graph | Feature | L | 🟨 In Progress | Unified CLI, Tree-sitter AST extractors, SQLite FTS5 graph store, `/agtoosa graph build/query/status` |
+| **DEV-001** | Core Foundation & AST Knowledge Graph | Feature | L | ✅ Done | Unified CLI, polyglot AST extractors (Py/JS/TS/Sh), SQLite FTS5 graph store, `/agtoosa graph build/query/status/export` |
+| **DEV-002** | Reliable Incremental Updates & Investigation | Feature | M | 🟨 In Progress | Content hash fingerprints, incremental sync, `/agtoosa graph explain/path/impact` |
 
 ---
 
@@ -28,7 +29,7 @@
 
 ```mermaid
 flowchart LR
-    S1[Stage 1: AST Graph Core] --> S2[Stage 2: Updates & Impact]
+    S1[Stage 1: AST Graph Core ✅] --> S2[Stage 2: Updates & Impact 🟨]
     S2 --> S3[Stage 3: Lifecycle RAG]
     S3 --> S4[Stage 4: Native MCP Server]
     S3 --> S5[Stage 5: Visual Explorer]
@@ -39,9 +40,9 @@ flowchart LR
 ```
 
 ### Milestone 1: Knowledge Engine Core (v2.0-alpha)
-- **DEV-001 (Stage 1) — Core Foundation & AST Knowledge Graph** [🟨 In Progress]
+- **DEV-001 (Stage 1) — Core Foundation & AST Knowledge Graph** [✅ Done]
   - Python 3.11+ packaging, zero-service architecture, single `agtoosa` CLI.
-  - Tree-sitter parsers for Python, JavaScript/TypeScript, and Shell.
+  - Parsers for Python, JavaScript/TypeScript, and Shell.
   - SQLite transactional schema + FTS5 full-text indexing.
   - Commands: `agtoosa graph build`, `agtoosa graph query`, `agtoosa graph status`, `agtoosa graph export`.
 - **DEV-002 (Stage 2) — Reliable Incremental Updates & Investigation** [⬜ Backlog]

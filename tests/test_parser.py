@@ -88,6 +88,50 @@ function deploy() {
         import_names = [n.name for n in nodes if n.node_type == NodeType.IMPORT]
         self.assertIn("config.env", import_names)
 
+    def test_js_ts_parser(self):
+        from agtoosa.parser.js_ts_parser import JavaScriptTypeScriptParser
+
+        ts_file = self.root / "component.ts"
+        ts_file.write_text(
+            '''import { useState, useEffect } from "react";
+import axios from "axios";
+
+export class DataService extends BaseService {
+    fetchData() {}
+}
+
+export const useData = () => {
+    return true;
+};
+
+function helper() {
+    return 42;
+}
+''',
+            encoding="utf-8"
+        )
+
+        parser = JavaScriptTypeScriptParser()
+        self.assertTrue(parser.can_parse(ts_file))
+
+        nodes, edges = parser.parse(ts_file, self.root)
+
+        import_names = [n.name for n in nodes if n.node_type == NodeType.IMPORT]
+        self.assertIn("react", import_names)
+        self.assertIn("axios", import_names)
+
+        class_names = [n.name for n in nodes if n.node_type == NodeType.CLASS]
+        self.assertIn("DataService", class_names)
+
+        func_names = [n.name for n in nodes if n.node_type == NodeType.FUNCTION]
+        self.assertIn("useData", func_names)
+        self.assertIn("helper", func_names)
+
+        edge_types = [e.edge_type for e in edges]
+        self.assertIn(EdgeType.IMPORTS, edge_types)
+        self.assertIn(EdgeType.CONTAINS, edge_types)
+        self.assertIn(EdgeType.INHERITS, edge_types)
+
 
 if __name__ == "__main__":
     unittest.main()

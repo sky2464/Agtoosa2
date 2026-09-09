@@ -46,6 +46,20 @@ def main(argv=None) -> int:
     query_p.add_argument("query", type=str, help="Search query string")
     query_p.add_argument("-n", "--limit", type=int, default=15, help="Maximum results to return")
 
+    # agtoosa graph explain <target>
+    explain_p = graph_sub.add_parser("explain", help="Inspect an entity's definition, callers, and callees")
+    explain_p.add_argument("target", type=str, help="Target symbol or file name")
+
+    # agtoosa graph path <source> <target>
+    path_p = graph_sub.add_parser("path", help="Find directed path between two entities")
+    path_p.add_argument("source", type=str, help="Starting node name")
+    path_p.add_argument("target", type=str, help="Destination node name")
+
+    # agtoosa graph impact <target>
+    impact_p = graph_sub.add_parser("impact", help="Calculate upstream blast radius when an entity changes")
+    impact_p.add_argument("target", type=str, help="Modified symbol or file name")
+    impact_p.add_argument("-d", "--depth", type=int, default=3, help="Max traversal depth (default: 3)")
+
     # agtoosa graph export
     export_p = graph_sub.add_parser("export", help="Export graph to JSON format")
     export_p.add_argument("-o", "--output", type=str, help="Path to write JSON export")
@@ -60,6 +74,15 @@ def main(argv=None) -> int:
             return cmd_graph_status(args, workspace_root)
         elif args.graph_action == "query":
             return cmd_graph_query(args, workspace_root)
+        elif args.graph_action == "explain":
+            from agtoosa.cli.graph_cmd import cmd_graph_explain
+            return cmd_graph_explain(args, workspace_root)
+        elif args.graph_action == "path":
+            from agtoosa.cli.graph_cmd import cmd_graph_path
+            return cmd_graph_path(args, workspace_root)
+        elif args.graph_action == "impact":
+            from agtoosa.cli.graph_cmd import cmd_graph_impact
+            return cmd_graph_impact(args, workspace_root)
         elif args.graph_action == "export":
             return cmd_graph_export(args, workspace_root)
 
