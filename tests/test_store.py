@@ -1,8 +1,14 @@
 """Tests for SQLite graph store."""
 
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+
+# Ensure repository root is on sys.path if run directly as a script
+repo_root = Path(__file__).resolve().parent.parent
+if str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
 
 from agtoosa.core.model import Node, Edge, NodeType, EdgeType
 from agtoosa.graph.store import GraphStore

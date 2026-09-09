@@ -23,7 +23,7 @@
 | **DEV-001** | Core Foundation & AST Knowledge Graph | Feature | L | ✅ Done | Unified CLI, polyglot AST extractors (Py/JS/TS/Sh), SQLite FTS5 graph store, `/agtoosa graph build/query/status/export` |
 | **DEV-002** | Reliable Incremental Updates & Investigation | Feature | M | ✅ Done | Content hash fingerprints, incremental sync, `/agtoosa graph explain/path/impact` |
 | **DEV-003** | Graph-Driven Lifecycle & Context Compilation v2 | Feature | L | ✅ Done | Spec/Story/Criteria/Task ingestion, Context Compiler v2 (Graph RAG), `review`, and mathematical proof `ship` gates |
-| **DEV-004** | Native Model Context Protocol (MCP) Server | Feature | M | 🟨 In Progress | Built-in stdio/SSE MCP server exposing real-time graph navigation tools to AI coding agents |
+| **DEV-004** | Native Model Context Protocol (MCP) Server | Feature | M | ✅ Done | Built-in stdio/SSE MCP server exposing real-time graph navigation tools to AI coding agents |
 
 ---
 
@@ -33,7 +33,7 @@
 flowchart LR
     S1[Stage 1: AST Graph Core ✅] --> S2[Stage 2: Updates & Impact ✅]
     S2 --> S3[Stage 3: Lifecycle RAG ✅]
-    S3 --> S4[Stage 4: Native MCP Server 🟨]
+    S3 --> S4[Stage 4: Native MCP Server ✅]
     S3 --> S5[Stage 5: Visual Explorer]
     S2 --> S6[Stage 6: Broad Languages]
     S3 --> S7[Stage 7: Doc Ingestion]
@@ -56,7 +56,7 @@ flowchart LR
   - Ingestion of Story, Criterion, Task, and Test nodes into the knowledge graph.
   - Context RAG v2: Bounded subgraph prompt compilation replacing bloated markdown templates.
   - Lifecycle state machine: `agtoosa review` and mathematical proof graph validation on `agtoosa ship`.
-- **DEV-004 (Stage 4) — Native Model Context Protocol (MCP) Server** [🟨 In Progress]
+- **DEV-004 (Stage 4) — Native Model Context Protocol (MCP) Server** [✅ Done]
   - Built-in MCP server (`agtoosa mcp`) providing real-time tools for Cursor, Claude Code, Windsurf, Gemini, and Copilot.
   - Tools: `get_symbol_context`, `query_impact_radius`, `get_active_task_context`, `record_task_evidence`.
 

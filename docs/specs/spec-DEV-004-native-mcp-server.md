@@ -2,7 +2,7 @@
 
 > **Story ID:** DEV-004  
 > **Epic:** Native Knowledge Engine — Delivery Intelligence & Semantics  
-> **Status:** 🟨 In Progress  
+> **Status:** ✅ Done  
 > **Estimate:** M  
 > **Clarity:** `ready`  
 > **Spec created:** 2026-09-09  

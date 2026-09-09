@@ -2,7 +2,7 @@
 
 > **Story ID:** DEV-002  
 > **Epic:** Native Knowledge Engine — Architecture & Runtime  
-> **Status:** 🟨 In Progress  
+> **Status:** ✅ Done  
 > **Estimate:** M  
 > **Clarity:** `ready`  
 > **Spec created:** 2026-09-09  

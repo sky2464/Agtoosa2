@@ -3,6 +3,10 @@
 import sys
 from pathlib import Path
 
+# Python version guard
+if sys.version_info < (3, 11):
+    sys.exit(f"Error: Agtoosa2 requires Python 3.11 or newer (currently running on Python {sys.version.split()[0]}).")
+
 # Add project root to sys.path so agtoosa can run in development mode
 repo_root = Path(__file__).resolve().parent.parent
 if str(repo_root) not in sys.path:

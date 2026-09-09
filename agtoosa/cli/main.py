@@ -4,6 +4,15 @@ import argparse
 import sys
 from pathlib import Path
 
+# Python version guard
+if sys.version_info < (3, 11):
+    sys.exit(f"Error: Agtoosa2 requires Python 3.11 or newer (currently running on Python {sys.version.split()[0]}).")
+
+# Ensure repository root is on sys.path if run directly as a script
+repo_root = Path(__file__).resolve().parent.parent.parent
+if str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
+
 from agtoosa import __version__
 from agtoosa.cli.graph_cmd import (
     cmd_graph_build,

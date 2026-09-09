@@ -3,10 +3,20 @@
 from __future__ import annotations
 import json
 import sqlite3
+import sys
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
+
+# Ensure repository root is on sys.path if run directly as a script
+repo_root = Path(__file__).resolve().parent.parent.parent
+if str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
+
+# Python version guard
+if sys.version_info < (3, 11):
+    sys.exit(f"Error: Agtoosa2 requires Python 3.11 or newer (currently running on Python {sys.version.split()[0]}).")
 
 from agtoosa.core.model import Node, Edge, NodeType, EdgeType, GraphStats
 
@@ -323,3 +333,21 @@ class GraphStore:
                 "nodes": nodes,
                 "edges": edges
             }
+
+
+if __name__ == "__main__":
+    db_file = repo_root / ".agtoosa" / "graph.db"
+    print(f"📊 Agtoosa2 GraphStore Diagnostics")
+    print(f"   • Database path: {db_file}")
+    if not db_file.exists():
+        print("   • Status: Database does not exist yet. Run `agtoosa graph build` to index.")
+    else:
+        store = GraphStore(db_file)
+        stats = store.get_stats()
+        size_kb = db_file.stat().st_size / 1024.0
+        print(f"   • Database size: {size_kb:.1f} KB")
+        print(f"   • Total Nodes: {stats.total_nodes}")
+        print(f"   • Total Edges: {stats.total_edges}")
+        print(f"   • Files Indexed: {stats.files_indexed}")
+        print(f"   • Last Indexed: {stats.last_indexed_at}")
+

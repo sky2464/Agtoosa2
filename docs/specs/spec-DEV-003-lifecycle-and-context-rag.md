@@ -2,7 +2,7 @@
 
 > **Story ID:** DEV-003  
 > **Epic:** Native Knowledge Engine — Delivery Intelligence & Semantics  
-> **Status:** 🟨 In Progress  
+> **Status:** ✅ Done  
 > **Estimate:** L  
 > **Clarity:** `ready`  
 > **Spec created:** 2026-09-09  
@@ -74,17 +74,17 @@ flowchart TD
 ## 3. Tasks & Dependency Waves
 
 ### Wave 1: Specification & Lifecycle Parser
-- [ ] **Task 1.1**: Implement `agtoosa/parser/doc_parser.py` extracting Story, Criterion, Task, and ADR nodes.
-- [ ] **Task 1.2**: Register `MarkdownDocParser` in `ParserEngine`.
+- [x] **Task 1.1**: Implement `agtoosa/parser/doc_parser.py` extracting Story, Criterion, Task, and ADR nodes.
+- [x] **Task 1.2**: Register `MarkdownDocParser` in `ParserEngine`.
 
 ### Wave 2: Context Compiler v2
-- [ ] **Task 2.1**: Implement `agtoosa/core/context_compiler.py` extracting bounded subgraphs and rendering clean prompt packs.
-- [ ] **Task 2.2**: Wire `agtoosa context compile <id>` CLI command.
+- [x] **Task 2.1**: Implement `agtoosa/core/context_compiler.py` extracting bounded subgraphs and rendering clean prompt packs.
+- [x] **Task 2.2**: Wire `agtoosa context compile <id>` CLI command.
 
 ### Wave 3: Graph-Driven Lifecycle Gating
-- [ ] **Task 3.1**: Implement `agtoosa/core/lifecycle.py` with review validation and mathematical proof verification for shipping.
-- [ ] **Task 3.2**: Wire `agtoosa spec`, `agtoosa build`, `agtoosa review`, and `agtoosa ship` CLI commands.
+- [x] **Task 3.1**: Implement `agtoosa/core/lifecycle.py` with review validation and mathematical proof verification for shipping.
+- [x] **Task 3.2**: Wire `agtoosa spec`, `agtoosa build`, `agtoosa review`, and `agtoosa ship` CLI commands.
 
 ### Wave 4: Testing & Verification
-- [ ] **Task 4.1**: Unit tests for doc parser, context compiler, and lifecycle proof gates.
-- [ ] **Task 4.2**: Test compiling context and verifying proof for DEV-001 on the live codebase.
+- [x] **Task 4.1**: Unit tests for doc parser, context compiler, and lifecycle proof gates.
+- [x] **Task 4.2**: Test compiling context and verifying proof for DEV-001 on the live codebase.

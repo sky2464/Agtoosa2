@@ -2,7 +2,7 @@
 
 > **Story ID:** DEV-001  
 > **Epic:** Native Knowledge Engine — Architecture & Runtime  
-> **Status:** 🟨 In Progress  
+> **Status:** ✅ Done  
 > **Estimate:** L  
 > **Clarity:** `ready`  
 > **Spec created:** 2026-09-09  
@@ -102,4 +102,4 @@ sequenceDiagram
 ---
 
 ## Approval Marker
-- Status: 🟨 Approved during plan phase; implementation underway.
+- Status: ✅ Complete and verified.
