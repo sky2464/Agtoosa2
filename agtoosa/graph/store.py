@@ -51,9 +51,7 @@ class GraphStore:
                     target_id TEXT NOT NULL,
                     edge_type TEXT NOT NULL,
                     provenance TEXT NOT NULL,
-                    metadata_json TEXT,
-                    FOREIGN KEY(source_id) REFERENCES nodes(id) ON DELETE CASCADE,
-                    FOREIGN KEY(target_id) REFERENCES nodes(id) ON DELETE CASCADE
+                    metadata_json TEXT
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_nodes_type ON nodes(node_type);
