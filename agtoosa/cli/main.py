@@ -79,6 +79,9 @@ def main(argv=None) -> int:
     ship_parser = subparsers.add_parser("ship", help="Verify proof graph and ship story")
     ship_parser.add_argument("story", type=str, help="Target Story ID to verify and ship")
 
+    # agtoosa mcp
+    subparsers.add_parser("mcp", help="Launch native Model Context Protocol (MCP) server on stdio")
+
     args = parser.parse_args(argv)
     workspace_root = Path(args.workspace).resolve()
 
@@ -109,6 +112,11 @@ def main(argv=None) -> int:
     elif args.command == "ship":
         from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_ship
         return cmd_lifecycle_ship(args, workspace_root)
+    elif args.command == "mcp":
+        from agtoosa.mcp.server import MCPServer
+        server = MCPServer(workspace_root)
+        server.run_stdio()
+        return 0
 
     parser.print_help()
     return 0
