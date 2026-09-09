@@ -36,3 +36,9 @@ agtoosa = "agtoosa.cli.main:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.pyrefly]
+project-includes = [
+    "**/*.py*",
+    "**/*.ipynb",
+]

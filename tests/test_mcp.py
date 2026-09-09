@@ -41,6 +41,8 @@ class TestMCPServer(unittest.TestCase):
     def test_initialize(self):
         req = {"jsonrpc": "2.0", "id": 1, "method": "initialize"}
         resp = self.server.handle_message(req)
+        self.assertIsNotNone(resp)
+        assert resp is not None
         self.assertEqual(resp["id"], 1)
         self.assertIn("serverInfo", resp["result"])
         self.assertEqual(resp["result"]["serverInfo"]["name"], "agtoosa-mcp")
@@ -48,6 +50,8 @@ class TestMCPServer(unittest.TestCase):
     def test_tools_list(self):
         req = {"jsonrpc": "2.0", "id": 2, "method": "tools/list"}
         resp = self.server.handle_message(req)
+        self.assertIsNotNone(resp)
+        assert resp is not None
         tools = resp["result"]["tools"]
         tool_names = [t["name"] for t in tools]
         self.assertIn("agtoosa_search_graph", tool_names)
@@ -67,6 +71,8 @@ class TestMCPServer(unittest.TestCase):
             }
         }
         resp = self.server.handle_message(req)
+        self.assertIsNotNone(resp)
+        assert resp is not None
         content = resp["result"]["content"][0]["text"]
         data = json.loads(content)
         self.assertEqual(len(data), 1)
@@ -83,6 +89,8 @@ class TestMCPServer(unittest.TestCase):
             }
         }
         resp = self.server.handle_message(req)
+        self.assertIsNotNone(resp)
+        assert resp is not None
         content = resp["result"]["content"][0]["text"]
         data = json.loads(content)
         self.assertEqual(data["node"]["name"], "compute")
