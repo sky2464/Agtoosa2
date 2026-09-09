@@ -15,10 +15,11 @@ def resolve_node(store: GraphStore, query: str) -> Optional[Dict[str, Any]]:
     if node:
         return node
 
-    # 2. Try file:<clean_q>
-    file_node = store.get_node(f"file:{clean_q}")
-    if file_node:
-        return file_node
+    # 2. Try prefixed domain entity IDs
+    for prefix in ("story:", "task:", "criterion:", "adr:", "file:"):
+        prefixed_node = store.get_node(f"{prefix}{clean_q}")
+        if prefixed_node:
+            return prefixed_node
 
     # 3. Try exact path match in nodes table
     with store._get_connection() as conn:

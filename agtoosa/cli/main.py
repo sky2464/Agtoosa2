@@ -64,6 +64,21 @@ def main(argv=None) -> int:
     export_p = graph_sub.add_parser("export", help="Export graph to JSON format")
     export_p.add_argument("-o", "--output", type=str, help="Path to write JSON export")
 
+    # agtoosa context compile <target>
+    context_parser = subparsers.add_parser("context", help="Context Compilation v2 (Graph RAG for AI Agents)")
+    context_sub = context_parser.add_subparsers(dest="context_action", required=True)
+    compile_p = context_sub.add_parser("compile", help="Compile bounded context pack for task/story")
+    compile_p.add_argument("target", type=str, help="Target Story, Task, or Symbol name")
+    compile_p.add_argument("-r", "--radius", type=int, default=2, help="Context extraction radius (default: 2)")
+    compile_p.add_argument("-o", "--output", type=str, help="Write context pack to file")
+
+    # agtoosa review
+    subparsers.add_parser("review", help="Review working tree changes against graph invariants")
+
+    # agtoosa ship <story>
+    ship_parser = subparsers.add_parser("ship", help="Verify proof graph and ship story")
+    ship_parser.add_argument("story", type=str, help="Target Story ID to verify and ship")
+
     args = parser.parse_args(argv)
     workspace_root = Path(args.workspace).resolve()
 
@@ -85,6 +100,15 @@ def main(argv=None) -> int:
             return cmd_graph_impact(args, workspace_root)
         elif args.graph_action == "export":
             return cmd_graph_export(args, workspace_root)
+    elif args.command == "context":
+        from agtoosa.cli.lifecycle_cmd import cmd_context_compile
+        return cmd_context_compile(args, workspace_root)
+    elif args.command == "review":
+        from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_review
+        return cmd_lifecycle_review(args, workspace_root)
+    elif args.command == "ship":
+        from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_ship
+        return cmd_lifecycle_ship(args, workspace_root)
 
     parser.print_help()
     return 0

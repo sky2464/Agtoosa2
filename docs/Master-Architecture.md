@@ -15,7 +15,7 @@ Agtoosa2 unifies code comprehension, project planning, and delivery assurance in
 
 | Attribute | Target | Architectural Mechanism |
 |---|---|---|
-| **Simplicity** | Single cross-platform runtime | Modern Python 3.11+ CLI replacing dual Bash/PowerShell codebases. |
+| **Simplicity** | Single cross-platform runtime | Modern Python 3.14+ CLI replacing dual Bash/PowerShell codebases. |
 | **Performance** | Sub-second queries, fast indexing | SQLite transactional storage with FTS5 inverted indexes and NetworkX in-memory graphs. |
 | **Token Efficiency** | >70% context reduction for LLMs | Graph-compiled Context Packs (Context RAG v2) instead of giant static prompt dumps. |
 | **Integrity** | Mathematical proof of readiness | Graph invariant verification for `Spec → Build → Review → Ship` transitions. |

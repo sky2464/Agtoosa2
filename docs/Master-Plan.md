@@ -39,7 +39,7 @@ flowchart LR
     S3 --> S9[Stage 9: Review Intelligence]
 ```
 
-### Milestone 1: Knowledge Engine Core (v2.0-alpha)
+### Milestone 1: Knowledge Engine Core (v0.2.0-alpha)
 - **DEV-001 (Stage 1) — Core Foundation & AST Knowledge Graph** [✅ Done]
   - Python 3.11+ packaging, zero-service architecture, single `agtoosa` CLI.
   - Parsers for Python, JavaScript/TypeScript, and Shell.
@@ -50,7 +50,7 @@ flowchart LR
   - NetworkX directed graph analysis (symbol resolution, call hierarchy).
   - Commands: `agtoosa graph explain <symbol>`, `agtoosa graph path <from> <to>`, `agtoosa graph impact <target>`.
 
-### Milestone 2: Lifecycle Integration & Agent Context (v2.0-beta)
+### Milestone 2: Lifecycle Integration & Agent Context (v0.2.0-beta)
 - **DEV-003 (Stage 3) — Graph-Driven Lifecycle & Context Compilation v2** [⬜ Backlog]
   - Ingestion of Story, Criterion, Task, and Test nodes into the knowledge graph.
   - Context RAG v2: Bounded subgraph prompt compilation replacing bloated markdown templates.
@@ -60,7 +60,7 @@ flowchart LR
   - Built-in MCP server (`agtoosa mcp`) providing real-time tools for Cursor, Claude Code, Windsurf, Gemini, and Copilot.
   - Tools: `get_symbol_context`, `query_impact_radius`, `get_active_task_context`, `record_task_evidence`.
 
-### Milestone 3: Visualization & Parity Breadth (v2.0-GA)
+### Milestone 3: Visualization & Parity Breadth (v0.2.0-GA)
 - **DEV-005 (Stage 5) — Interactive Architecture Exploration & Visualizer** [⬜ Backlog]
   - Bundled Cytoscape.js standalone offline viewer (`agtoosa graph view`).
   - Community clustering (Louvain / modularity), PageRank importance scoring, cycle detection.

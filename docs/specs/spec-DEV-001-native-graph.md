@@ -86,18 +86,18 @@ sequenceDiagram
 
 ### Wave 1: Foundation & Store
 - [x] **Task 1.1**: Define Python package configuration (`pyproject.toml`) and base directory layout.
-- [ ] **Task 1.2**: Implement `agtoosa/core/model.py` with `Node`, `Edge`, and entity dataclasses.
-- [ ] **Task 1.3**: Implement `agtoosa/graph/store.py` with SQLite schema creation, FTS5 virtual table, and batch inserts.
+- [x] **Task 1.2**: Implement `agtoosa/core/model.py` with `Node`, `Edge`, and entity dataclasses.
+- [x] **Task 1.3**: Implement `agtoosa/graph/store.py` with SQLite schema creation, FTS5 virtual table, and batch inserts.
 
 ### Wave 2: AST Parsers & Scanner
-- [ ] **Task 2.1**: Implement file scanner with ignore rules (`.git`, `node_modules`, `venv`, hidden files).
-- [ ] **Task 2.2**: Implement AST extractor for Python (functions, classes, imports, docstrings).
-- [ ] **Task 2.3**: Implement AST extractor for JavaScript/TypeScript and Shell scripts.
+- [x] **Task 2.1**: Implement file scanner with ignore rules (`.git`, `node_modules`, `venv`, hidden files).
+- [x] **Task 2.2**: Implement AST extractor for Python (functions, classes, imports, docstrings).
+- [x] **Task 2.3**: Implement AST extractor for JavaScript/TypeScript and Shell scripts.
 
 ### Wave 3: CLI Interface & Verification
-- [ ] **Task 3.1**: Implement unified CLI in `agtoosa/cli/main.py` and `bin/agtoosa`.
-- [ ] **Task 3.2**: Implement commands: `build`, `status`, `query`, and `export`.
-- [ ] **Task 3.3**: Write automated tests in `tests/` and verify end-to-end execution.
+- [x] **Task 3.1**: Implement unified CLI in `agtoosa/cli/main.py` and `bin/agtoosa`.
+- [x] **Task 3.2**: Implement commands: `build`, `status`, `query`, and `export`.
+- [x] **Task 3.3**: Write automated tests in `tests/` and verify end-to-end execution.
 
 ---
 

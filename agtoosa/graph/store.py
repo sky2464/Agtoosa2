@@ -255,6 +255,7 @@ class GraphStore:
                 for r in out_rows:
                     d = dict(r)
                     d["direction"] = "out"
+                    d["metadata"] = json.loads(d.pop("metadata_json", "{}") or "{}")
                     results.append(d)
 
             if direction in ("in", "both"):
@@ -270,6 +271,7 @@ class GraphStore:
                 for r in in_rows:
                     d = dict(r)
                     d["direction"] = "in"
+                    d["metadata"] = json.loads(d.pop("metadata_json", "{}") or "{}")
                     results.append(d)
 
             return results
