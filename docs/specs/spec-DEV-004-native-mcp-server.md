@@ -60,9 +60,9 @@ sequenceDiagram
 ## 3. Tasks & Dependency Waves
 
 ### Wave 1: MCP Server Implementation
-- [ ] **Task 1.1**: Implement `agtoosa/mcp/server.py` supporting standard JSON-RPC 2.0 message loop.
-- [ ] **Task 1.2**: Implement handlers for `initialize`, `tools/list`, and `tools/call`.
+- [x] **Task 1.1**: Implement `agtoosa/mcp/server.py` supporting standard JSON-RPC 2.0 message loop.
+- [x] **Task 1.2**: Implement handlers for `initialize`, `tools/list`, and `tools/call`.
 
 ### Wave 2: CLI Wiring & Testing
-- [ ] **Task 2.1**: Wire `agtoosa mcp` CLI command.
-- [ ] **Task 2.2**: Write unit tests in `tests/test_mcp.py` exercising tool discovery and execution via mock stdio.
+- [x] **Task 2.1**: Wire `agtoosa mcp` CLI command.
+- [x] **Task 2.2**: Write unit tests in `tests/test_mcp.py` exercising tool discovery and execution via mock stdio.
