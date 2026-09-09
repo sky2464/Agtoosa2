@@ -65,13 +65,13 @@ flowchart TD
 ## 3. Tasks & Dependency Waves
 
 ### Wave 1: Incremental Caching & Deletion Sync
-- [ ] **Task 1.1**: Add `file_fingerprints` table to store file paths, SHA-256 hashes, and modification times.
-- [ ] **Task 1.2**: Update `ParserEngine.index_workspace` to skip unchanged files and purge deleted files.
+- [x] **Task 1.1**: Add `file_fingerprints` table to store file paths, SHA-256 hashes, and modification times.
+- [x] **Task 1.2**: Update `ParserEngine.index_workspace` to skip unchanged files and purge deleted files.
 
 ### Wave 2: Graph Traversal & Investigation Engine
-- [ ] **Task 2.1**: Implement `agtoosa.graph.query` module with `explain_node`, `find_path`, and `compute_impact`.
-- [ ] **Task 2.2**: Wire CLI subcommands: `agtoosa graph explain`, `agtoosa graph path`, `agtoosa graph impact`.
+- [x] **Task 2.1**: Implement `agtoosa.graph.query` module with `explain_node`, `find_path`, and `compute_impact`.
+- [x] **Task 2.2**: Wire CLI subcommands: `agtoosa graph explain`, `agtoosa graph path`, `agtoosa graph impact`.
 
 ### Wave 3: Testing & Verification
-- [ ] **Task 3.1**: Write unit tests for incremental updates, deletion cascade, pathfinding, and impact analysis.
-- [ ] **Task 3.2**: Benchmark incremental indexing speedup on Agtoosa2 repo.
+- [x] **Task 3.1**: Write unit tests for incremental updates, deletion cascade, pathfinding, and impact analysis.
+- [x] **Task 3.2**: Benchmark incremental indexing speedup on Agtoosa2 repo.
