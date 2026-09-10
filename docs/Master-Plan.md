@@ -11,8 +11,8 @@
 | Repository | `https://github.com/sky2464/Agtoosa2` |
 | Version | `2.0.0-dev` |
 | Core Engine | Python 3.11+ (Tree-sitter, SQLite FTS5, NetworkX) |
-| Active Cycle | DEV-006 (Stage 6: Broad Language & Schema Coverage) |
-| Current Milestone | `v0.2.0.0-rc.1` |
+| Active Cycle | DEV-009 (Continuous Watcher & Push MCP Notifications) |
+| Current Milestone | `v0.2.0.0-rc.2` |
 
 ---
 
@@ -20,7 +20,7 @@
 
 | ID | Title | Type | Estimate | Status | Primary Deliverable |
 |---|---|---|---|---|---|
-| **DEV-006** | Broad Language & Schema Coverage | Feature | L | ⬜ Backlog | Polyglot parser coverage: Go, Rust, Java/Kotlin, C/C++, C#, SQL DDL, Terraform, Dockerfile |
+| **DEV-009** | Continuous Watcher & MCP Push | Feature | M | 🔄 In Planning | Inotify/FSEvents daemon, real-time incremental graph sync, MCP resource change subscriptions |
 
 ## Completed Cycles
 
@@ -31,6 +31,9 @@
 | **DEV-003** | Graph-Driven Lifecycle & Context Compilation v0.2 | Feature | ✅ Done | Spec/Story/Criteria/Task ingestion, Context Compiler v0.2 (Graph RAG), `review`, and mathematical proof `ship` gates |
 | **DEV-004** | Native Model Context Protocol (MCP) Server | Feature | ✅ Done | Built-in stdio/SSE MCP server exposing real-time graph navigation tools to AI coding agents |
 | **DEV-005** | Interactive Architecture Exploration & Visualizer | Feature | ✅ Done | Offline Cytoscape.js HTML visualizer (`agtoosa graph view`), architecture health & cycle reports (`agtoosa graph report`), and multi-format exports (Obsidian, GraphML, Cypher, DOT) |
+| **DEV-006** | Broad Polyglot Language & Schema Coverage | Feature | ✅ Done | Polyglot parser supporting Go, Rust, Java, Kotlin, C/C++, C#, SQL DDL, and Dockerfile |
+| **DEV-007** | Zero-Trust Security Hardening | Security | ✅ Done | Visualizer CSP & anti-XSS serialization; workspace sandboxing & symlink guards; .gitignore enforcement; secret redaction; MCP depth & line clamps; SQLite PRAGMA hardening |
+| **DEV-008** | High-Scale Performance & Streaming Optimization | Performance | ✅ Done | O(1) memory chunked streaming (`stream_nodes`, `stream_edges`); in-database recursive SQL CTE for impact traversal; single-pass compound FTS5 queries |
 
 ---
 
@@ -42,10 +45,11 @@ flowchart LR
     S2 --> S3[Stage 3: Lifecycle RAG ✅]
     S3 --> S4[Stage 4: Native MCP Server ✅]
     S3 --> S5[Stage 5: Visual Explorer ✅]
-    S2 --> S6[Stage 6: Broad Languages]
-    S3 --> S7[Stage 7: Doc Ingestion]
-    S4 --> S8[Stage 8: Continuous Access]
-    S3 --> S9[Stage 9: Review Intelligence]
+    S2 --> S6[Stage 6: Polyglot Parsers ✅]
+    S2 --> S7[Stage 7: Zero-Trust Security ✅]
+    S2 --> S8[Stage 8: Streaming Scale ✅]
+    S4 --> S9[Stage 9: Continuous Watcher 🔄]
+    S3 --> S10[Stage 10: Review Intelligence ⬜]
 ```
 
 ### Milestone 1: Knowledge Engine Core (v0.2.0-alpha)
@@ -67,18 +71,26 @@ flowchart LR
   - Built-in MCP server (`agtoosa mcp`) providing real-time tools for Cursor, Claude Code, Windsurf, Gemini, and Copilot.
   - Tools: `get_symbol_context`, `query_impact_radius`, `get_active_task_context`, `record_task_evidence`.
 
-### Milestone 3: Visualization & Parity Breadth (v0.2.0-GA)
+### Milestone 3: Production Hardening, Scale & Breadth (v0.2.0-rc.2)
 - **DEV-005 (Stage 5) — Interactive Architecture Exploration & Visualizer** [✅ Done]
   - Bundled standalone offline viewer (`agtoosa graph view`).
-  - Community clustering (Louvain / modularity), PageRank importance scoring, cycle detection, health scorecard (`agtoosa graph report`).
-  - Multi-format exports: Markdown wiki / Obsidian vault, GraphML, Cypher, DOT (`agtoosa graph export --format ...`).
-- **DEV-006 (Stage 6) — Broad Language & Schema Coverage** [⬜ Backlog]
-  - Tree-sitter grammar modules: Go, Rust, C/C++, Java, Kotlin, C#, Ruby, PHP, SQL DDL, Terraform, Dockerfile.
-- **DEV-007 (Stage 7) — Document, Schema & Media Ingestion** [⬜ Backlog]
-  - Local PDF, Markdown, and Office document parsing with page/heading provenance.
-  - Multimodal image and diagram understanding via active assistant context.
-- **DEV-008 (Stage 8) — Continuous & Multi-Project Access** [⬜ Backlog]
-  - Background filesystem watcher (`agtoosa graph watch`), composable Git hooks (`agtoosa graph hooks`).
-  - Multi-worktree and federated cross-project graph queries.
-- **DEV-009 (Stage 9) — Review Intelligence & Project Memory** [⬜ Backlog]
-  - PR/branch graph diffs (`agtoosa graph prs`), feedback logging (`agtoosa graph remember`), and architectural lessons (`agtoosa graph reflect`).
+  - Community clustering, PageRank importance scoring, cycle detection, health scorecard (`agtoosa graph report`).
+  - Multi-format exports: Markdown wiki / Obsidian vault, GraphML, Cypher, DOT.
+- **DEV-006 (Stage 6) — Broad Polyglot Language & Schema Coverage** [✅ Done]
+  - Polyglot parser supporting Go, Rust, Java, Kotlin, C/C++, C#, SQL DDL tables & views, and Dockerfiles.
+- **DEV-007 (Stage 7) — Zero-Trust Security Hardening** [✅ Done]
+  - Strict Content-Security-Policy & anti-XSS HTML escaping in visualizer.
+  - Workspace scanner sandboxing, canonical path boundary checks, and symlink escape defenses.
+  - Automated regex secret and private key redaction in nodes and docstrings.
+  - .gitignore pattern loading and enforcement during workspace scans.
+  - MCP JSON-RPC protocol max depth and line byte clamping.
+- **DEV-008 (Stage 8) — High-Scale Performance & Streaming Optimization** [✅ Done]
+  - O(1) memory footprint chunked generators (`stream_nodes`, `stream_edges`).
+  - In-database SQLite `WITH RECURSIVE` CTE for blast radius calculations (`compute_impact`).
+  - Single-pass compound boolean FTS5 query optimization in Context Compiler.
+
+### Milestone 4: Next Horizons (v0.2.0-GA)
+- **DEV-009 (Stage 9) — Continuous Watcher & MCP Push Notifications** [🔄 In Planning]
+  - Background filesystem watcher (`agtoosa graph watch`), incremental sync on save.
+- **DEV-010 (Stage 10) — Review Intelligence & Architecture Drift Alarms** [⬜ Backlog]
+  - PR/branch graph diffs (`agtoosa graph prs`), feedback logging (`agtoosa graph remember`), and architectural lessons.

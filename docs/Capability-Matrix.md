@@ -1,7 +1,7 @@
 # Agtoosa2 — Capability Matrix & Parity Definition
 
 > **Reference Benchmark:** Graphify Open-Source Capabilities & Enterprise Graph OS.  
-> **Status:** Stages 1–5 complete; Stage 6 (DEV-006) in active delivery; Stages 7–10 mapped.
+> **Status:** Stages 1–8 complete; Stage 9 (DEV-009) in active planning; Stage 10 (DEV-010) mapped.
 
 ---
 
@@ -16,16 +16,16 @@
 | **Incremental Fingerprinting** | `agtoosa graph build` (incremental) | **Stage 2** (DEV-002) | SHA-256 content hashes | `tests/test_incremental.py` |
 | **Symbol Explanation & Provenance**| `agtoosa graph explain "<symbol>"`| **Stage 2** (DEV-002) | Symbol or file path | `tests/test_explain.py` |
 | **Directed Path Tracing** | `agtoosa graph path "<A>" "<B>"` | **Stage 2** (DEV-002) | Source & target nodes | `tests/test_path.py` |
-| **Impact Radius Analysis** | `agtoosa graph impact "<target>"` | **Stage 2** (DEV-002) | Modified symbol / file | `tests/test_impact.py` |
+| **Impact Radius Analysis** | `agtoosa graph impact "<target>"` | **Stage 2** (DEV-002) | Modified symbol / file | `tests/test_scaling.py` |
 | **Lifecycle Node Ingestion** | `agtoosa spec`, `agtoosa build` | **Stage 3** (DEV-003) | Spec markdown, tasks | `tests/test_lifecycle.py` |
-| **Context Compilation v2 (RAG)** | `agtoosa context compile <task>` | **Stage 3** (DEV-003) | Task ID, radius k | `tests/test_context_compiler.py`|
+| **Context Compilation v2 (RAG)** | `agtoosa context compile <task>` | **Stage 3** (DEV-003) | Task ID, radius k | `tests/test_scaling.py` |
 | **Mathematical Proof Validation**| `agtoosa ship verify` | **Stage 3** (DEV-003) | Story → Test → Evidence | `tests/test_proof_gate.py` |
 | **Native MCP Server Tools** | `agtoosa mcp` | **Stage 4** (DEV-004) | JSON-RPC stdio/SSE | `tests/test_mcp.py` |
 | **C4 Architecture Visualizer** | `agtoosa graph view` | **Stage 5** (DEV-005) | Standalone C4 Command Center | `tests/test_visualizer.py` |
 | **Governance Scorecard & PageRank**| `agtoosa graph report` | **Stage 5** (DEV-005) | Tarjan cycle & PageRank | `tests/test_metrics.py` |
 | **Multi-Format Graph Exports** | `agtoosa graph export --obsidian`| **Stage 5** (DEV-005) | Obsidian, GraphML, Cypher, DOT| `tests/test_export.py` |
-| **Broad Language Parsers** | `agtoosa graph build` | **Stage 6** (DEV-006) | Rust, Go, Java, C/C++, SQL | `tests/fixtures/languages/` |
-| **Zero-Trust Security & Sandbox**| `agtoosa scan --strict` | **Stage 7** (DEV-007) | XSS-safe CSP, secret redaction, path traversal sandbox | `tests/test_security.py` |
-| **High-Scale Streaming Store** | `agtoosa graph build --stream` | **Stage 8** (DEV-008) | O(1) memory generators, Recursive CTEs, multi-worker WAL | `tests/test_scaling.py` |
+| **Broad Language Parsers** | `agtoosa graph build` | **Stage 6** (DEV-006) | Go, Rust, Java, Kotlin, C/C++, C#, SQL DDL, Dockerfile | `tests/test_polyglot.py` |
+| **Zero-Trust Security & Sandbox**| Scanner & Visualizer | **Stage 7** (DEV-007) | XSS-safe CSP, secret redaction, path traversal sandbox, .gitignore | `tests/test_security.py` |
+| **High-Scale Streaming Store** | `stream_nodes()`, CTE queries | **Stage 8** (DEV-008) | O(1) memory chunked generators, recursive CTEs, compound FTS5 queries | `tests/test_scaling.py` |
 | **Continuous Sync & MCP Push** | `agtoosa graph watch/hooks` | **Stage 9** (DEV-009) | Filesystem daemon, Git hooks, real-time MCP notifications | `tests/test_watcher.py` |
 | **PR Diffs & Drift Alarms** | `agtoosa graph prs/diff` | **Stage 10** (DEV-010)| Git branches, drift alarms, architectural memory bank | `tests/test_intelligence.py`|

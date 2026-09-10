@@ -209,9 +209,19 @@ class GraphStore:
         if not clean_query:
             return []
 
-        # Format terms for prefix matching
+        # Format terms for prefix matching while preserving FTS5 boolean operators
         terms = [t for t in clean_query.split() if t]
-        fts_expr = " ".join(f'"{term}"*' for term in terms)
+        parts = []
+        for term in terms:
+            if term.upper() in ("OR", "AND", "NOT"):
+                parts.append(term.upper())
+            elif term.startswith('"') and term.endswith('"'):
+                parts.append(term)
+            else:
+                clean_term = term.strip('"*')
+                if clean_term:
+                    parts.append(f'"{clean_term}"*')
+        fts_expr = " ".join(parts)
 
         with self._get_connection() as conn:
             try:

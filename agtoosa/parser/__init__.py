@@ -10,6 +10,7 @@ from agtoosa.parser.python_parser import PythonASTParser
 from agtoosa.parser.shell_parser import ShellScriptParser
 from agtoosa.parser.js_ts_parser import JavaScriptTypeScriptParser
 from agtoosa.parser.doc_parser import MarkdownDocParser
+from agtoosa.parser.polyglot_parser import PolyglotParser
 from agtoosa.parser.scanner import scan_workspace
 
 
@@ -21,7 +22,8 @@ class ParserEngine:
             PythonASTParser(),
             ShellScriptParser(),
             JavaScriptTypeScriptParser(),
-            MarkdownDocParser()
+            MarkdownDocParser(),
+            PolyglotParser(),
         ]
 
     def index_workspace(self, workspace_root: Path, store: GraphStore, clean: bool = False) -> GraphStats:

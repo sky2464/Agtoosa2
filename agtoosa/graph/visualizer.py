@@ -1361,7 +1361,7 @@ class VisualizerEngine:
 
   <script>
     // HTML Sanitization for XSS Defense
-    function escapeHtml(str) {
+    function escapeHtml(str) {{
       if (str === null || str === undefined) return "";
       return String(str)
         .replace(/&/g, "&amp;")
@@ -1369,7 +1369,7 @@ class VisualizerEngine:
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
-    }
+    }}
 
     // Injected Data Payloads
     const graphData = {json_payload};
