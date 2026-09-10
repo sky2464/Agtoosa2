@@ -156,6 +156,7 @@ class TestCLIVersionDiagnostics(unittest.TestCase):
     def test_cli_version_human_readable(self):
         import io
         from contextlib import redirect_stdout
+        from agtoosa import __version__
 
         f = io.StringIO()
         with redirect_stdout(f):
@@ -163,7 +164,7 @@ class TestCLIVersionDiagnostics(unittest.TestCase):
 
         output = f.getvalue()
         self.assertEqual(ret, 0)
-        self.assertIn("Agtoosa2 v0.2.1-dev", output)
+        self.assertIn(f"Agtoosa2 v{__version__}", output)
         self.assertIn("Execution Mode:", output)
         self.assertIn("Platform:", output)
         self.assertIn("SQLite Engine:", output)
@@ -172,6 +173,7 @@ class TestCLIVersionDiagnostics(unittest.TestCase):
     def test_cli_version_json(self):
         import io
         from contextlib import redirect_stdout
+        from agtoosa import __version__
 
         f = io.StringIO()
         with redirect_stdout(f):
@@ -180,7 +182,7 @@ class TestCLIVersionDiagnostics(unittest.TestCase):
         output = f.getvalue()
         self.assertEqual(ret, 0)
         data = json.loads(output)
-        self.assertEqual(data["version"], "0.2.1-dev")
+        self.assertEqual(data["version"], __version__)
         self.assertTrue(data["fts5_enabled"])
         self.assertIn("sqlite_version", data)
         self.assertIn("execution_mode", data)

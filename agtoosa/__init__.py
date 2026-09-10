@@ -1,3 +1,3 @@
 """Agtoosa2: Unified Graph-Native Engineering Operating System."""
 
-__version__ = "0.2.1-dev"
+__version__ = "0.2.1"

@@ -271,7 +271,7 @@ def cmd_graph_path(args: Any, workspace_root: Path) -> int:
 
 
 def cmd_graph_impact(args: Any, workspace_root: Path) -> int:
-    """Analyze blast radius when an entity is changed."""
+    """Analyze blast radius when an entity is changed across local and federated repositories."""
     from agtoosa.graph.query import compute_impact
 
     db_path = get_default_db_path(workspace_root)
@@ -281,7 +281,8 @@ def cmd_graph_impact(args: Any, workspace_root: Path) -> int:
 
     store = GraphStore(db_path)
     depth = getattr(args, "depth", 3)
-    res = compute_impact(store, args.target, max_depth=depth)
+    federated = getattr(args, "federated", False)
+    res = compute_impact(store, args.target, max_depth=depth, federated=federated)
 
     if not res:
         print(f"❌ Entity not found matching: '{args.target}'")
@@ -293,14 +294,18 @@ def cmd_graph_impact(args: Any, workspace_root: Path) -> int:
         return 0
 
     target = res["target"]
-    print(f"💥 Blast Radius Analysis for: {target['node_type'].upper()} {target['name']} ({target['path']})")
+    fed_badge = " (Federated Multi-Repo)" if federated else ""
+    print(f"💥 Blast Radius Analysis{fed_badge} for: {target['node_type'].upper()} {target['name']} ({target['path']})")
     print(f"   • Total Affected Entities: {res['impacted_count']} (up to depth {depth})")
+    if res.get("federated_repos_impacted"):
+        print(f"   • Cross-Service Impact:    Affected repos: {', '.join(res['federated_repos_impacted'])}")
 
     if res["impacted"]:
         print("\n   ⚠️  Upstream Callers & Dependent Files:")
         for imp in res["impacted"]:
             indent = " " * (imp["depth"] * 2)
-            print(f"   {indent}└─ [Hop {imp['depth']}] {imp['node_type'].upper()}: {imp['name']} ({imp['path']}) via {imp['relationship']}")
+            repo_info = f" [Repo: {imp['repo']}]" if imp.get("repo") and imp["repo"] != "local" else ""
+            print(f"   {indent}└─ [Hop {imp['depth']}] {imp['node_type'].upper()}: {imp['name']} ({imp['path']}){repo_info} via {imp['relationship']}")
 
     return 0
 
@@ -486,4 +491,86 @@ def cmd_graph_embeddings_status(args: Any, workspace_root: Path) -> int:
     print(f"   • Vector Dimension: 128-D dense subword/n-gram hashing projection")
     print(f"   • Distance Metric: Cosine Similarity (dot product)")
     print(f"   • Status: {'Ready' if embedding_count > 0 else 'Unindexed (run agtoosa graph embeddings build)'}")
+    return 0
+
+
+def cmd_graph_federate(args: Any, workspace_root: Path) -> int:
+    """Manage cross-repository graph federation and contract syncing."""
+    import json
+    from agtoosa.federation.manager import FederationManager
+
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    store = GraphStore(db_path)
+    manager = FederationManager(store, workspace_root)
+    action = getattr(args, "federate_action", "list")
+
+    if action == "add":
+        name = args.name
+        uri = args.uri
+        schema = getattr(args, "schema", None)
+        res = manager.add_repository(name=name, uri=uri, schema_path=schema)
+        print(f"🌐 Registered federated repository '{name}':")
+        print(f"   • URI:        {res['uri']}")
+        print(f"   • Local Path: {res['local_path']}")
+        print(f"   • Type:       {res['repo_type']}")
+        if res.get("schema_path"):
+            print(f"   • Contract:   {res['schema_path']}")
+        print(f"   Run 'agtoosa graph federate sync {name}' to ingest and link contracts.")
+        return 0
+
+    elif action == "list":
+        repos = manager.list_repositories()
+        if getattr(args, "json", False):
+            print(json.dumps(repos, indent=2))
+            return 0
+
+        if not repos:
+            print("🌐 No federated repositories registered.")
+            print("   Use 'agtoosa graph federate add <name> <path-or-url>' to link an external service.")
+            return 0
+
+        print(f"🌐 Registered Federated Repositories ({len(repos)}):")
+        for r in repos:
+            synced = r.get("synced_at") or "Never"
+            contract_info = f" | Contract: {r['schema_path']}" if r.get("schema_path") else ""
+            print(f"   • {r['name']} ({r['repo_type']}) ➔ {r['uri']}{contract_info} [Last Sync: {synced}]")
+        return 0
+
+    elif action == "remove":
+        name = args.name
+        ok = manager.remove_repository(name)
+        if ok:
+            print(f"🗑️  Removed federated repository '{name}' and purged its nodes from knowledge graph.")
+            return 0
+        else:
+            print(f"⚠️  Repository '{name}' not found.")
+            return 1
+
+    elif action == "sync":
+        name = getattr(args, "name", None)
+        clean = getattr(args, "clean", False)
+        if name:
+            try:
+                print(f"⚡ Syncing federated repository '{name}'...")
+                res = manager.sync_repository(name, clean=clean)
+                print(f"✅ Federated repository '{name}' synchronized:")
+                print(f"   • Nodes Indexed:       {res['nodes_indexed']}")
+                print(f"   • Edges Indexed:       {res['edges_indexed']}")
+                print(f"   • Cross-Repo Callers:  {res['cross_edges']}")
+                return 0
+            except ValueError as e:
+                print(f"❌ {e}")
+                return 1
+        else:
+            print("⚡ Syncing all federated repositories...")
+            res = manager.sync_all(clean=clean)
+            print(f"✅ Synchronized {res['synced_count']} federated repository(ies).")
+            for item in res["repositories"]:
+                print(f"   • {item['name']}: {item['nodes_indexed']} nodes, {item['cross_edges']} cross-repo links")
+            return 0
+
     return 0

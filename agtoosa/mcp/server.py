@@ -55,9 +55,28 @@ class MCPServer:
                     "type": "object",
                     "properties": {
                         "target": {"type": "string", "description": "Modified symbol or file"},
-                        "depth": {"type": "integer", "description": "Max traversal depth", "default": 3}
+                        "depth": {"type": "integer", "description": "Max traversal depth", "default": 3},
+                        "federated": {"type": "boolean", "description": "Include cross-repository callers and dependents", "default": True}
                     },
                     "required": ["target"]
+                }
+            },
+            {
+                "name": "agtoosa_list_federated_repos",
+                "description": "List all registered federated repositories and their contract synchronization status.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                }
+            },
+            {
+                "name": "agtoosa_sync_federation",
+                "description": "Synchronize and ingest API schema contracts from registered federated repositories.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "repo_name": {"type": "string", "description": "Specific repository alias or omit for all"}
+                    }
                 }
             },
             {
@@ -119,6 +138,20 @@ class MCPServer:
             results = hybrid_search(self.store, query, top_k=limit)
             return json.dumps(results, indent=2)
 
+        elif name == "agtoosa_list_federated_repos":
+            repos = self.store.get_federated_repos()
+            return json.dumps(repos, indent=2)
+
+        elif name == "agtoosa_sync_federation":
+            from agtoosa.federation.manager import FederationManager
+            mgr = FederationManager(self.store, self.workspace_root)
+            repo_name = args.get("repo_name")
+            try:
+                res = mgr.sync_repository(repo_name) if repo_name else mgr.sync_all()
+                return json.dumps(res, indent=2)
+            except Exception as e:
+                return json.dumps({"error": str(e)}, indent=2)
+
         elif name == "agtoosa_get_symbol":
             symbol = args.get("symbol", "")
             res = explain_node(self.store, symbol)
@@ -127,11 +160,12 @@ class MCPServer:
         elif name == "agtoosa_query_impact":
             target = args.get("target", "")
             raw_depth = args.get("depth", 3)
+            federated = args.get("federated", True)
             try:
                 depth = max(1, min(int(raw_depth), 5))
             except (ValueError, TypeError):
                 depth = 3
-            res = compute_impact(self.store, target, max_depth=depth)
+            res = compute_impact(self.store, target, max_depth=depth, federated=federated)
             return json.dumps(res or {"error": f"Target '{target}' not found"}, indent=2)
 
         elif name == "agtoosa_get_task_context":

@@ -93,6 +93,16 @@ class GraphStore:
                 );
                 CREATE INDEX IF NOT EXISTS idx_node_embeddings_id ON node_embeddings(node_id);
 
+                CREATE TABLE IF NOT EXISTS federated_repos (
+                    name TEXT PRIMARY KEY,
+                    uri TEXT NOT NULL,
+                    local_path TEXT NOT NULL,
+                    repo_type TEXT NOT NULL,
+                    schema_path TEXT,
+                    synced_at TEXT,
+                    metadata_json TEXT
+                );
+
                 CREATE VIRTUAL TABLE IF NOT EXISTS nodes_fts USING fts5(
                     id UNINDEXED,
                     name,
@@ -195,6 +205,80 @@ class GraphStore:
         """Clear all stored embeddings."""
         with self._get_connection() as conn:
             conn.execute("DELETE FROM node_embeddings;")
+
+    def add_federated_repo(
+        self,
+        name: str,
+        uri: str,
+        local_path: str,
+        repo_type: str = "local_dir",
+        schema_path: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """Register or update a federated repository."""
+        meta_json = json.dumps(metadata or {})
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO federated_repos 
+                (name, uri, local_path, repo_type, schema_path, metadata_json)
+                VALUES (?, ?, ?, ?, ?, ?);
+                """,
+                (name, uri, local_path, repo_type, schema_path, meta_json)
+            )
+
+    def get_federated_repos(self) -> List[Dict[str, Any]]:
+        """List all registered federated repositories."""
+        with self._get_connection() as conn:
+            rows = conn.execute("SELECT * FROM federated_repos ORDER BY name;").fetchall()
+            results = []
+            for r in rows:
+                d = dict(r)
+                d["metadata"] = json.loads(d.pop("metadata_json", "{}") or "{}")
+                results.append(d)
+            return results
+
+    def get_federated_repo(self, name: str) -> Optional[Dict[str, Any]]:
+        """Retrieve a specific federated repository by name."""
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT * FROM federated_repos WHERE name = ?;", (name,)).fetchone()
+            if not row:
+                return None
+            d = dict(row)
+            d["metadata"] = json.loads(d.pop("metadata_json", "{}") or "{}")
+            return d
+
+    def update_federated_repo_sync(self, name: str, synced_at: Optional[str] = None) -> None:
+        """Update the synced_at timestamp for a federated repository."""
+        ts = synced_at or datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            conn.execute(
+                "UPDATE federated_repos SET synced_at = ? WHERE name = ?;",
+                (ts, name)
+            )
+
+    def remove_federated_repo(self, name: str) -> bool:
+        """Remove a federated repository and all its indexed nodes and edges."""
+        self.remove_repo_nodes(name)
+        with self._get_connection() as conn:
+            cur = conn.execute("DELETE FROM federated_repos WHERE name = ?;", (name,))
+            return cur.rowcount > 0
+
+    def remove_repo_nodes(self, repo_name: str) -> None:
+        """Remove all nodes and edges belonging to a federated repository."""
+        prefix = f"repo:{repo_name}:%"
+        with self._get_connection() as conn:
+            # Find nodes with prefixed IDs or matching repo metadata
+            rows = conn.execute(
+                "SELECT id FROM nodes WHERE id LIKE ? OR metadata_json LIKE ?;",
+                (prefix, f'%"repo": "{repo_name}"%')
+            ).fetchall()
+            node_ids = [r[0] for r in rows]
+            if node_ids:
+                placeholders = ",".join("?" for _ in node_ids)
+                conn.execute(f"DELETE FROM edges WHERE source_id IN ({placeholders}) OR target_id IN ({placeholders});", node_ids + node_ids)
+                conn.execute(f"DELETE FROM node_embeddings WHERE node_id IN ({placeholders});", node_ids)
+                conn.execute(f"DELETE FROM nodes WHERE id IN ({placeholders});", node_ids)
 
     def insert_batch(self, nodes: List[Node], edges: List[Edge]) -> None:
         """Insert a batch of nodes and edges transactionally."""

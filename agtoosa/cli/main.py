@@ -140,6 +140,7 @@ def main(argv=None) -> int:
     impact_p = graph_sub.add_parser("impact", help="Calculate upstream blast radius when an entity changes")
     impact_p.add_argument("target", type=str, help="Modified symbol or file name")
     impact_p.add_argument("-d", "--depth", type=int, default=3, help="Max traversal depth (default: 3)")
+    impact_p.add_argument("--federated", action="store_true", help="Analyze blast radius across local and federated repositories")
     impact_p.add_argument("--json", action="store_true", help="Output as JSON")
 
     # agtoosa graph symbols <file>
@@ -178,6 +179,25 @@ def main(argv=None) -> int:
     emb_build = emb_sub.add_parser("build", help="Build or rebuild vector embeddings for all graph nodes")
     emb_build.add_argument("--clean", action="store_true", help="Clean rebuild of all stored embeddings")
     emb_sub.add_parser("status", help="Report vector embeddings index status")
+
+    # agtoosa graph federate
+    fed_p = graph_sub.add_parser("federate", help="Cross-repository graph federation and contract management")
+    fed_sub = fed_p.add_subparsers(dest="federate_action", required=True)
+
+    fed_add = fed_sub.add_parser("add", help="Register a federated repository (local path or git URL)")
+    fed_add.add_argument("name", type=str, help="Repository unique alias")
+    fed_add.add_argument("uri", type=str, help="Local directory path or Git clone URL")
+    fed_add.add_argument("-s", "--schema", type=str, help="Path to API schema contract (OpenAPI, Proto, GraphQL)")
+
+    fed_list = fed_sub.add_parser("list", help="List registered federated repositories")
+    fed_list.add_argument("--json", action="store_true", help="Output list as JSON")
+
+    fed_sync = fed_sub.add_parser("sync", help="Synchronize and ingest federated repositories and contracts")
+    fed_sync.add_argument("name", type=str, nargs="?", help="Specific repository alias to sync (or all if omitted)")
+    fed_sync.add_argument("--clean", action="store_true", help="Clean rebuild of federated repo nodes")
+
+    fed_rm = fed_sub.add_parser("remove", help="Remove a federated repository and purge its nodes")
+    fed_rm.add_argument("name", type=str, help="Repository unique alias to remove")
 
     # agtoosa context compile <target>
     context_parser = subparsers.add_parser("context", help="Context Compilation v2 (Graph RAG for AI Agents)")
@@ -274,6 +294,9 @@ def main(argv=None) -> int:
             elif args.embeddings_action == "status":
                 from agtoosa.cli.graph_cmd import cmd_graph_embeddings_status
                 return cmd_graph_embeddings_status(args, workspace_root)
+        elif args.graph_action == "federate":
+            from agtoosa.cli.graph_cmd import cmd_graph_federate
+            return cmd_graph_federate(args, workspace_root)
     elif args.command == "context":
         from agtoosa.cli.lifecycle_cmd import cmd_context_compile
         return cmd_context_compile(args, workspace_root)

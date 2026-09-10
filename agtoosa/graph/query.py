@@ -124,8 +124,9 @@ def find_path(store: GraphStore, source_query: str, target_query: str, max_depth
     return None
 
 
-def compute_impact(store: GraphStore, target_query: str, max_depth: int = 3) -> Optional[Dict[str, Any]]:
-    """Compute the upstream blast radius using in-database Recursive CTE for ultra-fast traversal."""
+def compute_impact(store: GraphStore, target_query: str, max_depth: int = 3, federated: bool = True) -> Optional[Dict[str, Any]]:
+    """Compute the upstream blast radius across local and federated repositories."""
+    import json
     target_node = resolve_node(store, target_query)
     if not target_node:
         return None
@@ -146,7 +147,7 @@ def compute_impact(store: GraphStore, target_query: str, max_depth: int = 3) -> 
         JOIN impact_cte ic ON e.target_id = ic.curr_id
         WHERE ic.depth < ?
     )
-    SELECT ic.curr_id AS id, n.name, n.node_type, n.path, MIN(ic.depth) AS depth, ic.rel_type, ic.via_id
+    SELECT ic.curr_id AS id, n.name, n.node_type, n.path, n.metadata_json, MIN(ic.depth) AS depth, ic.rel_type, ic.via_id
     FROM impact_cte ic
     JOIN nodes n ON ic.curr_id = n.id
     WHERE ic.curr_id != ?
@@ -156,23 +157,36 @@ def compute_impact(store: GraphStore, target_query: str, max_depth: int = 3) -> 
 
     with store._get_connection() as conn:
         rows = conn.execute(query_sql, (target_id, safe_depth, target_id)).fetchall()
-        impacted_nodes = [
-            {
+        impacted_nodes = []
+        for r in rows:
+            meta = {}
+            try:
+                meta = json.loads(r["metadata_json"] or "{}")
+            except Exception:
+                pass
+
+            repo = meta.get("repo", "local")
+            if not federated and (repo != "local" or r["id"].startswith("repo:")):
+                continue
+
+            impacted_nodes.append({
                 "id": r["id"],
                 "name": r["name"],
                 "node_type": r["node_type"],
                 "path": r["path"],
                 "depth": r["depth"],
                 "relationship": r["rel_type"],
-                "via": r["via_id"]
-            }
-            for r in rows
-        ]
+                "via": r["via_id"],
+                "repo": repo
+            })
+
+    repos_impacted = sorted(list(set(imp["repo"] for imp in impacted_nodes if imp["repo"] != "local")))
 
     return {
         "target": target_node,
         "impacted_count": len(impacted_nodes),
-        "impacted": impacted_nodes
+        "impacted": impacted_nodes,
+        "federated_repos_impacted": repos_impacted
     }
 
 

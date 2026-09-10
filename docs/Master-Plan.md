@@ -9,10 +9,10 @@
 |---|---|
 | Product | `Agtoosa2` |
 | Repository | `https://github.com/sky2464/Agtoosa2` |
-| Version | `0.2.1-dev` |
+| Version | `0.2.1` (GA Released) |
 | Core Engine | Python 3.11+ (Tree-sitter, SQLite FTS5, NetworkX) |
-| Active Cycle | All 14 Stages Delivered (`v0.2.1-dev` GA Ready) |
-| Current Milestone | `v0.2.x` |
+| Active Cycle | DEV-015 (Stage 15: Cross-Repo Graph Federation) |
+| Current Milestone | `v0.3.0` (Milestone 6: Enterprise Federation & Microservices) |
 
 ---
 
@@ -20,7 +20,7 @@
 
 | ID | Title | Type | Estimate | Status | Primary Deliverable |
 |---|---|---|---|---|---|
-| **—** | All Strategic Roadmap Stages Complete | Release | — | 🚀 Complete | 14/14 Stages Delivered & Verified with 95/95 passing tests |
+| **DEV-015** | Cross-Repo Graph Federation | Feature | L | 📋 Planning | Multi-repository workspace graph ingestion, API contract tracking (OpenAPI/gRPC/GraphQL) |
 
 ## Completed Cycles
 
@@ -60,6 +60,12 @@ flowchart LR
     S11 --> S12[Stage 12: Binary Packaging ✅]
     S4 --> S13[Stage 13: IDE Extension ✅]
     S3 --> S14[Stage 14: Hybrid GraphRAG v2 ✅]
+    S14 --> S15[Stage 15: Cross-Repo Federation 📋]
+    S15 --> S16[Stage 16: Monorepo Boundaries 📋]
+    S15 --> S17[Stage 17: Runtime Observability 📋]
+    S17 --> S18[Stage 18: Production Blast Radius 📋]
+    S10 --> S19[Stage 19: Cycle Decoupler 📋]
+    S19 --> S20[Stage 20: Dead Code Pruning 📋]
 ```
 
 ### Milestone 1: Knowledge Engine Core (v0.2.0-alpha)
@@ -123,3 +129,24 @@ flowchart LR
 - **DEV-014 (Stage 14) — Hybrid GraphRAG v2 & Semantic Vector Search** [✅ Done]
   - Embedded zero-dependency dense vector embeddings, cosine similarity + FTS5 + graph CTE hybrid prompt compiler.
   - Reciprocal Rank Fusion (RRF) search, CLI `agtoosa graph embeddings build/status`, `agtoosa context compile --hybrid`, MCP `agtoosa_hybrid_search`.
+
+### Milestone 6: Enterprise Federation & Microservices (v0.3.0)
+- **DEV-015 (Stage 15) — Cross-Repo Graph Federation** [📋 Planning]
+  - Multi-repository workspace graph ingestion (`agtoosa graph federate <git-url>`).
+  - Distributed blast radius across microservices (OpenAPI/Swagger, gRPC `.proto`, GraphQL schema bindings).
+- **DEV-016 (Stage 16) — Monorepo Package Boundary Enforcement** [📋 Planning]
+  - Workspace package encapsulation policies (`packages/*` boundaries).
+  - Alarms preventing internal non-exported module leakage across packages.
+
+### Milestone 7: Runtime Observability & Dynamic Heatmaps (v0.3.5)
+- **DEV-017 (Stage 17) — OpenTelemetry & Profiler Heatmap Overlay** [📋 Backlog]
+  - Ingest OpenTelemetry trace spans or PySpy profiler data into the knowledge graph.
+  - Live call frequency, execution latency, and error-rate color heatmaps in C4 visualizer.
+- **DEV-018 (Stage 18) — Production Blast Radius** [📋 Backlog]
+  - Weight static AST caller graphs with real-time production traffic percentages.
+
+### Milestone 8: Autonomous Architecture Refactoring Engine (v0.4.0)
+- **DEV-019 (Stage 19) — Automated Cycle Decoupling** [📋 Backlog]
+  - Interactive CLI / agent engine to automatically generate dependency injection interfaces or event-driven adapters that resolve cyclic dependencies detected by Tarjan's algorithm.
+- **DEV-020 (Stage 20) — Dead Code & Zombie Symbol Pruning** [📋 Backlog]
+  - Identify zero-caller unreachable AST nodes and generate safe deprecation/deletion refactors.
