@@ -141,6 +141,7 @@ def main(argv=None) -> int:
     impact_p.add_argument("target", type=str, help="Modified symbol or file name")
     impact_p.add_argument("-d", "--depth", type=int, default=3, help="Max traversal depth (default: 3)")
     impact_p.add_argument("--federated", action="store_true", help="Analyze blast radius across local and federated repositories")
+    impact_p.add_argument("--production", action="store_true", help="Weight blast radius with runtime telemetry traffic and error rates")
     impact_p.add_argument("--json", action="store_true", help="Output as JSON")
 
     # agtoosa graph symbols <file>
@@ -253,6 +254,30 @@ def main(argv=None) -> int:
     ship_parser = subparsers.add_parser("ship", help="Verify proof graph and ship story")
     ship_parser.add_argument("story", type=str, help="Target Story ID to verify and ship")
 
+    # agtoosa telemetry ...
+    telem_parser = subparsers.add_parser("telemetry", help="Runtime observability, OpenTelemetry ingestion, and heatmaps")
+    telem_sub = telem_parser.add_subparsers(dest="telem_action", required=True)
+
+    ingest_p = telem_sub.add_parser("ingest", help="Ingest OpenTelemetry trace spans or profiler data")
+    ingest_p.add_argument("file", type=str, help="Path to OpenTelemetry JSON, Py-Spy, or metrics JSON")
+    ingest_p.add_argument("--format", type=str, choices=["otel", "pyspy", "generic"], help="Format hint")
+
+    status_p = telem_sub.add_parser("status", help="Display runtime telemetry tracking stats")
+    status_p.add_argument("--json", action="store_true", help="Output status as JSON")
+
+    heatmap_p = telem_sub.add_parser("heatmap", help="Compute execution hotspot heatmaps across symbols")
+    heatmap_p.add_argument("--top", type=int, default=20, help="Top N hotspots to display (default: 20)")
+    heatmap_p.add_argument("--json", action="store_true", help="Output heatmap data as JSON")
+
+    clear_p = telem_sub.add_parser("clear", help="Clear all stored runtime telemetry")
+
+    # agtoosa refactor ...
+    refactor_parser = subparsers.add_parser("refactor", help="Autonomous architectural refactoring and cycle decoupling")
+    refactor_sub = refactor_parser.add_subparsers(dest="refactor_action", required=True)
+
+    decouple_p = refactor_sub.add_parser("decouple", help="Generate dependency injection and decoupling blueprints for cyclic dependencies")
+    decouple_p.add_argument("--json", action="store_true", help="Output blueprints as JSON")
+
     # agtoosa mcp
     subparsers.add_parser("mcp", help="Launch native Model Context Protocol (MCP) server on stdio")
 
@@ -328,6 +353,13 @@ def main(argv=None) -> int:
     elif args.command == "ship":
         from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_ship
         return cmd_lifecycle_ship(args, workspace_root)
+    elif args.command == "telemetry":
+        from agtoosa.cli.observability_cmd import cmd_telemetry
+        return cmd_telemetry(args, workspace_root)
+    elif args.command == "refactor":
+        if args.refactor_action == "decouple":
+            from agtoosa.cli.refactor_cmd import cmd_refactor_decouple
+            return cmd_refactor_decouple(args, workspace_root)
     elif args.command == "version":
         return cmd_version(args, workspace_root)
     elif args.command == "mcp":

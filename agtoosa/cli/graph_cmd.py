@@ -282,7 +282,8 @@ def cmd_graph_impact(args: Any, workspace_root: Path) -> int:
     store = GraphStore(db_path)
     depth = getattr(args, "depth", 3)
     federated = getattr(args, "federated", False)
-    res = compute_impact(store, args.target, max_depth=depth, federated=federated)
+    production = getattr(args, "production", False)
+    res = compute_impact(store, args.target, max_depth=depth, federated=federated, production=production)
 
     if not res:
         print(f"❌ Entity not found matching: '{args.target}'")
@@ -295,17 +296,37 @@ def cmd_graph_impact(args: Any, workspace_root: Path) -> int:
 
     target = res["target"]
     fed_badge = " (Federated Multi-Repo)" if federated else ""
-    print(f"💥 Blast Radius Analysis{fed_badge} for: {target['node_type'].upper()} {target['name']} ({target['path']})")
+    prod_badge = " [Production Telemetry Weighted]" if production else ""
+    print(f"💥 Blast Radius Analysis{fed_badge}{prod_badge} for: {target['node_type'].upper()} {target['name']} ({target['path']})")
     print(f"   • Total Affected Entities: {res['impacted_count']} (up to depth {depth})")
     if res.get("federated_repos_impacted"):
         print(f"   • Cross-Service Impact:    Affected repos: {', '.join(res['federated_repos_impacted'])}")
+
+    if res.get("production_blast_radius"):
+        pbr = res["production_blast_radius"]
+        tier_icons = {
+            "P0_CRITICAL": "🔴 P0_CRITICAL",
+            "P1_HIGH": "🟠 P1_HIGH",
+            "P2_MODERATE": "🟡 P2_MODERATE",
+            "P3_LOW": "🔵 P3_LOW",
+            "P4_DORMANT": "⚪ P4_DORMANT",
+        }
+        print(f"   • Production Risk Tier:    {tier_icons.get(pbr['risk_tier'], pbr['risk_tier'])}")
+        print(f"   • Total Traffic at Risk:   {pbr['total_traffic_at_risk']:,} invocations")
+        print(f"   • Weighted Traffic Score:  {pbr['traffic_weighted_score']:,}")
+        print(f"   • Active / Dormant Callers:{pbr['active_callers_count']} active, {pbr['dormant_callers_count']} dormant")
 
     if res["impacted"]:
         print("\n   ⚠️  Upstream Callers & Dependent Files:")
         for imp in res["impacted"]:
             indent = " " * (imp["depth"] * 2)
             repo_info = f" [Repo: {imp['repo']}]" if imp.get("repo") and imp["repo"] != "local" else ""
-            print(f"   {indent}└─ [Hop {imp['depth']}] {imp['node_type'].upper()}: {imp['name']} ({imp['path']}){repo_info} via {imp['relationship']}")
+            prod_info = ""
+            if production:
+                calls = imp.get("call_count", 0)
+                lat = imp.get("avg_duration_ms", 0.0)
+                prod_info = f" ➔ Traffic: {calls:,} calls, Latency: {lat:.1f}ms"
+            print(f"   {indent}└─ [Hop {imp['depth']}] {imp['node_type'].upper()}: {imp['name']} ({imp['path']}){repo_info}{prod_info} via {imp['relationship']}")
 
     return 0
 

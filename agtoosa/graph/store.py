@@ -103,6 +103,20 @@ class GraphStore:
                     metadata_json TEXT
                 );
 
+                CREATE TABLE IF NOT EXISTS runtime_telemetry (
+                    node_id TEXT PRIMARY KEY,
+                    call_count INTEGER DEFAULT 0,
+                    total_duration_ms REAL DEFAULT 0.0,
+                    avg_duration_ms REAL DEFAULT 0.0,
+                    p95_duration_ms REAL DEFAULT 0.0,
+                    error_count INTEGER DEFAULT 0,
+                    error_rate REAL DEFAULT 0.0,
+                    last_seen TEXT,
+                    metadata_json TEXT DEFAULT '{}'
+                );
+                CREATE INDEX IF NOT EXISTS idx_telemetry_calls ON runtime_telemetry(call_count);
+                CREATE INDEX IF NOT EXISTS idx_telemetry_latency ON runtime_telemetry(avg_duration_ms);
+
                 CREATE VIRTUAL TABLE IF NOT EXISTS nodes_fts USING fts5(
                     id UNINDEXED,
                     name,
@@ -280,6 +294,70 @@ class GraphStore:
                 conn.execute(f"DELETE FROM node_embeddings WHERE node_id IN ({placeholders});", node_ids)
                 conn.execute(f"DELETE FROM nodes WHERE id IN ({placeholders});", node_ids)
 
+    def save_telemetry_batch(self, records: List[Dict[str, Any]]) -> None:
+        """Upsert a batch of runtime telemetry records."""
+        if not records:
+            return
+        now_ts = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            for rec in records:
+                node_id = rec["node_id"]
+                calls = int(rec.get("call_count", 0))
+                total_ms = float(rec.get("total_duration_ms", 0.0))
+                avg_ms = float(rec.get("avg_duration_ms", total_ms / calls if calls > 0 else 0.0))
+                p95_ms = float(rec.get("p95_duration_ms", avg_ms * 1.5))
+                errors = int(rec.get("error_count", 0))
+                error_rate = float(rec.get("error_rate", errors / calls if calls > 0 else 0.0))
+                last_seen = rec.get("last_seen", now_ts)
+                meta_json = json.dumps(rec.get("metadata", {}))
+
+                conn.execute(
+                    """
+                    INSERT INTO runtime_telemetry 
+                    (node_id, call_count, total_duration_ms, avg_duration_ms, p95_duration_ms, error_count, error_rate, last_seen, metadata_json)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(node_id) DO UPDATE SET
+                        call_count = runtime_telemetry.call_count + excluded.call_count,
+                        total_duration_ms = runtime_telemetry.total_duration_ms + excluded.total_duration_ms,
+                        avg_duration_ms = (runtime_telemetry.total_duration_ms + excluded.total_duration_ms) / 
+                                          NULLIF(runtime_telemetry.call_count + excluded.call_count, 0),
+                        p95_duration_ms = MAX(runtime_telemetry.p95_duration_ms, excluded.p95_duration_ms),
+                        error_count = runtime_telemetry.error_count + excluded.error_count,
+                        error_rate = CAST(runtime_telemetry.error_count + excluded.error_count AS REAL) / 
+                                     NULLIF(runtime_telemetry.call_count + excluded.call_count, 0),
+                        last_seen = excluded.last_seen,
+                        metadata_json = excluded.metadata_json;
+                    """,
+                    (node_id, calls, total_ms, avg_ms, p95_ms, errors, error_rate, last_seen, meta_json)
+                )
+
+    def get_telemetry_for_node(self, node_id: str) -> Optional[Dict[str, Any]]:
+        """Fetch runtime telemetry for a specific node ID."""
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT * FROM runtime_telemetry WHERE node_id = ?;", (node_id,)).fetchone()
+            if not row:
+                return None
+            d = dict(row)
+            d["metadata"] = json.loads(d.pop("metadata_json", "{}") or "{}")
+            return d
+
+    def get_all_telemetry(self) -> Dict[str, Dict[str, Any]]:
+        """Retrieve all runtime telemetry indexed by node_id."""
+        with self._get_connection() as conn:
+            rows = conn.execute("SELECT * FROM runtime_telemetry;").fetchall()
+            results = {}
+            for r in rows:
+                d = dict(r)
+                d["metadata"] = json.loads(d.pop("metadata_json", "{}") or "{}")
+                results[d["node_id"]] = d
+            return results
+
+    def clear_telemetry(self) -> int:
+        """Clear all runtime telemetry."""
+        with self._get_connection() as conn:
+            cur = conn.execute("DELETE FROM runtime_telemetry;")
+            return cur.rowcount
+
     def insert_batch(self, nodes: List[Node], edges: List[Edge]) -> None:
         """Insert a batch of nodes and edges transactionally."""
         with self._get_connection() as conn:
@@ -311,7 +389,7 @@ class GraphStore:
                 (
                     e.source_id,
                     e.target_id,
-                    e.edge_type.value,
+                    e.edge_type.value if hasattr(e.edge_type, "value") else str(e.edge_type),
                     e.provenance,
                     json.dumps(e.metadata)
                 )
@@ -449,14 +527,23 @@ class GraphStore:
 
     def get_node(self, node_id: str) -> Optional[Dict[str, Any]]:
         with self._get_connection() as conn:
-            row = conn.execute(
-                "SELECT * FROM nodes WHERE id = ?;", (node_id,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM nodes WHERE id = ?;", (node_id,)).fetchone()
             if not row:
                 return None
             d = dict(row)
             d["metadata"] = json.loads(d.pop("metadata_json", "{}") or "{}")
             return d
+
+    def find_nodes_by_name(self, name: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Find nodes matching name exactly or case-insensitively."""
+        with self._get_connection() as conn:
+            rows = conn.execute("SELECT * FROM nodes WHERE name = ? COLLATE NOCASE LIMIT ?;", (name, limit)).fetchall()
+            results = []
+            for r in rows:
+                d = dict(r)
+                d["metadata"] = json.loads(d.pop("metadata_json", "{}") or "{}")
+                results.append(d)
+            return results
 
     def get_neighbors(self, node_id: str, direction: str = "both") -> List[Dict[str, Any]]:
         with self._get_connection() as conn:

@@ -56,7 +56,8 @@ class MCPServer:
                     "properties": {
                         "target": {"type": "string", "description": "Modified symbol or file"},
                         "depth": {"type": "integer", "description": "Max traversal depth", "default": 3},
-                        "federated": {"type": "boolean", "description": "Include cross-repository callers and dependents", "default": True}
+                        "federated": {"type": "boolean", "description": "Include cross-repository callers and dependents", "default": True},
+                        "production": {"type": "boolean", "description": "Weight blast radius with runtime traffic and error rates", "default": False}
                     },
                     "required": ["target"]
                 }
@@ -131,6 +132,24 @@ class MCPServer:
                         "strict": {"type": "boolean", "description": "Fail on warnings as well as errors", "default": False}
                     }
                 }
+            },
+            {
+                "name": "agtoosa_get_telemetry_heatmap",
+                "description": "Retrieve runtime execution hotspot heatmaps (invocations, latency, error rates) across knowledge graph symbols.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "top": {"type": "integer", "description": "Top N hotspots to return", "default": 20}
+                    }
+                }
+            },
+            {
+                "name": "agtoosa_suggest_cycle_decoupling",
+                "description": "Analyze architectural cycles and generate dependency injection / protocol decoupling blueprints.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                }
             }
         ]
 
@@ -171,11 +190,12 @@ class MCPServer:
             target = args.get("target", "")
             raw_depth = args.get("depth", 3)
             federated = args.get("federated", True)
+            production = args.get("production", False)
             try:
                 depth = max(1, min(int(raw_depth), 5))
             except (ValueError, TypeError):
                 depth = 3
-            res = compute_impact(self.store, target, max_depth=depth, federated=federated)
+            res = compute_impact(self.store, target, max_depth=depth, federated=federated, production=production)
             return json.dumps(res or {"error": f"Target '{target}' not found"}, indent=2)
 
         elif name == "agtoosa_get_task_context":
@@ -194,6 +214,19 @@ class MCPServer:
             strict = args.get("strict", False)
             engine = MonorepoBoundaryEngine(self.workspace_root, store=self.store)
             report = engine.check_boundaries(strict=strict)
+            return json.dumps(report.to_dict(), indent=2)
+
+        elif name == "agtoosa_get_telemetry_heatmap":
+            from agtoosa.observability.ingester import TelemetryIngester
+            top_k = args.get("top", 20)
+            ingester = TelemetryIngester(self.store, self.workspace_root)
+            hotspots = ingester.compute_heatmaps(top_k=top_k)
+            return json.dumps([h.to_dict() for h in hotspots], indent=2)
+
+        elif name == "agtoosa_suggest_cycle_decoupling":
+            from agtoosa.refactor.decoupler import CycleDecouplerEngine
+            engine = CycleDecouplerEngine(self.store, self.workspace_root)
+            report = engine.analyze_cycles()
             return json.dumps(report.to_dict(), indent=2)
 
         elif name == "agtoosa_watch_status":

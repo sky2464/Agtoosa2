@@ -124,8 +124,14 @@ def find_path(store: GraphStore, source_query: str, target_query: str, max_depth
     return None
 
 
-def compute_impact(store: GraphStore, target_query: str, max_depth: int = 3, federated: bool = True) -> Optional[Dict[str, Any]]:
-    """Compute the upstream blast radius across local and federated repositories."""
+def compute_impact(
+    store: GraphStore,
+    target_query: str,
+    max_depth: int = 3,
+    federated: bool = True,
+    production: bool = False
+) -> Optional[Dict[str, Any]]:
+    """Compute the upstream blast radius across local and federated repositories with optional runtime traffic weighting."""
     import json
     target_node = resolve_node(store, target_query)
     if not target_node:
@@ -182,11 +188,67 @@ def compute_impact(store: GraphStore, target_query: str, max_depth: int = 3, fed
 
     repos_impacted = sorted(list(set(imp["repo"] for imp in impacted_nodes if imp["repo"] != "local")))
 
+    prod_summary = None
+    if production:
+        all_telem = store.get_all_telemetry()
+        target_telem = all_telem.get(target_id, {})
+        target_calls = target_telem.get("call_count", 0)
+
+        total_traffic = target_calls
+        weighted_traffic_score = float(target_calls)
+        active_callers = 0
+        dormant_callers = 0
+
+        for imp in impacted_nodes:
+            t = all_telem.get(imp["id"], {})
+            calls = t.get("call_count", 0)
+            avg_ms = t.get("avg_duration_ms", 0.0)
+            err_rate = t.get("error_rate", 0.0)
+
+            imp["call_count"] = calls
+            imp["avg_duration_ms"] = round(avg_ms, 2)
+            imp["error_rate"] = round(err_rate, 4)
+            imp["is_active"] = calls > 0
+
+            total_traffic += calls
+            depth = max(1, imp["depth"])
+            weighted_traffic_score += (calls * (1.0 + 2.0 * err_rate)) / (depth ** 1.5)
+
+            if calls > 0:
+                active_callers += 1
+            else:
+                dormant_callers += 1
+
+        # Determine Production Risk Tier
+        if total_traffic >= 10000 or any(i.get("error_rate", 0) >= 0.15 and i.get("call_count", 0) >= 100 for i in impacted_nodes):
+            risk_tier = "P0_CRITICAL"
+        elif total_traffic >= 1000:
+            risk_tier = "P1_HIGH"
+        elif total_traffic >= 100:
+            risk_tier = "P2_MODERATE"
+        elif total_traffic > 0:
+            risk_tier = "P3_LOW"
+        else:
+            risk_tier = "P4_DORMANT"
+
+        # Sort impacted nodes by traffic volume descending
+        impacted_nodes.sort(key=lambda x: (x.get("call_count", 0), -x["depth"]), reverse=True)
+
+        prod_summary = {
+            "risk_tier": risk_tier,
+            "total_traffic_at_risk": total_traffic,
+            "target_traffic": target_calls,
+            "traffic_weighted_score": round(weighted_traffic_score, 2),
+            "active_callers_count": active_callers,
+            "dormant_callers_count": dormant_callers
+        }
+
     return {
         "target": target_node,
         "impacted_count": len(impacted_nodes),
         "impacted": impacted_nodes,
-        "federated_repos_impacted": repos_impacted
+        "federated_repos_impacted": repos_impacted,
+        "production_blast_radius": prod_summary
     }
 
 
