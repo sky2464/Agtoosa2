@@ -128,6 +128,7 @@ def main(argv=None) -> int:
     # agtoosa graph explain <target>
     explain_p = graph_sub.add_parser("explain", help="Inspect an entity's definition, callers, and callees")
     explain_p.add_argument("target", type=str, help="Target symbol or file name")
+    explain_p.add_argument("--json", action="store_true", help="Output as JSON")
 
     # agtoosa graph path <source> <target>
     path_p = graph_sub.add_parser("path", help="Find directed path between two entities")
@@ -138,6 +139,12 @@ def main(argv=None) -> int:
     impact_p = graph_sub.add_parser("impact", help="Calculate upstream blast radius when an entity changes")
     impact_p.add_argument("target", type=str, help="Modified symbol or file name")
     impact_p.add_argument("-d", "--depth", type=int, default=3, help="Max traversal depth (default: 3)")
+    impact_p.add_argument("--json", action="store_true", help="Output as JSON")
+
+    # agtoosa graph symbols <file>
+    symbols_p = graph_sub.add_parser("symbols", help="List all symbols in a file with line ranges, caller counts, and blast radius")
+    symbols_p.add_argument("file", type=str, help="Target file path")
+    symbols_p.add_argument("--json", action="store_true", help="Output as JSON")
 
     # agtoosa graph export
     export_p = graph_sub.add_parser("export", help="Export graph to JSON, Obsidian, GraphML, Cypher, or DOT")
@@ -234,6 +241,9 @@ def main(argv=None) -> int:
         elif args.graph_action == "impact":
             from agtoosa.cli.graph_cmd import cmd_graph_impact
             return cmd_graph_impact(args, workspace_root)
+        elif args.graph_action == "symbols":
+            from agtoosa.cli.graph_cmd import cmd_graph_symbols
+            return cmd_graph_symbols(args, workspace_root)
         elif args.graph_action == "export":
             return cmd_graph_export(args, workspace_root)
         elif args.graph_action == "view":

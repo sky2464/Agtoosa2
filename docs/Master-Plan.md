@@ -11,7 +11,7 @@
 | Repository | `https://github.com/sky2464/Agtoosa2` |
 | Version | `0.2.1-dev` |
 | Core Engine | Python 3.11+ (Tree-sitter, SQLite FTS5, NetworkX) |
-| Active Cycle | DEV-012 (Stage 12: Standalone Binary Packaging & Multi-Platform Distribution) |
+| Active Cycle | DEV-014 (Stage 14: Hybrid GraphRAG v2 & Semantic Vector Search) |
 | Current Milestone | `v0.2.x` |
 
 ---
@@ -20,7 +20,7 @@
 
 | ID | Title | Type | Estimate | Status | Primary Deliverable |
 |---|---|---|---|---|---|
-| **DEV-012** | Standalone Binary Packaging & Multi-Platform Distribution | DevOps | M | 🔄 Ready / Next | Standalone compiled executables, PyPI wheel distribution, Homebrew tap formula |
+| **DEV-014** | Hybrid GraphRAG v2 & Semantic Vector Search | Feature | L | 🔄 Ready / Next | Zero-service local embeddings, hybrid FTS5 + vector similarity + graph CTE context compiler |
 
 ## Completed Cycles
 
@@ -37,6 +37,8 @@
 | **DEV-009** | Continuous Watcher & MCP Push | Feature | ✅ Done | Zero-dependency filesystem watcher (`agtoosa graph watch`), Git hooks (`agtoosa graph hooks`), live MCP resource update notifications |
 | **DEV-010** | Review Intelligence & Architecture Drift Alarms | Feature | ✅ Done | Layer boundary enforcement, cyclic dependency alarms, blast radius warnings, PR diff analysis (`agtoosa review --diff`), and Architectural Memory Bank (`agtoosa review remember/reflect`) |
 | **DEV-011** | CI/CD Quality Gate & GitHub Action Integration | Feature | ✅ Done | Composite GitHub Action (`action.yml`), reference CI workflow, PR architectural impact markdown comment generator, CLI `agtoosa ci review/check` |
+| **DEV-012** | Standalone Binary Packaging & Multi-Platform Distribution | DevOps | ✅ Done | Standalone PyInstaller executable (`agtoosa.spec`), build orchestrator (`scripts/build_standalone.py`), Homebrew formula (`Formula/agtoosa.rb`), release workflow |
+| **DEV-013** | VS Code & Cursor IDE Extension | Extension | ✅ Done | Native extension package (`extension/`), architecture tree views, real-time CodeLens blast radius, CLI `agtoosa graph symbols` |
 
 ---
 
@@ -54,9 +56,9 @@ flowchart LR
     S4 --> S9[Stage 9: Continuous Watcher ✅]
     S3 --> S10[Stage 10: Review Intelligence ✅]
     S10 --> S11[Stage 11: CI/CD PR Gate ✅]
-    S11 --> S12[Stage 12: Binary Packaging 🔄]
-    S4 --> S13[Stage 13: IDE Extension ⬜]
-    S3 --> S14[Stage 14: Hybrid GraphRAG v2 ⬜]
+    S11 --> S12[Stage 12: Binary Packaging ✅]
+    S4 --> S13[Stage 13: IDE Extension ✅]
+    S3 --> S14[Stage 14: Hybrid GraphRAG v2 🔄]
 ```
 
 ### Milestone 1: Knowledge Engine Core (v0.2.0-alpha)
@@ -112,10 +114,10 @@ flowchart LR
   - Composite GitHub Action (`action.yml`) running `agtoosa review --diff origin/main --strict`.
   - Automated rich PR architectural impact markdown comment generator.
   - Merge blocking on circular dependencies or layer boundary regressions.
-- **DEV-012 (Stage 12) — Standalone Binary Packaging & Distribution** [🔄 Next Up]
+- **DEV-012 (Stage 12) — Standalone Binary Packaging & Distribution** [✅ Done]
   - Standalone compiled executables (macOS Apple Silicon/Intel, Linux x86_64, Windows x64).
   - Automated GitHub Releases matrix, Homebrew tap formula, PyPI publication.
-- **DEV-013 (Stage 13) — VS Code & Cursor IDE Extension** [⬜ Backlog]
+- **DEV-013 (Stage 13) — VS Code & Cursor IDE Extension** [✅ Done]
   - In-editor architecture tree view, caller/callee inspection, code lens annotations, and real-time blast radius alerts.
-- **DEV-014 (Stage 14) — Hybrid GraphRAG v2 & Semantic Vector Search** [⬜ Backlog]
+- **DEV-014 (Stage 14) — Hybrid GraphRAG v2 & Semantic Vector Search** [🔄 Next Up]
   - Embedded zero-service ONNX vector embeddings, cosine similarity + FTS5 + graph CTE hybrid prompt compiler.

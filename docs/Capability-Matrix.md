@@ -1,7 +1,7 @@
 # Agtoosa2 — Capability Matrix & Parity Definition
 
 > **Reference Benchmark:** Graphify Open-Source Capabilities & Enterprise Graph OS.  
-> **Status:** Stage 11 Delivered & Verified (`v0.2.1-dev`) — 70/70 Automated Tests Passing.
+> **Status:** Stage 13 Delivered & Verified (`v0.2.1-dev`) — 87/87 Automated Tests Passing.
 
 ---
 
@@ -31,5 +31,5 @@
 | **PR Diffs & Drift Alarms** | `agtoosa review --diff` | **Stage 10** (DEV-010)| Git branches, drift alarms, architectural memory bank | `tests/test_intelligence.py`|
 | **CI/CD PR Gate & Action** | `agtoosa-action`, `agtoosa ci` | **Stage 11** (DEV-011)| GitHub Action, PR impact comment, merge blocking | `tests/test_ci_gate.py` |
 | **Standalone Distribution** | PyPI, Homebrew, standalone binary | **Stage 12** (DEV-012)| PyInstaller/uv binary, homebrew tap, PyPI wheel | `tests/test_distribution.py`|
-| **IDE Extension Integration** | VS Code / Cursor extension | **Stage 13** (DEV-013)| Editor tree view, code lens, real-time blast radius | Extension test suite |
+| **IDE Extension Integration** | VS Code / Cursor extension | **Stage 13** (DEV-013)| Editor tree view, code lens, real-time blast radius | `tests/test_extension.py` |
 | **Hybrid GraphRAG v2** | `agtoosa context compile --hybrid`| **Stage 14** (DEV-014)| Local ONNX vector embeddings, hybrid FTS5 + vector | `tests/test_hybrid_rag.py` |

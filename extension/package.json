@@ -1,0 +1,146 @@
+{
+  "name": "agtoosa-vscode",
+  "displayName": "Agtoosa — Architecture Command Center & Graph Navigator",
+  "description": "Zero-dependency architecture intelligence, real-time caller blast radius, drift alarms, and C4 visualizer for VS Code & Cursor.",
+  "version": "0.2.1",
+  "publisher": "agtoosa",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sky2464/Agtoosa2"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "architecture",
+    "knowledge-graph",
+    "blast-radius",
+    "callers",
+    "clean-architecture",
+    "cursor"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "workspaceContains:.agtoosa",
+    "onLanguage:python",
+    "onLanguage:typescript",
+    "onLanguage:javascript",
+    "onLanguage:go",
+    "onLanguage:rust",
+    "onLanguage:java",
+    "onLanguage:c",
+    "onLanguage:cpp",
+    "onLanguage:csharp",
+    "onLanguage:shellscript",
+    "onCommand:agtoosa.rebuildGraph",
+    "onCommand:agtoosa.openVisualizer"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "agtoosa-sidebar",
+          "title": "Agtoosa Architecture",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "agtoosa-sidebar": [
+        {
+          "id": "agtoosa.architectureView",
+          "name": "Architecture Tiers & Stories"
+        },
+        {
+          "id": "agtoosa.blastRadiusView",
+          "name": "Active Blast Radius"
+        },
+        {
+          "id": "agtoosa.driftFindingsView",
+          "name": "Architectural Drift Alarms"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "agtoosa.rebuildGraph",
+        "title": "Agtoosa: Rebuild Knowledge Graph",
+        "category": "Agtoosa",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "agtoosa.openVisualizer",
+        "title": "Agtoosa: Open Architecture Command Center (C4 Studio)",
+        "category": "Agtoosa",
+        "icon": "$(browser)"
+      },
+      {
+        "command": "agtoosa.runReview",
+        "title": "Agtoosa: Run Architecture Drift Review",
+        "category": "Agtoosa",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "agtoosa.inspectBlastRadius",
+        "title": "Agtoosa: Inspect Symbol Blast Radius",
+        "category": "Agtoosa"
+      },
+      {
+        "command": "agtoosa.rememberRule",
+        "title": "Agtoosa: Remember Architectural Rule",
+        "category": "Agtoosa",
+        "icon": "$(lightbulb)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "agtoosa.rebuildGraph",
+          "when": "view == agtoosa.architectureView",
+          "group": "navigation"
+        },
+        {
+          "command": "agtoosa.openVisualizer",
+          "when": "view == agtoosa.architectureView",
+          "group": "navigation"
+        },
+        {
+          "command": "agtoosa.runReview",
+          "when": "view == agtoosa.driftFindingsView",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Agtoosa Architecture Navigator",
+      "properties": {
+        "agtoosa.executablePath": {
+          "type": "string",
+          "default": "agtoosa",
+          "description": "Path to agtoosa executable or python command (e.g. 'agtoosa', 'uv run agtoosa', or '.venv/bin/agtoosa')."
+        },
+        "agtoosa.enableCodeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show inline caller counts and blast radius warnings above functions and classes."
+        },
+        "agtoosa.enableDiagnostics": {
+          "type": "boolean",
+          "default": true,
+          "description": "Report architectural drift alarms and layer boundary violations in editor problems panel."
+        },
+        "agtoosa.maxBlastRadiusDepth": {
+          "type": "integer",
+          "default": 3,
+          "description": "Maximum traversal depth for caller impact radius calculation."
+        }
+      }
+    }
+  }
+}

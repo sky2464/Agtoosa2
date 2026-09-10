@@ -199,6 +199,11 @@ def cmd_graph_explain(args: Any, workspace_root: Path) -> int:
         print(f"❌ Entity not found matching: '{args.target}'")
         return 1
 
+    if getattr(args, "json", False):
+        import json
+        print(json.dumps(res, indent=2))
+        return 0
+
     node = res["node"]
     line_info = f":L{node['start_line']}" if node.get("start_line") else ""
     print(f"📖 {node['node_type'].upper()}: {node['name']}")
@@ -264,6 +269,11 @@ def cmd_graph_impact(args: Any, workspace_root: Path) -> int:
         print(f"❌ Entity not found matching: '{args.target}'")
         return 1
 
+    if getattr(args, "json", False):
+        import json
+        print(json.dumps(res, indent=2))
+        return 0
+
     target = res["target"]
     print(f"💥 Blast Radius Analysis for: {target['node_type'].upper()} {target['name']} ({target['path']})")
     print(f"   • Total Affected Entities: {res['impacted_count']} (up to depth {depth})")
@@ -274,6 +284,71 @@ def cmd_graph_impact(args: Any, workspace_root: Path) -> int:
             indent = " " * (imp["depth"] * 2)
             print(f"   {indent}└─ [Hop {imp['depth']}] {imp['node_type'].upper()}: {imp['name']} ({imp['path']}) via {imp['relationship']}")
 
+    return 0
+
+
+def cmd_graph_symbols(args: Any, workspace_root: Path) -> int:
+    """List functions and classes in a file with line numbers and caller impact."""
+    import json
+
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    store = GraphStore(db_path)
+    rel_path = getattr(args, "file", "")
+    try:
+        p_obj = Path(rel_path)
+        if p_obj.is_absolute():
+            rel_path = str(p_obj.relative_to(workspace_root))
+    except ValueError:
+        pass
+    rel_path = rel_path.replace("\\", "/")
+
+    with store._get_connection() as conn:
+        rows = conn.execute(
+            "SELECT id, name, node_type, path, start_line, end_line, docstring FROM nodes WHERE (path = ? OR path = ?) AND node_type IN ('class', 'function') ORDER BY start_line ASC;",
+            (rel_path, f"./{rel_path}")
+        ).fetchall()
+
+    symbols = []
+    for r in rows:
+        sym_id = r["id"]
+        incoming = store.get_neighbors(sym_id, direction="in")
+        caller_nodes = [n for n in incoming if n.get("node_type") in ("function", "class", "file")]
+        caller_count = len(caller_nodes)
+
+        if caller_count >= 10:
+            risk = "CRITICAL"
+        elif caller_count >= 5:
+            risk = "HIGH"
+        elif caller_count >= 1:
+            risk = "MODERATE"
+        else:
+            risk = "LOW"
+
+        symbols.append({
+            "id": sym_id,
+            "name": r["name"],
+            "type": r["node_type"],
+            "path": r["path"],
+            "start_line": r["start_line"],
+            "end_line": r["end_line"],
+            "caller_count": caller_count,
+            "risk": risk,
+            "top_callers": [c["name"] for c in caller_nodes[:5]],
+            "docstring": (r["docstring"] or "").split("\n")[0] if r["docstring"] else None
+        })
+
+    if getattr(args, "json", False):
+        print(json.dumps(symbols, indent=2))
+        return 0
+
+    print(f"🏛️  Symbols in '{rel_path}' ({len(symbols)} found):")
+    for s in symbols:
+        line_str = f"L{s['start_line']}-{s['end_line']}" if s['start_line'] else "unknown line"
+        print(f"   • {s['type'].upper()} {s['name']} ({line_str}) ➔ {s['caller_count']} callers [{s['risk']} RISK]")
     return 0
 
 
