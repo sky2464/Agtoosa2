@@ -40,6 +40,7 @@ class ContractSchemaParser:
         else:
             # Try PyYAML if installed, otherwise basic fallback
             try:
+                # pyrefly: ignore [missing-import]
                 import yaml
                 data = yaml.safe_load(content) or {}
             except ImportError:

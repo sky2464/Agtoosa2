@@ -100,6 +100,7 @@ class MetricsEngine:
                 for src, tgts in adj_out.items():
                     for tgt in tgts:
                         g.add_edge(src, tgt)
+                # pyrefly: ignore [bad-return]
                 return dict(nx.pagerank(g, alpha=alpha, max_iter=max_iter, tol=tol))
             except Exception:
                 pass
