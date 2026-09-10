@@ -291,14 +291,14 @@ class VisualizerEngine:
   <title>Agtoosa Studio — Architecture Command Center</title>
   <style>
     :root {{
-      --bg: #070a13;
-      --bg-gradient: radial-gradient(circle at 50% 0%, #111a2e 0%, #070a13 75%);
+      --bg: #090d16;
+      --bg-gradient: radial-gradient(circle at 50% -10%, #131c31 0%, #090d16 80%);
       --surface: rgba(15, 23, 42, 0.75);
-      --surface-elevated: rgba(30, 41, 59, 0.85);
+      --surface-elevated: rgba(28, 38, 58, 0.85);
       --surface-border: rgba(255, 255, 255, 0.08);
       --surface-border-hover: rgba(56, 189, 248, 0.45);
       --surface-border-active: #38bdf8;
-      --text: #f8fafc;
+      --text: #f1f5f9;
       --text-muted: #94a3b8;
       --text-dim: #64748b;
       --primary: #38bdf8;
@@ -307,11 +307,26 @@ class VisualizerEngine:
       --accent-glow: rgba(129, 140, 248, 0.35);
       --success: #10b981;
       --warning: #f59e0b;
-      --danger: #ef4444;
+      --danger: #f43f5e;
       --panel-width: 440px;
     }}
 
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+
+    ::-webkit-scrollbar {{
+      width: 6px;
+      height: 6px;
+    }}
+    ::-webkit-scrollbar-track {{
+      background: rgba(10, 14, 23, 0.5);
+    }}
+    ::-webkit-scrollbar-thumb {{
+      background: rgba(142, 213, 255, 0.2);
+      border-radius: 3px;
+    }}
+    ::-webkit-scrollbar-thumb:hover {{
+      background: rgba(142, 213, 255, 0.4);
+    }}
 
     body {{
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -327,30 +342,46 @@ class VisualizerEngine:
 
     /* Top Command Header */
     header {{
-      height: 64px;
-      background: rgba(11, 15, 25, 0.85);
+      height: 56px;
+      background: rgba(11, 15, 25, 0.94);
       backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--surface-border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 24px;
-      z-index: 40;
-      gap: 16px;
+      padding: 0 18px;
+      z-index: 50;
+      gap: 12px;
+      flex-shrink: 0;
+      width: 100%;
+      max-width: 100vw;
+      box-sizing: border-box;
     }}
 
     .brand-section {{
       display: flex;
       align-items: center;
-      gap: 10px;
-      min-width: 210px;
+      gap: 8px;
+      flex-shrink: 0;
+    }}
+    .brand-icon {{
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
     }}
     .brand-logo {{
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       font-weight: 800;
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       letter-spacing: -0.02em;
     }}
     .brand-logo span {{ color: var(--primary); }}
@@ -358,78 +389,39 @@ class VisualizerEngine:
       background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(129, 140, 248, 0.15));
       color: #7dd3fc;
       border: 1px solid rgba(56, 189, 248, 0.3);
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       font-weight: 700;
-      padding: 2px 8px;
+      padding: 2px 7px;
       border-radius: 9999px;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-    }}
-
-    /* Executive Governance KPI Strip */
-    .kpi-strip {{
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: rgba(0, 0, 0, 0.45);
-      border: 1px solid var(--surface-border);
-      padding: 4px 14px;
-      border-radius: 8px;
-    }}
-    .kpi-item {{
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }}
-    .kpi-item strong {{
-      color: var(--text);
-      font-weight: 700;
-    }}
-    .kpi-pill {{
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 7px;
-      border-radius: 4px;
-      font-weight: 700;
-      font-size: 0.72rem;
-    }}
-    .kpi-pill.grade {{
-      background: rgba(16, 185, 129, 0.15);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.35);
-    }}
-    .kpi-pill.clean {{
-      background: rgba(56, 189, 248, 0.12);
-      color: #38bdf8;
-      border: 1px solid rgba(56, 189, 248, 0.3);
     }}
 
     /* Perspective Switcher */
     .perspective-switcher {{
       display: flex;
       align-items: center;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.45);
       padding: 3px;
       border-radius: 8px;
       border: 1px solid var(--surface-border);
       gap: 2px;
+      flex-shrink: 0;
     }}
     .tab-btn {{
       background: none;
       border: none;
       color: var(--text-muted);
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 6px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       transition: all 0.2s;
+      white-space: nowrap;
     }}
     .tab-btn:hover {{
       color: var(--text);
@@ -442,12 +434,126 @@ class VisualizerEngine:
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4), 0 0 12px var(--primary-glow);
     }}
 
-    /* Quick Controls */
+    /* Quick Controls & Omni-Search */
     .controls-bar {{
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      flex-shrink: 0;
+      position: relative;
     }}
+    .search-wrapper {{
+      position: relative;
+      width: 190px;
+    }}
+    .search-input-box {{
+      width: 100%;
+      padding-right: 36px;
+      padding-left: 28px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--surface-border);
+      color: var(--text);
+      font-size: 0.78rem;
+      border-radius: 6px;
+      height: 32px;
+      outline: none;
+      transition: all 0.2s;
+    }}
+    .search-input-box:focus {{
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-glow);
+    }}
+    .search-icon {{
+      position: absolute;
+      left: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 13px;
+      color: var(--text-dim);
+      pointer-events: none;
+    }}
+    .search-kbd {{
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--surface-border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 0.62rem;
+      color: var(--text-dim);
+      font-family: monospace;
+      pointer-events: none;
+    }}
+    #search-dropdown {{
+      position: absolute;
+      top: 38px;
+      right: 0;
+      width: 320px;
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px solid var(--surface-border-active);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75), 0 0 16px var(--primary-glow);
+      backdrop-filter: blur(20px);
+      border-radius: 8px;
+      max-height: 320px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+    }}
+    #search-dropdown.show {{
+      display: block;
+    }}
+
+    @media (max-width: 1280px) {{
+      .search-wrapper {{
+        width: 150px;
+      }}
+      .tab-btn {{
+        padding: 5px 8px;
+        font-size: 0.74rem;
+      }}
+      .brand-badge {{
+        display: none;
+      }}
+    }}
+    .search-item {{
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      cursor: pointer;
+      transition: background 0.15s;
+    }}
+    .search-item:hover {{
+      background: rgba(56, 189, 248, 0.14);
+    }}
+    .search-item-left {{
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow: hidden;
+      max-width: 240px;
+    }}
+    .search-item-name {{
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #ffffff;
+      font-family: monospace;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }}
+    .search-item-path {{
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }}
+
+    /* Global Inputs & Buttons */
     input, select, button {{
       background: rgba(30, 41, 59, 0.8);
       border: 1px solid var(--surface-border);
@@ -482,12 +588,78 @@ class VisualizerEngine:
       box-shadow: 0 0 14px var(--primary-glow);
     }}
 
+    /* Executive Governance KPI Strip (Standalone Full-Width Ribbon) */
+    .kpi-strip {{
+      height: 48px;
+      background: rgba(11, 15, 25, 0.6);
+      border-bottom: 1px solid var(--surface-border);
+      backdrop-filter: blur(12px);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 0 24px;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }}
+    .kpi-item {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--surface-border);
+      border-radius: 6px;
+      font-size: 0.74rem;
+    }}
+    .kpi-lbl {{
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+    }}
+    .kpi-item strong, .kpi-val {{
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+    }}
+    .kpi-pill {{
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.72rem;
+    }}
+    .kpi-pill.grade {{
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }}
+    .kpi-pill.clean {{
+      background: rgba(56, 189, 248, 0.12);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }}
+    .kpi-pill.hubs {{
+      background: rgba(245, 158, 11, 0.12);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }}
+    .kpi-pill.ai {{
+      background: rgba(129, 140, 248, 0.12);
+      color: #a5b4fc;
+      border: 1px solid rgba(129, 140, 248, 0.3);
+    }}
+
     /* Viewport Area */
     #main-viewport {{
       flex: 1;
       position: relative;
       width: 100%;
-      height: calc(100vh - 64px);
+      height: calc(100vh - 104px);
       overflow: hidden;
     }}
 
@@ -692,6 +864,16 @@ class VisualizerEngine:
       border-color: var(--primary);
       color: #ffffff;
     }}
+    .export-pill.more {{
+      background: rgba(56, 189, 248, 0.1);
+      border-color: rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+      font-weight: 700;
+    }}
+    .export-pill.more:hover {{
+      background: rgba(56, 189, 248, 0.25);
+      color: #ffffff;
+    }}
 
     /* Card Footer Action */
     .c4-card-footer {{
@@ -882,21 +1064,21 @@ class VisualizerEngine:
     /* Slide-Over Inspection Drawer */
     #sidebar {{
       position: fixed;
-      top: 64px;
+      top: 56px;
       right: 0;
       bottom: 0;
       width: var(--panel-width);
-      background: rgba(11, 15, 25, 0.95);
+      background: rgba(13, 18, 30, 0.96);
       backdrop-filter: blur(24px);
       border-left: 1px solid var(--surface-border);
-      padding: 24px;
+      padding: 22px 24px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      z-index: 50;
+      gap: 14px;
+      z-index: 60;
       transform: translateX(100%);
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: -12px 0 36px rgba(0, 0, 0, 0.7);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: -12px 0 36px rgba(0, 0, 0, 0.75);
       overflow-y: auto;
     }}
     #sidebar.active {{
@@ -1103,54 +1285,73 @@ class VisualizerEngine:
   <!-- Top Command Header -->
   <header>
     <div class="brand-section">
+      <div class="brand-icon">🏛️</div>
       <div class="brand-logo">
         <span>Agtoosa</span> Studio
       </div>
-      <span class="brand-badge">Command Center</span>
-    </div>
-
-    <!-- Executive Architecture Health & Governance Strip -->
-    <div class="kpi-strip">
-      <div class="kpi-item">
-        <span>Architecture:</span>
-        <span class="kpi-pill grade" id="kpi-grade">Grade A+ (94/100)</span>
-      </div>
-      <div class="kpi-item">
-        <span>Cycles:</span>
-        <strong id="kpi-cycles" class="kpi-pill clean">0 Cycles (Clean)</strong>
-      </div>
-      <div class="kpi-item">
-        <span>Critical Hubs:</span>
-        <strong id="kpi-hubs">5 Monitored</strong>
-      </div>
-      <div class="kpi-item">
-        <span>AI Context Cut:</span>
-        <span class="kpi-pill clean">~74% Saved</span>
-      </div>
+      <span class="brand-badge">Studio</span>
     </div>
 
     <!-- Perspective Switcher Tabs -->
     <div class="perspective-switcher">
       <button class="tab-btn active" data-view="c4">
-        <span>🏛️</span> C4 Architecture Blueprint
+        <span>🏛️</span> C4 Blueprint
       </button>
       <button class="tab-btn" data-view="radar">
-        <span>⚡</span> Governance & Risk Radar
+        <span>⚡</span> Risk Radar
       </button>
       <button class="tab-btn" data-view="pipeline">
         <span>🛡️</span> Delivery Pipeline
       </button>
       <button class="tab-btn" data-view="blast">
-        <span>🎯</span> Blast Radius Explorer
+        <span>🎯</span> Blast Radius
       </button>
     </div>
 
-    <!-- Quick Controls -->
+    <!-- Quick Controls & Omni-Search -->
     <div class="controls-bar">
-      <input type="text" id="search-input" placeholder="Search symbol or file...">
-      <button id="btn-guide" style="padding: 7px 12px;">ℹ️ Architecture Guide</button>
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" class="search-input-box" placeholder="Search symbol, file..." autocomplete="off">
+        <span class="search-kbd">⌘K</span>
+        <div id="search-dropdown"></div>
+      </div>
+      <button id="btn-guide" style="padding: 6px 10px;" title="Architecture Guide & System Capabilities">ℹ️ Guide</button>
+      <button id="btn-export-hdr" class="primary" style="padding: 6px 11px;" title="Export Context Pack or Graph">📥 Export</button>
     </div>
   </header>
+
+  <!-- Executive Governance KPI Strip (Dedicated Full-Width Ribbon) -->
+  <div class="kpi-strip">
+    <div class="kpi-item">
+      <span class="kpi-lbl">Architecture Grade</span>
+      <div class="kpi-val">
+        <span class="kpi-pill grade" id="kpi-grade">Grade A+ (94/100)</span>
+        <span style="font-size: 0.68rem; color: #34d399; font-weight: 600;">+2.4% vs last commit</span>
+      </div>
+    </div>
+    <div class="kpi-item">
+      <span class="kpi-lbl">Dependency Cycles</span>
+      <div class="kpi-val">
+        <strong id="kpi-cycles" class="kpi-pill clean">0 Cycles (Clean)</strong>
+        <span style="font-size: 0.68rem; color: var(--text-dim);">Strict DAG verified</span>
+      </div>
+    </div>
+    <div class="kpi-item">
+      <span class="kpi-lbl">Critical Centrality Hubs</span>
+      <div class="kpi-val">
+        <strong id="kpi-hubs" class="kpi-pill hubs">5 Monitored</strong>
+        <span style="font-size: 0.68rem; color: var(--text-dim);">3 Tiers active</span>
+      </div>
+    </div>
+    <div class="kpi-item">
+      <span class="kpi-lbl">AI Context Cut</span>
+      <div class="kpi-val">
+        <span class="kpi-pill ai" id="kpi-ai-cut">~74% Saved</span>
+        <span style="font-size: 0.68rem; color: #a5b4fc; font-weight: 600;">Token efficiency</span>
+      </div>
+    </div>
+  </div>
 
   <!-- Main Viewport -->
   <div id="main-viewport">
@@ -1469,9 +1670,12 @@ class VisualizerEngine:
             <div class="c4-exports-section">
               <div class="c4-exports-title">Key Public Interfaces</div>
               <div class="c4-exports-grid">
-                ${{sub.key_exports.map(exp => `
+                ${{sub.key_exports.slice(0, 4).map(exp => `
                   <span class="export-pill" onclick="event.stopPropagation(); inspectEntity('${{exp.id}}')">${{exp.name}}</span>
                 `).join('')}}
+                ${{sub.key_exports.length > 4 ? `
+                  <span class="export-pill more" onclick="event.stopPropagation(); inspectSubsystem('${{sub.name}}')">+${{sub.key_exports.length - 4}} more</span>
+                ` : ''}}
               </div>
             </div>
             <div class="c4-card-footer">
@@ -1799,23 +2003,87 @@ class VisualizerEngine:
       btn.addEventListener("click", () => switchView(btn.dataset.view));
     }});
 
-    // Search Interaction
-    document.getElementById("search-input").addEventListener("input", e => {{
-      const q = e.target.value.toLowerCase().trim();
-      if (!q) return;
-      const match = graphData.nodes.find(n =>
-        n.data.name.toLowerCase().includes(q) || n.data.path.toLowerCase().includes(q)
-      );
-      if (match) {{
-        inspectEntity(match.data.id);
+    // Search Interaction & Omni-Dropdown
+    const searchInput = document.getElementById("search-input");
+    const searchDropdown = document.getElementById("search-dropdown");
+
+    function renderSearchResults(q) {{
+      if (!q) {{
+        searchDropdown.classList.remove("show");
+        searchDropdown.innerHTML = "";
+        return;
+      }}
+      const matches = graphData.nodes
+        .filter(n => n.data.name.toLowerCase().includes(q) || (n.data.path && n.data.path.toLowerCase().includes(q)))
+        .slice(0, 8);
+
+      if (matches.length === 0) {{
+        searchDropdown.innerHTML = '<div style="padding: 12px; color: var(--text-muted); font-size: 0.78rem; text-align: center;">No matching symbols or files found.</div>';
+        searchDropdown.classList.add("show");
+        return;
+      }}
+
+      searchDropdown.innerHTML = matches.map(m => `
+        <div class="search-item" onclick="selectSearchItem('${{m.data.id}}')">
+          <div class="search-item-left">
+            <span class="search-item-name">${{escapeHtml(m.data.name)}}</span>
+            <span class="search-item-path">${{escapeHtml(m.data.path || '')}}${{m.data.start_line ? ':L' + m.data.start_line : ''}}</span>
+          </div>
+          <span class="badge" style="background: ${{m.data.color || '#38bdf8'}}25; color: ${{m.data.color || '#38bdf8'}}; font-size: 0.65rem;">${{m.data.type}}</span>
+        </div>
+      `).join('');
+      searchDropdown.classList.add("show");
+    }}
+
+    window.selectSearchItem = function(id) {{
+      searchDropdown.classList.remove("show");
+      searchInput.value = "";
+      inspectEntity(id);
+    }};
+
+    searchInput.addEventListener("input", e => {{
+      renderSearchResults(e.target.value.toLowerCase().trim());
+    }});
+
+    document.addEventListener("click", e => {{
+      if (!e.target.closest(".search-wrapper")) {{
+        searchDropdown.classList.remove("show");
       }}
     }});
+
+    window.addEventListener("keydown", e => {{
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {{
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      }}
+      if (e.key === "Escape") {{
+        searchDropdown.classList.remove("show");
+        sidebar.classList.remove("active");
+        welcomeModal.classList.remove("show");
+      }}
+    }});
+
+    // Header Export Button
+    const btnExportHdr = document.getElementById("btn-export-hdr");
+    if (btnExportHdr) {{
+      btnExportHdr.addEventListener("click", () => {{
+        if (currentSelectedEntity) {{
+          copyAiContext(currentSelectedEntity.id);
+        }} else {{
+          showToast("💡 Click any subsystem or symbol to inspect and export its AI Context Pack!");
+        }}
+      }});
+    }}
 
     // Guide Modal
     const welcomeModal = document.getElementById("welcome-modal");
     document.getElementById("btn-guide").addEventListener("click", () => welcomeModal.classList.add("show"));
     document.getElementById("modal-close").addEventListener("click", () => welcomeModal.classList.remove("show"));
     document.getElementById("btn-explore-studio").addEventListener("click", () => welcomeModal.classList.remove("show"));
+    welcomeModal.addEventListener("click", e => {{
+      if (e.target === welcomeModal) welcomeModal.classList.remove("show");
+    }});
   </script>
 </body>
 </html>
