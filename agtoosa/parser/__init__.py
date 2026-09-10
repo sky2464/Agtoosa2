@@ -130,3 +130,17 @@ class ParserEngine:
                     """,
                     resolution_edges
                 )
+
+            # Resolve function call placeholders to actual symbol nodes
+            call_edges = conn.execute(
+                "SELECT rowid, source_id, target_id FROM edges WHERE target_id LIKE 'func_call:%';"
+            ).fetchall()
+            for rowid, src_id, tgt_placeholder in call_edges:
+                callee_name = tgt_placeholder.split(":", 1)[-1]
+                if callee_name in symbol_map:
+                    real_target_id = symbol_map[callee_name]
+                    conn.execute(
+                        "UPDATE edges SET target_id = ?, provenance = 'resolved' WHERE rowid = ?;",
+                        (real_target_id, rowid)
+                    )
+

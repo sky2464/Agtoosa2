@@ -91,24 +91,95 @@ def cmd_graph_query(args: Any, workspace_root: Path) -> int:
 
 
 def cmd_graph_export(args: Any, workspace_root: Path) -> int:
-    """Export the graph to standard JSON format."""
+    """Export the graph to various formats (JSON, Obsidian, GraphML, Cypher, DOT)."""
     db_path = get_default_db_path(workspace_root)
     if not db_path.exists():
         print(f"⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
         return 1
 
+    from agtoosa.graph.export import MultiFormatExporter
     store = GraphStore(db_path)
-    data = store.export_json()
+    exporter = MultiFormatExporter(store)
+
+    fmt = getattr(args, "format", "json") or "json"
+    fmt = fmt.lower()
+    output_path = getattr(args, "output", None)
+    out_path_obj = Path(output_path) if output_path else None
+
+    try:
+        result = exporter.export(fmt, output_path=out_path_obj)
+        if output_path:
+            if fmt == "obsidian":
+                print(f"✅ {result}")
+            else:
+                print(f"✅ Graph exported to {out_path_obj} ({out_path_obj.stat().st_size / 1024:.1f} KB)")
+        else:
+            print(result)
+        return 0
+    except ValueError as e:
+        print(f"❌ Export error: {e}")
+        return 1
+
+
+def cmd_graph_view(args: Any, workspace_root: Path) -> int:
+    """Generate standalone offline HTML visualizer."""
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print(f"⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    from agtoosa.graph.visualizer import VisualizerEngine
+    store = GraphStore(db_path)
+    visualizer = VisualizerEngine(store)
 
     output_path = getattr(args, "output", None)
     if output_path:
         out_file = Path(output_path)
-        out_file.write_text(json.dumps(data, indent=2), encoding="utf-8")
-        print(f"✅ Graph exported to {out_file} ({out_file.stat().st_size / 1024:.1f} KB)")
     else:
-        print(json.dumps(data, indent=2))
+        out_file = workspace_root / ".agtoosa" / "graph_view.html"
+
+    filter_type = getattr(args, "filter", None)
+    open_browser = getattr(args, "open", False)
+
+    visualizer.save_html(out_file, filter_type=filter_type, open_browser=open_browser)
+    print(f"🎨 Graph visualizer generated at: {out_file} ({out_file.stat().st_size / 1024:.1f} KB)")
+    print(f"   Open in browser: file://{out_file.resolve()}")
+    return 0
+
+
+def cmd_graph_report(args: Any, workspace_root: Path) -> int:
+    """Generate graph metrics, circular dependencies, and health scorecard report."""
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print(f"⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    from agtoosa.graph.metrics import MetricsEngine
+    store = GraphStore(db_path)
+    metrics_engine = MetricsEngine(store)
+    report = metrics_engine.compute_all()
+
+    fmt = getattr(args, "format", "text") or "text"
+    fmt = fmt.lower()
+    output_path = getattr(args, "output", None)
+
+    if fmt == "json":
+        content = json.dumps(report, indent=2)
+    elif fmt in ("markdown", "md"):
+        content = metrics_engine.format_markdown(report)
+    else:
+        content = metrics_engine.format_text(report)
+
+    if output_path:
+        out_file = Path(output_path)
+        out_file.parent.mkdir(parents=True, exist_ok=True)
+        out_file.write_text(content, encoding="utf-8")
+        print(f"✅ Architecture report saved to: {out_file}")
+    else:
+        print(content)
 
     return 0
+
 
 
 def cmd_graph_explain(args: Any, workspace_root: Path) -> int:

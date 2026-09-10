@@ -238,6 +238,28 @@ class GraphStore:
 
             return [dict(r) for r in rows]
 
+    def get_all_nodes(self) -> List[Dict[str, Any]]:
+        """Retrieve all nodes from store with parsed metadata."""
+        with self._get_connection() as conn:
+            rows = conn.execute("SELECT * FROM nodes;").fetchall()
+            results = []
+            for r in rows:
+                d = dict(r)
+                d["metadata"] = json.loads(d.pop("metadata_json", "{}") or "{}")
+                results.append(d)
+            return results
+
+    def get_all_edges(self) -> List[Dict[str, Any]]:
+        """Retrieve all edges from store with parsed metadata."""
+        with self._get_connection() as conn:
+            rows = conn.execute("SELECT * FROM edges;").fetchall()
+            results = []
+            for r in rows:
+                d = dict(r)
+                d["metadata"] = json.loads(d.pop("metadata_json", "{}") or "{}")
+                results.append(d)
+            return results
+
     def get_node(self, node_id: str) -> Optional[Dict[str, Any]]:
         with self._get_connection() as conn:
             row = conn.execute(

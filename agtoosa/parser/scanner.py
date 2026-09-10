@@ -1,5 +1,6 @@
 """File scanner with configurable exclusions and safety filters."""
 
+import os
 from pathlib import Path
 from typing import List, Set
 
@@ -49,7 +50,8 @@ def scan_workspace(workspace_root: Path) -> List[Path]:
     """Scan workspace directory and return list of processable source files."""
     valid_files: List[Path] = []
 
-    for root, dirs, files in workspace_root.walk():
+    for root_str, dirs, files in os.walk(workspace_root):
+        root = Path(root_str)
         # Modify dirs in-place to prune ignored directories
         dirs[:] = [d for d in dirs if d not in DEFAULT_IGNORE_DIRS and not d.startswith(".")]
 

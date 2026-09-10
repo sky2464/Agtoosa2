@@ -1,7 +1,7 @@
 # Agtoosa2 — Capability Matrix & Parity Definition
 
 > **Reference Benchmark:** Graphify Open-Source Capabilities.  
-> **Status:** Stage 1 in active delivery; Stages 2–9 mapped.
+> **Status:** Stages 1–5 complete; Stage 6 (DEV-006) in active delivery; Stages 7–9 mapped.
 
 ---
 

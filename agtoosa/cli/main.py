@@ -70,8 +70,20 @@ def main(argv=None) -> int:
     impact_p.add_argument("-d", "--depth", type=int, default=3, help="Max traversal depth (default: 3)")
 
     # agtoosa graph export
-    export_p = graph_sub.add_parser("export", help="Export graph to JSON format")
-    export_p.add_argument("-o", "--output", type=str, help="Path to write JSON export")
+    export_p = graph_sub.add_parser("export", help="Export graph to JSON, Obsidian, GraphML, Cypher, or DOT")
+    export_p.add_argument("-o", "--output", type=str, help="Path to write export output")
+    export_p.add_argument("-f", "--format", type=str, default="json", choices=["json", "obsidian", "graphml", "cypher", "dot"], help="Export format (default: json)")
+
+    # agtoosa graph view
+    view_p = graph_sub.add_parser("view", help="Generate standalone offline HTML graph visualizer")
+    view_p.add_argument("-o", "--output", type=str, help="Path to write HTML file (default: .agtoosa/graph_view.html)")
+    view_p.add_argument("--filter", type=str, help="Filter by node type (e.g. class, function, story)")
+    view_p.add_argument("--open", action="store_true", help="Automatically open generated visualizer in web browser")
+
+    # agtoosa graph report
+    report_p = graph_sub.add_parser("report", help="Generate architecture health, cycle detection, and centrality report")
+    report_p.add_argument("-o", "--output", type=str, help="Path to write report output")
+    report_p.add_argument("-f", "--format", type=str, default="text", choices=["text", "markdown", "json"], help="Report format (default: text)")
 
     # agtoosa context compile <target>
     context_parser = subparsers.add_parser("context", help="Context Compilation v2 (Graph RAG for AI Agents)")
@@ -112,6 +124,12 @@ def main(argv=None) -> int:
             return cmd_graph_impact(args, workspace_root)
         elif args.graph_action == "export":
             return cmd_graph_export(args, workspace_root)
+        elif args.graph_action == "view":
+            from agtoosa.cli.graph_cmd import cmd_graph_view
+            return cmd_graph_view(args, workspace_root)
+        elif args.graph_action == "report":
+            from agtoosa.cli.graph_cmd import cmd_graph_report
+            return cmd_graph_report(args, workspace_root)
     elif args.command == "context":
         from agtoosa.cli.lifecycle_cmd import cmd_context_compile
         return cmd_context_compile(args, workspace_root)
