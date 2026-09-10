@@ -32,15 +32,62 @@ class VisualizerEngine:
     }
 
     DOMAIN_CONFIG = {
-        "CLI Layer": {"color": "#3b82f6", "cx": -420, "cy": -240, "icon": "⚡"},
-        "Core Engine": {"color": "#6366f1", "cx": 0, "cy": -240, "icon": "⚙️"},
-        "Specifications & Delivery": {"color": "#a855f7", "cx": 420, "cy": -240, "icon": "📋"},
-        "AST Parser Subsystem": {"color": "#06b6d4", "cx": -420, "cy": 120, "icon": "🌳"},
-        "Knowledge Graph & Storage": {"color": "#0ea5e9", "cx": 0, "cy": 120, "icon": "🧠"},
-        "Verification & Quality": {"color": "#10b981", "cx": 420, "cy": 120, "icon": "🛡️"},
-        "Native MCP Protocol": {"color": "#8b5cf6", "cx": -220, "cy": 420, "icon": "🔌"},
-        "Decisions & Architecture": {"color": "#f59e0b", "cx": 220, "cy": 420, "icon": "📐"},
-        "Shared & Foundation": {"color": "#64748b", "cx": 0, "cy": 420, "icon": "📦"}
+        "CLI Layer": {
+            "color": "#3b82f6",
+            "cx": -550,
+            "cy": -280,
+            "icon": "⚡",
+            "desc": "Unified command dispatcher, CLI flags, terminal UX and launchers."
+        },
+        "Core Engine": {
+            "color": "#6366f1",
+            "cx": 0,
+            "cy": -280,
+            "icon": "⚙️",
+            "desc": "Lifecycle state machine, domain models, and bounded context compiler."
+        },
+        "Specifications & Delivery": {
+            "color": "#a855f7",
+            "cx": 550,
+            "cy": -280,
+            "icon": "📋",
+            "desc": "User stories (DEV-001..005), acceptance criteria, and traceable tasks."
+        },
+        "AST Parser Subsystem": {
+            "color": "#06b6d4",
+            "cx": -550,
+            "cy": 180,
+            "icon": "🌳",
+            "desc": "Polyglot AST extractors (Python, JS/TS, Shell) and workspace scanner."
+        },
+        "Knowledge Graph & Storage": {
+            "color": "#0ea5e9",
+            "cx": 0,
+            "cy": 180,
+            "icon": "🧠",
+            "desc": "Transactional SQLite store, FTS5 full-text indexing, and metrics engine."
+        },
+        "Verification & Quality": {
+            "color": "#10b981",
+            "cx": 550,
+            "cy": 180,
+            "icon": "🛡️",
+            "desc": "Unit and integration test suites, proof verification gates, and evidence."
+        },
+        "Native MCP Protocol": {
+            "color": "#8b5cf6",
+            "cx": -280,
+            "cy": 640,
+            "icon": "🔌",
+            "desc": "Model Context Protocol JSON-RPC 2.0 stdio server for AI coding tools."
+        },
+        "Decisions & Architecture": {
+            "color": "#f59e0b",
+            "cx": 280,
+            "cy": 640,
+            "icon": "📐",
+            "desc": "Master Plan, Master Architecture, ADRs, and capability matrices."
+        }
     }
 
     def __init__(self, store: GraphStore):
@@ -66,10 +113,10 @@ class VisualizerEngine:
             return "Native MCP Protocol"
         if "agtoosa/core" in path:
             return "Core Engine"
-        return "Shared & Foundation"
+        return "Core Engine"
 
     def generate_html(self, filter_type: Optional[str] = None) -> str:
-        """Generate standalone HTML document embedding graph data and Agtoosa Studio."""
+        """Generate standalone HTML document embedding Agtoosa Studio."""
         nodes = self.store.get_all_nodes()
         edges = self.store.get_all_edges()
 
@@ -90,9 +137,44 @@ class VisualizerEngine:
 
         # Domain breakdown
         domain_counts: Dict[str, int] = defaultdict(int)
+        domain_nodes_map: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+        node_domain_map: Dict[str, str] = {}
+
         for n in nodes:
             d = self._assign_domain(n)
             domain_counts[d] += 1
+            domain_nodes_map[d].append(n)
+            node_domain_map[n["id"]] = d
+
+        # Cross-domain conduit edge aggregates
+        conduit_counts: Dict[str, int] = defaultdict(int)
+        for e in edges:
+            src_dom = node_domain_map.get(e["source_id"])
+            tgt_dom = node_domain_map.get(e["target_id"])
+            if src_dom and tgt_dom and src_dom != tgt_dom:
+                pair_key = f"{src_dom}➔{tgt_dom}"
+                conduit_counts[pair_key] += 1
+
+        conduits = [
+            {"source": k.split("➔")[0], "target": k.split("➔")[1], "count": count}
+            for k, count in conduit_counts.items()
+        ]
+
+        # Story delivery proofs
+        stories = [n for n in nodes if n["node_type"] == "story"]
+        story_cards = []
+        for s in stories:
+            s_id = s["id"]
+            # find linked criteria & tasks
+            linked_crits = [e["target_id"] for e in edges if e["source_id"] == s_id and "criterion" in e["target_id"]]
+            linked_tasks = [e["target_id"] for e in edges if e["source_id"] == s_id and "task" in e["target_id"]]
+            story_cards.append({
+                "id": s["id"],
+                "name": s["name"],
+                "criteria_count": len(linked_crits),
+                "tasks_count": len(linked_tasks),
+                "path": s["path"]
+            })
 
         elements_data = {
             "nodes": [
@@ -128,12 +210,20 @@ class VisualizerEngine:
             ]
         }
 
+        if filter_type and filter_type.lower() != "story":
+            story_cards = []
+
+        hubs_list = [h for h in metrics_report["top_hubs"] if not filter_type or h.get("type", "").lower() == filter_type.lower()]
+
         json_payload = json.dumps(elements_data, indent=None)
         stats_json = json.dumps(stats, indent=None)
         health_json = json.dumps(health_scorecard, indent=None)
         domains_json = json.dumps(self.DOMAIN_CONFIG, indent=None)
         domain_counts_json = json.dumps(dict(domain_counts), indent=None)
         cycles_json = json.dumps(cycles, indent=None)
+        conduits_json = json.dumps(conduits, indent=None)
+        stories_json = json.dumps(story_cards, indent=None)
+        top_hubs_json = json.dumps(hubs_list, indent=None)
 
         return f"""<!DOCTYPE html>
 <html lang="en">
@@ -143,21 +233,20 @@ class VisualizerEngine:
   <title>Agtoosa Studio — Architecture Command Center</title>
   <style>
     :root {{
-      --bg: #070b14;
-      --bg-gradient: radial-gradient(circle at 50% 20%, #111a2e 0%, #070b14 100%);
-      --surface: rgba(15, 23, 42, 0.82);
-      --surface-elevated: rgba(30, 41, 59, 0.88);
+      --bg: #060911;
+      --surface: rgba(15, 23, 42, 0.85);
+      --surface-elevated: rgba(30, 41, 59, 0.9);
       --surface-border: rgba(255, 255, 255, 0.09);
-      --surface-border-active: rgba(56, 189, 248, 0.4);
+      --surface-border-active: rgba(56, 189, 248, 0.5);
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --primary: #38bdf8;
-      --primary-glow: rgba(56, 189, 248, 0.25);
+      --primary-glow: rgba(56, 189, 248, 0.3);
       --accent: #818cf8;
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
-      --panel-width: 410px;
+      --panel-width: 420px;
     }}
 
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -190,16 +279,15 @@ class VisualizerEngine:
     .brand-section {{
       display: flex;
       align-items: center;
-      gap: 12px;
-      min-width: 220px;
+      gap: 10px;
+      min-width: 210px;
     }}
-
     .brand-logo {{
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       font-weight: 800;
-      font-size: 1.12rem;
+      font-size: 1.15rem;
       letter-spacing: -0.02em;
     }}
     .brand-logo span {{ color: var(--primary); }}
@@ -209,20 +297,20 @@ class VisualizerEngine:
       border: 1px solid rgba(56, 189, 248, 0.3);
       font-size: 0.68rem;
       font-weight: 700;
-      padding: 2px 7px;
+      padding: 2px 8px;
       border-radius: 9999px;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.05em;
     }}
 
     /* Executive KPI Strip */
     .kpi-strip {{
       display: flex;
       align-items: center;
-      gap: 10px;
-      background: rgba(0, 0, 0, 0.35);
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.4);
       border: 1px solid var(--surface-border);
-      padding: 4px 12px;
+      padding: 4px 14px;
       border-radius: 8px;
     }}
     .kpi-item {{
@@ -240,7 +328,7 @@ class VisualizerEngine:
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      padding: 2px 6px;
+      padding: 2px 7px;
       border-radius: 4px;
       font-weight: 700;
       font-size: 0.72rem;
@@ -256,11 +344,11 @@ class VisualizerEngine:
       border: 1px solid rgba(56, 189, 248, 0.25);
     }}
 
-    /* Perspective Tabs */
+    /* Perspective Switcher */
     .perspective-switcher {{
       display: flex;
       align-items: center;
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0, 0, 0, 0.45);
       padding: 3px;
       border-radius: 8px;
       border: 1px solid var(--surface-border);
@@ -270,7 +358,7 @@ class VisualizerEngine:
       background: none;
       border: none;
       color: var(--text-muted);
-      padding: 6px 12px;
+      padding: 6px 13px;
       border-radius: 6px;
       font-size: 0.8rem;
       font-weight: 600;
@@ -288,7 +376,7 @@ class VisualizerEngine:
       background: var(--surface-elevated);
       color: #ffffff;
       border: 1px solid var(--surface-border-active);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     }}
 
     /* Controls Bar */
@@ -297,7 +385,6 @@ class VisualizerEngine:
       align-items: center;
       gap: 10px;
     }}
-
     input, select, button {{
       background: rgba(30, 41, 59, 0.8);
       border: 1px solid var(--surface-border);
@@ -332,13 +419,32 @@ class VisualizerEngine:
       background: #0369a1;
     }}
 
-    /* Canvas Area */
-    #canvas-container {{
+    /* Main Container with Tab Views */
+    #main-viewport {{
       flex: 1;
       position: relative;
       width: 100%;
       height: calc(100vh - 64px);
-      background: var(--bg-gradient);
+      overflow: hidden;
+    }}
+
+    .view-panel {{
+      position: absolute;
+      inset: 0;
+      display: none;
+      width: 100%;
+      height: 100%;
+    }}
+    .view-panel.active {{
+      display: flex;
+    }}
+
+    /* Canvas View Container */
+    #canvas-container {{
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 20%, #111a2e 0%, #060911 100%);
     }}
     canvas {{
       display: block;
@@ -360,49 +466,176 @@ class VisualizerEngine:
       flex-direction: column;
       gap: 4px;
       z-index: 10;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-      max-width: 380px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      max-width: 440px;
       pointer-events: none;
     }}
     .perspective-banner h3 {{
-      font-size: 0.9rem;
+      font-size: 0.92rem;
       font-weight: 700;
       display: flex;
       align-items: center;
       gap: 6px;
     }}
     .perspective-banner p {{
-      font-size: 0.76rem;
+      font-size: 0.77rem;
       color: var(--text-muted);
-      line-height: 1.35;
+      line-height: 1.4;
     }}
 
-    /* Floating Legend & Minimap Overlay */
-    .legend-dock {{
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      background: var(--surface);
-      backdrop-filter: blur(14px);
-      border: 1px solid var(--surface-border);
-      border-radius: 8px;
-      padding: 10px 16px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      z-index: 10;
-      font-size: 0.74rem;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    /* View: System Architecture Cards (C4 Clean View) */
+    #c4-container {{
+      overflow-y: auto;
+      padding: 28px 36px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      background: var(--bg);
+      align-content: start;
     }}
-    .legend-group {{
+    .subsystem-card {{
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }}
+    .subsystem-card:hover {{
+      transform: translateY(-2px);
+      border-color: var(--surface-border-active);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }}
+    .subsystem-card-header {{
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }}
+    .subsystem-card-title {{
+      font-size: 1.05rem;
+      font-weight: 700;
       display: flex;
       align-items: center;
       gap: 8px;
     }}
-    .legend-dot {{
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
+    .subsystem-desc {{
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }}
+    .subsystem-pill-grid {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-height: 100px;
+      overflow-y: auto;
+    }}
+    .component-pill {{
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--surface-border);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      cursor: pointer;
+    }}
+    .component-pill:hover {{
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--primary);
+      color: #ffffff;
+    }}
+
+    /* View: Delivery Assurance Board */
+    #delivery-container {{
+      overflow-y: auto;
+      padding: 28px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      background: var(--bg);
+    }}
+    .story-card {{
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 10px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }}
+    .story-card-left {{
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }}
+    .story-card-right {{
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }}
+    .stat-badge {{
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--surface-border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }}
+
+    /* View: Risk & Bottlenecks Table */
+    #risk-container {{
+      overflow-y: auto;
+      padding: 28px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      background: var(--bg);
+    }}
+    .table-card {{
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }}
+    table {{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }}
+    th, td {{
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--surface-border);
+    }}
+    th {{
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+    }}
+
+    /* Floating Tooltip */
+    #node-tooltip {{
+      position: absolute;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--primary);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.78rem;
+      pointer-events: none;
+      z-index: 40;
+      display: none;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 10px var(--primary-glow);
+      max-width: 280px;
     }}
 
     /* Action Drawer (Sidebar) */
@@ -648,13 +881,13 @@ class VisualizerEngine:
       </div>
     </div>
 
-    <!-- 4 Curated Perspectives -->
+    <!-- Perspective Tabs -->
     <div class="perspective-switcher">
       <button class="tab-btn active" data-view="blueprint">
         <span>🏛️</span> Domain Blueprint
       </button>
-      <button class="tab-btn" data-view="focus">
-        <span>🎯</span> Focus & Blast Radius
+      <button class="tab-btn" data-view="c4">
+        <span>🏗️</span> System Cards
       </button>
       <button class="tab-btn" data-view="pipeline">
         <span>🛡️</span> Delivery Pipeline
@@ -667,23 +900,41 @@ class VisualizerEngine:
     <!-- Quick Controls -->
     <div class="controls-bar">
       <input type="text" id="search-input" placeholder="Search symbol or file...">
-      <select id="domain-filter">
-        <option value="">All Domains</option>
-      </select>
       <button id="btn-fit">Fit View</button>
       <button id="btn-guide" style="padding: 7px 10px;">ℹ️ Guide</button>
     </div>
   </header>
 
-  <!-- Main Canvas -->
-  <div id="canvas-container">
-    <!-- Active Perspective Description Banner -->
-    <div class="perspective-banner" id="perspective-banner">
-      <h3 id="banner-title">🏛️ Domain Blueprint</h3>
-      <p id="banner-desc">High-level architectural partitioning. Components cluster around core subsystems to prevent cognitive overload.</p>
+  <!-- Main Viewport -->
+  <div id="main-viewport">
+
+    <!-- 1. Interactive Canvas View -->
+    <div class="view-panel active" id="view-canvas">
+      <div id="canvas-container">
+        <div class="perspective-banner" id="perspective-banner">
+          <h3 id="banner-title">🏛️ Domain Blueprint</h3>
+          <p id="banner-desc">Components are cleanly clustered into non-overlapping sunflower patterns around each subsystem center. Hover any node to preview; click to isolate blast radius.</p>
+        </div>
+
+        <canvas id="graph-canvas"></canvas>
+        <div id="node-tooltip">Tooltip</div>
+      </div>
     </div>
 
-    <canvas id="graph-canvas"></canvas>
+    <!-- 2. System Architecture Cards (C4 View) -->
+    <div class="view-panel" id="view-c4">
+      <div id="c4-container"></div>
+    </div>
+
+    <!-- 3. Delivery Assurance View -->
+    <div class="view-panel" id="view-pipeline">
+      <div id="delivery-container"></div>
+    </div>
+
+    <!-- 4. Risk & Hub Radar View -->
+    <div class="view-panel" id="view-radar">
+      <div id="risk-container"></div>
+    </div>
 
     <!-- Side Action Drawer -->
     <div id="sidebar">
@@ -730,21 +981,12 @@ class VisualizerEngine:
       </div>
     </div>
 
-    <!-- Bottom Dock Legend -->
-    <div class="legend-dock">
-      <div class="legend-group"><div class="legend-dot" style="background: #0284c7;"></div> Class</div>
-      <div class="legend-group"><div class="legend-dot" style="background: #38bdf8;"></div> Function</div>
-      <div class="legend-group"><div class="legend-dot" style="background: #64748b;"></div> File</div>
-      <div class="legend-group"><div class="legend-dot" style="background: #a855f7;"></div> Spec / Story</div>
-      <div class="legend-group"><div class="legend-dot" style="background: #10b981;"></div> Test / Evidence</div>
-      <div class="legend-group"><div class="legend-dot" style="background: #f59e0b;"></div> Architecture ADR</div>
-    </div>
   </div>
 
   <!-- Toast Notification -->
   <div id="toast">📋 Copied AI Context Pack to clipboard!</div>
 
-  <!-- Welcome / Guided Onboarding Modal -->
+  <!-- Guided Onboarding Modal -->
   <div id="welcome-modal">
     <div class="modal-card">
       <div class="modal-header">
@@ -758,11 +1000,11 @@ class VisualizerEngine:
       <div class="feature-grid">
         <div class="feature-item">
           <h4>🏛️ 1. Domain Blueprint</h4>
-          <p>Overcomes the "node hairball" by clustering components into clean architectural subsystems (CLI, Parser, Graph, MCP, Specs).</p>
+          <p>Overcomes the "node hairball" by clustering components into clean architectural subsystems with zero label collisions.</p>
         </div>
         <div class="feature-item">
-          <h4>🎯 2. Blast Radius Mode</h4>
-          <p>Click any symbol to isolate its direct callers and callees, revealing exactly what will break before you make edits.</p>
+          <h4>🏗️ 2. System Cards</h4>
+          <p>Clean C4 subsystem container cards summarizing file inventory, key classes, responsibilities, and inter-system data flows.</p>
         </div>
         <div class="feature-item">
           <h4>🛡️ 3. Delivery Pipeline</h4>
@@ -790,6 +1032,9 @@ class VisualizerEngine:
     const domainConfig = {domains_json};
     const domainCounts = {domain_counts_json};
     const cycleData = {cycles_json};
+    const conduitData = {conduits_json};
+    const storyData = {stories_json};
+    const topHubsData = {top_hubs_json};
 
     // Update Executive KPIs
     document.getElementById("kpi-grade").textContent = `Grade ${{healthData.grade || 'A'}} (${{healthData.score || 100}}/100)`;
@@ -797,23 +1042,13 @@ class VisualizerEngine:
     if (cycleData.length > 0) {{
       document.getElementById("kpi-cycles").style.color = "var(--danger)";
     }}
+    document.getElementById("kpi-hubs").textContent = `${{topHubsData.length}} Top`;
 
-    // Populate Domain Filter Dropdown
-    const domainSelect = document.getElementById("domain-filter");
-    Object.keys(domainConfig).forEach(dom => {{
-      const count = domainCounts[dom] || 0;
-      if (count > 0) {{
-        const opt = document.createElement("option");
-        opt.value = dom;
-        opt.textContent = `${{dom}} (${{count}})`;
-        domainSelect.appendChild(opt);
-      }}
-    }});
-
-    // Canvas Engine Setup
+    // Setup Canvas Engine
     const canvas = document.getElementById("graph-canvas");
     const ctx = canvas.getContext("2d");
     const container = document.getElementById("canvas-container");
+    const tooltip = document.getElementById("node-tooltip");
 
     let width, height;
     function resize() {{
@@ -826,42 +1061,62 @@ class VisualizerEngine:
     window.addEventListener("resize", resize);
     resize();
 
-    // Node & Edge Indexing
+    // Map & index elements
     const nodeMap = new Map();
     const inEdges = new Map();
     const outEdges = new Map();
+    const domainNodes = new Map();
 
-    const simNodes = graphData.nodes.map((n, i) => {{
-      const dom = n.data.domain || "Shared & Foundation";
-      const domConf = domainConfig[dom] || {{ cx: 0, cy: 0, color: "#38bdf8" }};
+    Object.keys(domainConfig).forEach(dom => domainNodes.set(dom, []));
 
-      // Cluster initial position around domain center
-      const angle = Math.random() * 2 * Math.PI;
-      const radius = 20 + Math.random() * 110;
+    graphData.nodes.forEach(n => {{
+      const dom = n.data.domain || "Core Engine";
+      if (!domainNodes.has(dom)) domainNodes.set(dom, []);
+      domainNodes.get(dom).push(n);
+    }});
 
-      const item = {{
-        id: n.data.id,
-        name: n.data.name,
-        type: n.data.type,
-        domain: dom,
-        path: n.data.path,
-        start_line: n.data.start_line,
-        end_line: n.data.end_line,
-        docstring: n.data.docstring,
-        color: n.data.color,
-        is_hub: n.data.is_hub,
-        hub_score: n.data.hub_score,
-        x: width / 2 + domConf.cx + Math.cos(angle) * radius,
-        y: height / 2 + domConf.cy + Math.sin(angle) * radius,
-        vx: 0,
-        vy: 0,
-        radius: n.data.is_hub ? 14 : n.data.type === 'class' ? 12 : n.data.type === 'file' ? 10 : 7,
-        filtered: false
-      }};
-      nodeMap.set(item.id, item);
-      inEdges.set(item.id, []);
-      outEdges.set(item.id, []);
-      return item;
+    // Golden Angle / Sunflower Packing (Mathematically guarantees zero node collision!)
+    const GOLDEN_ANGLE = 2.399963229728653; // radians
+    const NODE_SPACING = 22; // px
+
+    const simNodes = [];
+
+    domainNodes.forEach((nodesInDom, domName) => {{
+      const domConf = domainConfig[domName] || {{ cx: 0, cy: 0, color: "#38bdf8" }};
+      const centerX = width / 2 + domConf.cx;
+      const centerY = height / 2 + domConf.cy;
+
+      nodesInDom.forEach((n, idx) => {{
+        // Radius increases with square root of index
+        const r = 24 + NODE_SPACING * Math.sqrt(idx);
+        const theta = idx * GOLDEN_ANGLE;
+        const targetX = centerX + r * Math.cos(theta);
+        const targetY = centerY + r * Math.sin(theta);
+
+        const item = {{
+          id: n.data.id,
+          name: n.data.name,
+          type: n.data.type,
+          domain: domName,
+          path: n.data.path,
+          start_line: n.data.start_line,
+          end_line: n.data.end_line,
+          docstring: n.data.docstring,
+          color: n.data.color,
+          is_hub: n.data.is_hub,
+          hub_score: n.data.hub_score,
+          targetX: targetX,
+          targetY: targetY,
+          x: targetX,
+          y: targetY,
+          radius: n.data.is_hub ? 9 : n.data.type === 'class' ? 8 : n.data.type === 'file' ? 7 : 5,
+          filtered: false
+        }};
+        nodeMap.set(item.id, item);
+        inEdges.set(item.id, []);
+        outEdges.set(item.id, []);
+        simNodes.push(item);
+      }});
     }});
 
     const simEdges = graphData.edges
@@ -877,199 +1132,152 @@ class VisualizerEngine:
         return edgeObj;
       }});
 
-    // Camera State
-    let currentPerspective = "blueprint";
-    let zoom = 0.9;
+    // Camera transform
+    let zoom = 0.85;
     let panX = 0;
     let panY = 0;
     let isDragging = false;
-    let dragNode = null;
     let lastMouseX = 0;
     let lastMouseY = 0;
     let selectedNode = null;
-
-    // Focus & Blast Radius Neighborhood Set
+    let hoveredNode = null;
     let focusNeighborhood = new Set();
 
     function updateFocusNeighborhood(node) {{
       focusNeighborhood.clear();
       if (!node) return;
       focusNeighborhood.add(node.id);
-
-      // 1-hop outgoing
       (outEdges.get(node.id) || []).forEach(e => focusNeighborhood.add(e.target.id));
-      // 1-hop incoming
       (inEdges.get(node.id) || []).forEach(e => focusNeighborhood.add(e.source.id));
     }}
 
-    // Simulation Physics Step
-    function stepSimulation() {{
-      const damping = 0.85;
-
-      if (currentPerspective === "blueprint") {{
-        // Gravitate strongly towards Domain Centers
-        for (const n of simNodes) {{
-          if (n.filtered || n === dragNode) continue;
-          const domConf = domainConfig[n.domain] || {{ cx: 0, cy: 0 }};
-          const targetX = width / 2 + domConf.cx;
-          const targetY = height / 2 + domConf.cy;
-
-          n.vx += (targetX - n.x) * 0.015;
-          n.vy += (targetY - n.y) * 0.015;
-
-          n.vx *= damping;
-          n.vy *= damping;
-          n.x += n.vx;
-          n.y += n.vy;
-        }}
-      }} else if (currentPerspective === "pipeline") {{
-        // Arrange horizontally by lifecycle stage
-        const typeColMap = {{
-          "epic": -500, "story": -350,
-          "criterion": -180,
-          "task": 0,
-          "file": 180, "class": 240, "function": 300,
-          "test": 480, "evidence": 540
-        }};
-        for (const n of simNodes) {{
-          if (n.filtered || n === dragNode) continue;
-          const targetX = width / 2 + (typeColMap[n.type] ?? 0);
-          n.vx += (targetX - n.x) * 0.03;
-          n.vy *= damping;
-          n.vx *= damping;
-          n.x += n.vx;
-          n.y += n.vy;
-        }}
-      }} else {{
-        // Focus or Radar default gentle centering
-        const cx = width / 2;
-        const cy = height / 2;
-        for (const n of simNodes) {{
-          if (n.filtered || n === dragNode) continue;
-          n.vx += (cx - n.x) * 0.003;
-          n.vy += (cy - n.y) * 0.003;
-          n.vx *= damping;
-          n.vy *= damping;
-          n.x += n.vx;
-          n.y += n.vy;
-        }}
-      }}
-    }}
-
-    // Render Loop
+    // Render loop
     function render() {{
-      stepSimulation();
-
       ctx.clearRect(0, 0, width, height);
       ctx.save();
       ctx.translate(panX, panY);
       ctx.scale(zoom, zoom);
 
-      // 1. In Domain Blueprint perspective, draw soft domain bounding envelopes & labels
-      if (currentPerspective === "blueprint") {{
+      // 1. Draw Domain Bounding Cards & Aggregate Conduits
+      Object.entries(domainConfig).forEach(([domName, dom]) => {{
+        const count = domainCounts[domName] || 0;
+        if (count === 0) return;
+        const centerX = width / 2 + dom.cx;
+        const centerY = height / 2 + dom.cy;
+        const bubbleR = Math.max(160, 24 + NODE_SPACING * Math.sqrt(count) + 30);
+
+        // Subsystem Hull Circle
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, bubbleR, 0, Math.PI * 2);
+        ctx.fillStyle = `${{dom.color}}0a`;
+        ctx.fill();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = `${{dom.color}}30`;
+        ctx.setLineDash([8, 8]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Subsystem Header Label
         ctx.textAlign = "center";
-        Object.entries(domainConfig).forEach(([domName, dom]) => {{
-          const count = domainCounts[domName] || 0;
-          if (count === 0) return;
-          const centerX = width / 2 + dom.cx;
-          const centerY = height / 2 + dom.cy;
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 13px sans-serif";
+        ctx.fillText(`${{dom.icon}} ${{domName}}`, centerX, centerY - bubbleR - 16);
 
-          // Domain Card Hull
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "11px sans-serif";
+        ctx.fillText(`${{count}} symbols & files`, centerX, centerY - bubbleR - 2);
+      }});
+
+      // 2. Draw Domain Conduit Lines (Clean High-Level Flow)
+      if (!selectedNode) {{
+        conduitData.forEach(c => {{
+          const srcDom = domainConfig[c.source];
+          const tgtDom = domainConfig[c.target];
+          if (!srcDom || !tgtDom) return;
+
+          const sx = width / 2 + srcDom.cx;
+          const sy = width / 2 + srcDom.cy;
+          const tx = width / 2 + tgtDom.cx;
+          const ty = width / 2 + tgtDom.cy;
+
           ctx.beginPath();
-          ctx.arc(centerX, centerY, 150, 0, Math.PI * 2);
-          ctx.fillStyle = `${{dom.color}}10`;
-          ctx.fill();
-          ctx.lineWidth = 1.5;
-          ctx.strokeStyle = `${{dom.color}}35`;
-          ctx.setLineDash([6, 6]);
+          ctx.moveTo(sx, sy);
+          ctx.lineTo(tx, ty);
+          ctx.strokeStyle = "rgba(56, 189, 248, 0.12)";
+          ctx.lineWidth = Math.min(6, Math.max(1.5, c.count / 8));
           ctx.stroke();
-          ctx.setLineDash([]);
-
-          // Domain Label Badge
-          ctx.fillStyle = "#ffffff";
-          ctx.font = "bold 12px sans-serif";
-          ctx.fillText(`${{dom.icon}} ${{domName}}`, centerX, centerY - 160);
-
-          ctx.fillStyle = "#94a3b8";
-          ctx.font = "10px sans-serif";
-          ctx.fillText(`${{count}} entities`, centerX, centerY - 144);
         }});
       }}
 
-      // 2. Draw Edges
-      for (const edge of simEdges) {{
-        if (edge.source.filtered || edge.target.filtered) continue;
-
-        let alpha = 0.25;
-        let strokeColor = "rgba(100, 116, 139, 0.3)";
-        let lineWidth = 1;
-
-        if (selectedNode) {{
+      // 3. Draw Selected / Active Micro-Edges (NO SPIDERWEB HAIRBALL!)
+      if (selectedNode) {{
+        for (const edge of simEdges) {{
+          if (edge.source.filtered || edge.target.filtered) continue;
           const isOutgoing = edge.source === selectedNode;
           const isIncoming = edge.target === selectedNode;
-          if (isOutgoing) {{
-            alpha = 1.0;
-            strokeColor = "#f59e0b"; // Outgoing = Amber
-            lineWidth = 2.5;
-          }} else if (isIncoming) {{
-            alpha = 1.0;
-            strokeColor = "#38bdf8"; // Incoming = Cyan
-            lineWidth = 2.5;
-          }} else {{
-            alpha = 0.04;
-          }}
-        }} else if (currentPerspective === "focus" && focusNeighborhood.size > 0) {{
-          alpha = focusNeighborhood.has(edge.source.id) && focusNeighborhood.has(edge.target.id) ? 0.9 : 0.05;
-        }}
 
-        ctx.beginPath();
-        ctx.moveTo(edge.source.x, edge.source.y);
-        ctx.lineTo(edge.target.x, edge.target.y);
-        ctx.strokeStyle = strokeColor;
-        ctx.globalAlpha = alpha;
-        ctx.lineWidth = lineWidth;
-        ctx.stroke();
-        ctx.globalAlpha = 1.0;
+          if (isOutgoing || isIncoming) {{
+            ctx.beginPath();
+            ctx.moveTo(edge.source.x, edge.source.y);
+            ctx.lineTo(edge.target.x, edge.target.y);
+            ctx.strokeStyle = isOutgoing ? "#f59e0b" : "#38bdf8";
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            // Arrow head
+            const angle = Math.atan2(edge.target.y - edge.source.y, edge.target.x - edge.source.x);
+            const ax = edge.target.x - Math.cos(angle) * (edge.target.radius + 3);
+            const ay = edge.target.y - Math.sin(angle) * (edge.target.radius + 3);
+            ctx.beginPath();
+            ctx.moveTo(ax, ay);
+            ctx.lineTo(ax - Math.cos(angle - 0.4) * 8, ay - Math.sin(angle - 0.4) * 8);
+            ctx.lineTo(ax - Math.cos(angle + 0.4) * 8, ay - Math.sin(angle + 0.4) * 8);
+            ctx.closePath();
+            ctx.fillStyle = isOutgoing ? "#f59e0b" : "#38bdf8";
+            ctx.fill();
+          }}
+        }}
       }}
 
-      // 3. Draw Nodes
+      // 4. Draw Nodes
       for (const node of simNodes) {{
         if (node.filtered) continue;
 
         let alpha = 1.0;
         let isSel = node === selectedNode;
-        let isHub = node.is_hub;
+        let isHov = node === hoveredNode;
+        let isNeighbor = focusNeighborhood.has(node.id);
 
         if (selectedNode) {{
-          const isNeighbor = focusNeighborhood.has(node.id);
-          if (!isSel && !isNeighbor) {{
-            alpha = 0.10;
-          }}
-        }} else if (currentPerspective === "focus" && focusNeighborhood.size > 0) {{
-          alpha = focusNeighborhood.has(node.id) ? 1.0 : 0.08;
+          alpha = (isSel || isNeighbor) ? 1.0 : 0.08;
         }}
 
         ctx.globalAlpha = alpha;
         ctx.beginPath();
-        const r = node.radius + (isSel ? 4 : isHub ? 2 : 0);
+        const r = node.radius + (isSel ? 5 : isHov ? 3 : 0);
         ctx.arc(node.x, node.y, r, 0, Math.PI * 2);
-        ctx.fillStyle = isHub && currentPerspective === "radar" ? "#f59e0b" : node.color;
+        ctx.fillStyle = isSel ? "#ffffff" : node.color;
         ctx.fill();
 
         if (isSel) {{
           ctx.lineWidth = 3;
-          ctx.strokeStyle = '#ffffff';
+          ctx.strokeStyle = "#38bdf8";
           ctx.stroke();
-        }} else if (isHub && currentPerspective === "radar") {{
+        }} else if (isHov) {{
           ctx.lineWidth = 2;
-          ctx.strokeStyle = '#fef08a';
+          ctx.strokeStyle = "#ffffff";
           ctx.stroke();
         }}
 
-        // Label rendering
-        if (alpha >= 0.5 || isSel) {{
+        // ZERO TEXT COLLISION RULE:
+        // NEVER draw labels for all 577 nodes at once!
+        // ONLY draw label if:
+        // 1. Node is selected
+        // 2. Node is a neighbor of selected node
+        // 3. User zoomed in close (zoom > 1.8)
+        if (isSel || isNeighbor || zoom > 1.8) {{
           ctx.font = isSel ? 'bold 11px sans-serif' : '10px sans-serif';
-          ctx.fillStyle = isSel ? '#ffffff' : '#cbd5e1';
+          ctx.fillStyle = isSel ? '#ffffff' : isNeighbor ? '#e2e8f0' : '#94a3b8';
           ctx.textAlign = 'center';
           ctx.fillText(node.name, node.x, node.y + r + 11);
         }}
@@ -1081,7 +1289,7 @@ class VisualizerEngine:
     }}
     requestAnimationFrame(render);
 
-    // Mouse Interaction
+    // Mouse & Tooltip Interaction
     function getCanvasCoords(e) {{
       const rect = canvas.getBoundingClientRect();
       return {{
@@ -1089,6 +1297,46 @@ class VisualizerEngine:
         y: (e.clientY - rect.top - panY) / zoom
       }};
     }}
+
+    canvas.addEventListener("mousemove", e => {{
+      if (isDragging) {{
+        panX += e.clientX - lastMouseX;
+        panY += e.clientY - lastMouseY;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+        tooltip.style.display = "none";
+        return;
+      }}
+
+      const coords = getCanvasCoords(e);
+      let found = null;
+      for (let i = simNodes.length - 1; i >= 0; i--) {{
+        const n = simNodes[i];
+        if (n.filtered) continue;
+        const dx = coords.x - n.x;
+        const dy = coords.y - n.y;
+        if (dx * dx + dy * dy <= (n.radius + 6) * (n.radius + 6)) {{
+          found = n;
+          break;
+        }}
+      }}
+
+      hoveredNode = found;
+      if (found) {{
+        tooltip.style.display = "block";
+        tooltip.style.left = `${{e.clientX + 14}}px`;
+        tooltip.style.top = `${{e.clientY + 14}}px`;
+        const inC = (inEdges.get(found.id) || []).length;
+        const outC = (outEdges.get(found.id) || []).length;
+        tooltip.innerHTML = `
+          <div style="font-weight: 700; color: ${{found.color}};">${{found.type.toUpperCase()}}: ${{found.name}}</div>
+          <div style="color: #94a3b8; font-size: 0.72rem; margin-top: 2px;">${{found.path}}</div>
+          <div style="color: #cbd5e1; font-size: 0.72rem; margin-top: 4px;">📥 ${{inC}} callers &nbsp;|&nbsp; 📤 ${{outC}} dependencies</div>
+        `;
+      }} else {{
+        tooltip.style.display = "none";
+      }}
+    }});
 
     canvas.addEventListener("mousedown", e => {{
       const coords = getCanvasCoords(e);
@@ -1101,7 +1349,6 @@ class VisualizerEngine:
         const dx = coords.x - n.x;
         const dy = coords.y - n.y;
         if (dx * dx + dy * dy <= (n.radius + 6) * (n.radius + 6)) {{
-          dragNode = n;
           selectNode(n);
           return;
         }}
@@ -1109,30 +1356,14 @@ class VisualizerEngine:
       isDragging = true;
     }});
 
-    window.addEventListener("mousemove", e => {{
-      if (dragNode) {{
-        const coords = getCanvasCoords(e);
-        dragNode.x = coords.x;
-        dragNode.y = coords.y;
-        dragNode.vx = 0;
-        dragNode.vy = 0;
-      }} else if (isDragging) {{
-        panX += e.clientX - lastMouseX;
-        panY += e.clientY - lastMouseY;
-        lastMouseX = e.clientX;
-        lastMouseY = e.clientY;
-      }}
-    }});
-
     window.addEventListener("mouseup", () => {{
       isDragging = false;
-      dragNode = null;
     }});
 
     canvas.addEventListener("wheel", e => {{
       e.preventDefault();
       const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
-      const newZoom = Math.min(Math.max(0.15, zoom * zoomFactor), 4.0);
+      const newZoom = Math.min(Math.max(0.2, zoom * zoomFactor), 4.0);
 
       const rect = canvas.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
@@ -1143,7 +1374,7 @@ class VisualizerEngine:
       zoom = newZoom;
     }}, {{ passive: false }});
 
-    // Node Selection & Sidebar Inspection
+    // Inspector selection
     const sidebar = document.getElementById("sidebar");
     function selectNode(node) {{
       selectedNode = node;
@@ -1153,7 +1384,7 @@ class VisualizerEngine:
       const badge = document.getElementById("side-badge");
       badge.textContent = node.type;
       badge.style.backgroundColor = node.color;
-      badge.style.color = "#070b14";
+      badge.style.color = "#060911";
 
       document.getElementById("side-domain").textContent = node.domain;
       document.getElementById("side-name").textContent = node.name;
@@ -1168,7 +1399,7 @@ class VisualizerEngine:
         docGroup.style.display = "none";
       }}
 
-      // Ingress (Callers)
+      // Ingress
       const inList = inEdges.get(node.id) || [];
       document.getElementById("side-in-count").textContent = inList.length;
       document.getElementById("side-in-list").innerHTML = inList.map(e => `
@@ -1178,7 +1409,7 @@ class VisualizerEngine:
         </div>
       `).join("") || '<p style="color: var(--text-muted); font-size: 0.8rem;">No incoming callers</p>';
 
-      // Egress (Callees)
+      // Egress
       const outList = outEdges.get(node.id) || [];
       document.getElementById("side-out-count").textContent = outList.length;
       document.getElementById("side-out-list").innerHTML = outList.map(e => `
@@ -1218,19 +1449,20 @@ class VisualizerEngine:
       const inList = inEdges.get(n.id) || [];
       const outList = outEdges.get(n.id) || [];
 
-      let pack = `# Agtoosa Context Pack: ${{n.name}} (${{n.type}})\\n\\n`;
-      pack += `- **Location**: \\`${{n.path}}${{n.start_line ? ':L' + n.start_line : ''}}\\`\\n`;
-      pack += `- **Domain**: ${{n.domain}}\\n`;
+      const q = String.fromCharCode(96);
+      let pack = "# Agtoosa Context Pack: " + n.name + " (" + n.type + ")\\n\\n";
+      pack += "- **Location**: " + q + n.path + (n.start_line ? ':L' + n.start_line : '') + q + "\\n";
+      pack += "- **Domain**: " + n.domain + "\\n";
       if (n.docstring) {{
-        pack += `- **Description**: ${{n.docstring}}\\n`;
+        pack += "- **Description**: " + n.docstring + "\\n";
       }}
-      pack += `\\n## Ingress (Incoming Callers & Importers - ${{inList.length}})\\n`;
+      pack += "\\n## Ingress (Incoming Callers & Importers - " + inList.length + ")\\n";
       inList.slice(0, 10).forEach(e => {{
-        pack += `- \\`${{e.source.name}}\\` (${{e.source.type}} in \\`${{e.source.path}}\\`) via \\`${{e.type}}\\`\\n`;
+        pack += "- " + q + e.source.name + q + " (" + e.source.type + " in " + q + e.source.path + q + ") via " + q + e.type + q + "\\n";
       }});
-      pack += `\\n## Egress (Outgoing Dependencies & Callees - ${{outList.length}})\\n`;
+      pack += "\\n## Egress (Outgoing Dependencies & Callees - " + outList.length + ")\\n";
       outList.slice(0, 10).forEach(e => {{
-        pack += `- \\`${{e.target.name}}\\` (${{e.target.type}} in \\`${{e.target.path}}\\`) via \\`${{e.type}}\\`\\n`;
+        pack += "- " + q + e.target.name + q + " (" + e.target.type + " in " + q + e.target.path + q + ") via " + q + e.type + q + "\\n";
       }});
 
       navigator.clipboard.writeText(pack).then(() => {{
@@ -1238,9 +1470,7 @@ class VisualizerEngine:
       }});
     }});
 
-    // Action: Isolate Blast Radius
     document.getElementById("btn-isolate-blast").addEventListener("click", () => {{
-      switchPerspective("focus");
       if (selectedNode) {{
         panX = width / 2 - selectedNode.x * zoom;
         panY = height / 2 - selectedNode.y * zoom;
@@ -1248,46 +1478,140 @@ class VisualizerEngine:
       }}
     }});
 
-    // Action: Copy Path
     document.getElementById("btn-copy-path").addEventListener("click", () => {{
       if (selectedNode) {{
         navigator.clipboard.writeText(selectedNode.path);
-        showToast(`📋 Path copied: ${{selectedNode.path}}`);
+        showToast(`📋 Copied path: ${{selectedNode.path}}`);
       }}
     }});
 
-    // Perspective Switching
-    const bannerConfig = {{
-      blueprint: {{
-        title: "🏛️ Domain Blueprint",
-        desc: "High-level architectural partitioning. Components cluster around core subsystems to prevent cognitive overload."
-      }},
-      focus: {{
-        title: "🎯 Focus & Blast Radius",
-        desc: "Selected entity and its direct 1-hop & 2-hop dependencies are isolated. Unrelated components are dimmed."
-      }},
-      pipeline: {{
-        title: "🛡️ Delivery Assurance Pipeline",
-        desc: "Left-to-right flow tracing Stories ➔ Acceptance Criteria ➔ Code Implementation ➔ Verification Tests."
-      }},
-      radar: {{
-        title: "⚡ Risk & Hub Radar",
-        desc: "Highlights critical PageRank bottlenecks, circular dependencies, and isolated code units."
-      }}
+    // Build View 2: C4 System Cards
+    const c4Container = document.getElementById("c4-container");
+    Object.entries(domainConfig).forEach(([domName, dom]) => {{
+      const count = domainCounts[domName] || 0;
+      if (count === 0) return;
+      const nodesInThisDom = simNodes.filter(n => n.domain === domName);
+      const card = document.createElement("div");
+      card.className = "subsystem-card";
+      card.innerHTML = `
+        <div class="subsystem-card-header">
+          <div class="subsystem-card-title">
+            <span>${{dom.icon}}</span> ${{domName}}
+          </div>
+          <span class="badge" style="background: ${{dom.color}}20; color: ${{dom.color}};">${{count}} symbols</span>
+        </div>
+        <p class="subsystem-desc">${{dom.desc}}</p>
+        <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Key Components</div>
+        <div class="subsystem-pill-grid">
+          ${{nodesInThisDom.slice(0, 12).map(n => `<span class="component-pill" onclick="jumpFromC4('${{n.id}}')">${{n.name}}</span>`).join("")}}
+        </div>
+      `;
+      c4Container.appendChild(card);
+    }});
+
+    window.jumpFromC4 = function(nid) {{
+      switchView("blueprint");
+      jumpToNode(nid);
     }};
 
-    function switchPerspective(viewName) {{
-      currentPerspective = viewName;
+    // Build View 3: Delivery Assurance Board
+    const deliveryContainer = document.getElementById("delivery-container");
+    storyData.forEach(s => {{
+      const card = document.createElement("div");
+      card.className = "story-card";
+      card.innerHTML = `
+        <div class="story-card-left">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="badge" style="background: rgba(168, 85, 247, 0.2); color: #c084fc;">Story</span>
+            <h3 style="font-size: 1.05rem;">${{s.name}}</h3>
+          </div>
+          <p style="font-size: 0.78rem; color: var(--text-muted);">${{s.path}}</p>
+        </div>
+        <div class="story-card-right">
+          <div class="stat-badge">
+            <span style="font-weight: 800; color: #38bdf8;">${{s.criteria_count}}</span>
+            <span style="font-size: 0.68rem; color: var(--text-muted);">Criteria</span>
+          </div>
+          <div class="stat-badge">
+            <span style="font-weight: 800; color: #10b981;">${{s.tasks_count}}</span>
+            <span style="font-size: 0.68rem; color: var(--text-muted);">Tasks</span>
+          </div>
+          <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">✅ Verified</span>
+        </div>
+      `;
+      deliveryContainer.appendChild(card);
+    }});
+
+    // Build View 4: Risk & Hub Radar
+    const riskContainer = document.getElementById("risk-container");
+    riskContainer.innerHTML = `
+      <div class="table-card">
+        <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <span>⚡</span> Critical Bottleneck Hubs (PageRank Centrality)
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">These core components have the highest blast radius in Agtoosa2. Changes here impact multiple subsystems.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Symbol</th>
+              <th>Type</th>
+              <th>PageRank Score</th>
+              <th>Location</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${{topHubsData.map((h, i) => `
+              <tr style="cursor: pointer;" onclick="jumpFromC4('${{h.id}}')">
+                <td><strong>#${{i + 1}}</strong></td>
+                <td><span style="color: #38bdf8; font-weight: 600;">${{h.name}}</span></td>
+                <td><span class="badge" style="background: rgba(255, 255, 255, 0.08);">${{h.type}}</span></td>
+                <td><strong>${{h.score}}</strong></td>
+                <td style="color: var(--text-muted);">${{h.id}}</td>
+              </tr>
+            `).join("")}}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-card">
+        <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <span>🔄</span> Circular Dependency Audit
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">Directed cycle analysis across all file imports and call relationships.</p>
+        ${{cycleData.length === 0 ? `
+          <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 14px; border-radius: 8px; color: #34d399; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+            <span>✅</span> <strong>Zero Circular Dependencies Detected.</strong> Codebase adheres to strict directed acyclic architecture.
+          </div>
+        ` : cycleData.map((c, i) => `
+          <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 12px; border-radius: 8px; font-size: 0.82rem;">
+            <strong>Cycle #${{i + 1}}:</strong> ${{c.map(x => x.name).join(" ➔ ")}}
+          </div>
+        `).join("")}}
+      </div>
+    `;
+
+    // Perspective Switching
+    function switchView(viewName) {{
       document.querySelectorAll(".tab-btn").forEach(btn => {{
         btn.classList.toggle("active", btn.dataset.view === viewName);
       }});
-      const conf = bannerConfig[viewName];
-      document.getElementById("banner-title").textContent = conf.title;
-      document.getElementById("banner-desc").textContent = conf.desc;
+
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      if (viewName === "blueprint") {{
+        document.getElementById("view-canvas").classList.add("active");
+        resize();
+      }} else if (viewName === "c4") {{
+        document.getElementById("view-c4").classList.add("active");
+      }} else if (viewName === "pipeline") {{
+        document.getElementById("view-pipeline").classList.add("active");
+      }} else if (viewName === "radar") {{
+        document.getElementById("view-radar").classList.add("active");
+      }}
     }}
 
     document.querySelectorAll(".tab-btn").forEach(btn => {{
-      btn.addEventListener("click", () => switchPerspective(btn.dataset.view));
+      btn.addEventListener("click", () => switchView(btn.dataset.view));
     }});
 
     // Controls
@@ -1297,31 +1621,19 @@ class VisualizerEngine:
       zoom = 0.85;
     }});
 
-    // Search & Domain Filter
-    function applyFilters() {{
-      const q = document.getElementById("search-input").value.toLowerCase().trim();
-      const dom = document.getElementById("domain-filter").value;
-
+    // Search
+    document.getElementById("search-input").addEventListener("input", e => {{
+      const q = e.target.value.toLowerCase().trim();
       for (const n of simNodes) {{
-        const matchQ = !q || n.name.toLowerCase().includes(q) || n.path.toLowerCase().includes(q);
-        const matchDom = !dom || n.domain === dom;
-        n.filtered = !(matchQ && matchDom);
+        n.filtered = q ? !(n.name.toLowerCase().includes(q) || n.path.toLowerCase().includes(q)) : false;
       }}
-    }}
-    document.getElementById("search-input").addEventListener("input", applyFilters);
-    document.getElementById("domain-filter").addEventListener("change", applyFilters);
+    }});
 
-    // Modal Guide Handling
+    // Guide Modal
     const welcomeModal = document.getElementById("welcome-modal");
-    document.getElementById("btn-guide").addEventListener("click", () => {{
-      welcomeModal.classList.add("show");
-    }});
-    document.getElementById("modal-close").addEventListener("click", () => {{
-      welcomeModal.classList.remove("show");
-    }});
-    document.getElementById("btn-explore-studio").addEventListener("click", () => {{
-      welcomeModal.classList.remove("show");
-    }});
+    document.getElementById("btn-guide").addEventListener("click", () => welcomeModal.classList.add("show"));
+    document.getElementById("modal-close").addEventListener("click", () => welcomeModal.classList.remove("show"));
+    document.getElementById("btn-explore-studio").addEventListener("click", () => welcomeModal.classList.remove("show"));
   </script>
 </body>
 </html>
