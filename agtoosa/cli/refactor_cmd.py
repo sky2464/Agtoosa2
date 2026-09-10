@@ -7,6 +7,7 @@ from typing import Any
 from agtoosa.graph.store import GraphStore
 from agtoosa.cli.graph_cmd import get_default_db_path
 from agtoosa.refactor.decoupler import CycleDecouplerEngine
+from agtoosa.refactor.dead_code import DeadCodePruner, format_dead_code_text
 
 
 def cmd_refactor_decouple(args: Any, workspace_root: Path) -> int:
@@ -44,4 +45,24 @@ def cmd_refactor_decouple(args: Any, workspace_root: Path) -> int:
         for line in strat.generated_code_stub.splitlines():
             print(f"         {line}")
 
+    return 0
+
+
+def cmd_refactor_dead_code(args: Any, workspace_root: Path) -> int:
+    """Identify dead code / zombie symbols and generate safe deletion blueprints."""
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    store = GraphStore(db_path)
+    min_confidence = getattr(args, "min_confidence", "low")
+    pruner = DeadCodePruner(store, workspace_root)
+    report = pruner.analyze(min_confidence=min_confidence)
+
+    if getattr(args, "json", False):
+        print(json.dumps(report.to_dict(), indent=2))
+        return 0
+
+    print(format_dead_code_text(report))
     return 0

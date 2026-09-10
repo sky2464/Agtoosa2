@@ -106,8 +106,8 @@ class CycleDecouplerEngine:
             model_node = next((n for n in cycle_nodes if "model" in n.get("path", "").lower()), tgt_node)
             model_name = model_node.get("name", "SharedEntity")
             rationale = (
-                f"Extract shared data structures from '{model_name}' ({model_node.get('path')}) into a common kernel "
-                f"so circular imports between '{src_name}' and '{tgt_name}' are eliminated."
+                f"Extract shared data structures from '{model_name}' ({model_node.get('path')}) into a Shared Kernel "
+                f"so circular imports between '{src_name}' and '{tgt_name}' are eliminated.\n"
             )
             code_stub = (
                 f"# Proposed Shared Kernel extraction (e.g. shared_types.py):\n"

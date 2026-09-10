@@ -278,6 +278,10 @@ def main(argv=None) -> int:
     decouple_p = refactor_sub.add_parser("decouple", help="Generate dependency injection and decoupling blueprints for cyclic dependencies")
     decouple_p.add_argument("--json", action="store_true", help="Output blueprints as JSON")
 
+    dead_code_p = refactor_sub.add_parser("dead-code", help="Identify dead code / zombie symbols and generate safe deletion blueprints")
+    dead_code_p.add_argument("--json", action="store_true", help="Output dead code report as JSON")
+    dead_code_p.add_argument("--min-confidence", type=str, default="low", choices=["low", "medium", "high"], help="Minimum confidence threshold (default: low)")
+
     # agtoosa mcp
     subparsers.add_parser("mcp", help="Launch native Model Context Protocol (MCP) server on stdio")
 
@@ -360,6 +364,9 @@ def main(argv=None) -> int:
         if args.refactor_action == "decouple":
             from agtoosa.cli.refactor_cmd import cmd_refactor_decouple
             return cmd_refactor_decouple(args, workspace_root)
+        elif args.refactor_action == "dead-code":
+            from agtoosa.cli.refactor_cmd import cmd_refactor_dead_code
+            return cmd_refactor_dead_code(args, workspace_root)
     elif args.command == "version":
         return cmd_version(args, workspace_root)
     elif args.command == "mcp":

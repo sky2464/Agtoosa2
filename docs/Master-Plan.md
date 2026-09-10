@@ -142,14 +142,15 @@ flowchart LR
   - Verification CLI `agtoosa review boundaries [--strict]`.
 
 ### Milestone 7: Runtime Observability & Dynamic Heatmaps (v0.3.5)
-- **DEV-017 (Stage 17) — OpenTelemetry & Profiler Heatmap Overlay** [🔄 In Progress]
+- **DEV-017 (Stage 17) — OpenTelemetry & Profiler Heatmap Overlay** [✅ Done]
   - Ingest OpenTelemetry trace spans or PySpy profiler data into the knowledge graph.
   - Live call frequency, execution latency, and error-rate color heatmaps in C4 visualizer.
-- **DEV-018 (Stage 18) — Production Blast Radius** [📋 Backlog]
+- **DEV-018 (Stage 18) — Production Blast Radius** [✅ Done]
   - Weight static AST caller graphs with real-time production traffic percentages.
 
 ### Milestone 8: Autonomous Architecture Refactoring Engine (v0.4.0)
-- **DEV-019 (Stage 19) — Automated Cycle Decoupling** [📋 Backlog]
+- **DEV-019 (Stage 19) — Automated Cycle Decoupling** [✅ Done]
   - Interactive CLI / agent engine to automatically generate dependency injection interfaces or event-driven adapters that resolve cyclic dependencies detected by Tarjan's algorithm.
-- **DEV-020 (Stage 20) — Dead Code & Zombie Symbol Pruning** [📋 Backlog]
+- **DEV-020 (Stage 20) — Dead Code & Zombie Symbol Pruning** [✅ Done]
   - Identify zero-caller unreachable AST nodes and generate safe deprecation/deletion refactors.
+  - Confidence scoring (low/medium/high), entrypoint exclusion, CLI `agtoosa refactor dead-code`, MCP `agtoosa_detect_dead_code`.

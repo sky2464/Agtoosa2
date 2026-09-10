@@ -150,6 +150,16 @@ class MCPServer:
                     "type": "object",
                     "properties": {}
                 }
+            },
+            {
+                "name": "agtoosa_detect_dead_code",
+                "description": "Identify dead code / zombie symbols with zero callers and generate safe deletion blueprints.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "min_confidence": {"type": "string", "description": "Minimum confidence threshold: low, medium, or high", "default": "low"}
+                    }
+                }
             }
         ]
 
@@ -227,6 +237,13 @@ class MCPServer:
             from agtoosa.refactor.decoupler import CycleDecouplerEngine
             engine = CycleDecouplerEngine(self.store, self.workspace_root)
             report = engine.analyze_cycles()
+            return json.dumps(report.to_dict(), indent=2)
+
+        elif name == "agtoosa_detect_dead_code":
+            from agtoosa.refactor.dead_code import DeadCodePruner
+            min_confidence = args.get("min_confidence", "low")
+            pruner = DeadCodePruner(self.store, self.workspace_root)
+            report = pruner.analyze(min_confidence=min_confidence)
             return json.dumps(report.to_dict(), indent=2)
 
         elif name == "agtoosa_watch_status":
