@@ -1,0 +1,127 @@
+name: Release Multi-Platform Binaries & PyPI
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version tag (e.g. v0.2.1)'
+        required: true
+        default: 'v0.2.1'
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  build-binaries:
+    name: Build Binary (${{ matrix.os }} - ${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            arch: arm64
+            target: darwin-arm64
+          - os: macos-13
+            arch: x86_64
+            target: darwin-x86_64
+          - os: ubuntu-latest
+            arch: x86_64
+            target: linux-x86_64
+          - os: windows-latest
+            arch: x86_64
+            target: windows-x86_64
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Packaging Dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -e .
+
+      - name: Compile Standalone Executable & Archive
+        shell: bash
+        run: |
+          python scripts/build_standalone.py --dist-dir release_dist
+
+      - name: Upload Binary Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.target }}
+          path: release_dist/*
+          retention-days: 2
+
+  build-pypi:
+    name: Build PyPI Distribution (Wheel & sdist)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Build Wheel and Source Distribution
+        run: |
+          uv build --out-dir pypi_dist
+
+      - name: Upload PyPI Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pypi-dist
+          path: pypi_dist/*
+          retention-days: 2
+
+  publish-release:
+    name: Publish GitHub Release Assets & Update Homebrew
+    needs: [build-binaries, build-pypi]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all_artifacts
+
+      - name: Organize Release Directory
+        run: |
+          mkdir -p final_assets
+          find all_artifacts -type f -exec cp {} final_assets/ \;
+          ls -la final_assets/
+
+      - name: Generate Homebrew Formula
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          python scripts/generate_homebrew_formula.py --version "$VERSION" --dist-dir final_assets --output Formula/agtoosa.rb
+          cat Formula/agtoosa.rb
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            final_assets/*
+            Formula/agtoosa.rb
+          generate_release_notes: true

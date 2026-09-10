@@ -22,6 +22,76 @@ from agtoosa.cli.graph_cmd import (
 )
 
 
+def cmd_version(args, workspace_root: Path) -> int:
+    """Display comprehensive system diagnostics and packaging version."""
+    import json
+    import platform
+    import sqlite3
+    from agtoosa.cli.graph_cmd import get_default_db_path
+
+    is_frozen = getattr(sys, "frozen", False)
+    mode = "Standalone Binary (PyInstaller)" if is_frozen else "Python Environment (Source/Package)"
+
+    # Test SQLite FTS5 capability
+    fts5_enabled = False
+    try:
+        conn = sqlite3.connect(":memory:")
+        conn.execute("CREATE VIRTUAL TABLE test_fts USING fts5(content);")
+        conn.close()
+        fts5_enabled = True
+    except Exception:
+        pass
+
+    db_path = get_default_db_path(workspace_root)
+    graph_info = {"db_exists": False}
+    if db_path.exists():
+        try:
+            conn = sqlite3.connect(db_path)
+            node_count = conn.execute("SELECT COUNT(*) FROM nodes;").fetchone()[0]
+            edge_count = conn.execute("SELECT COUNT(*) FROM edges;").fetchone()[0]
+            conn.close()
+            graph_info = {
+                "db_exists": True,
+                "path": str(db_path),
+                "size_bytes": db_path.stat().st_size,
+                "node_count": node_count,
+                "edge_count": edge_count,
+            }
+        except Exception:
+            pass
+
+    diag_data = {
+        "version": __version__,
+        "execution_mode": mode,
+        "platform": f"{platform.system()} {platform.release()} ({platform.machine()})",
+        "python_version": sys.version.split()[0],
+        "sqlite_version": sqlite3.sqlite_version,
+        "fts5_enabled": fts5_enabled,
+        "workspace_root": str(workspace_root),
+        "graph": graph_info,
+    }
+
+    if getattr(args, "json", False):
+        print(json.dumps(diag_data, indent=2))
+        return 0
+
+    print(f"🏛️  Agtoosa2 v{__version__} — Unified Graph-Native Engineering Operating System")
+    print("System & Runtime Diagnostics:")
+    print(f"   • Execution Mode:    {mode}")
+    print(f"   • Platform:          {diag_data['platform']}")
+    print(f"   • Python Runtime:    {diag_data['python_version']}")
+    print(f"   • SQLite Engine:     v{diag_data['sqlite_version']} (FTS5: {'✅ Supported' if fts5_enabled else '❌ Missing'})")
+    print(f"   • Active Workspace:  {workspace_root}")
+
+    if graph_info.get("db_exists"):
+        kb_size = graph_info["size_bytes"] / 1024
+        print(f"   • Knowledge Graph:   {db_path.name} ({kb_size:.1f} KB, {graph_info['node_count']} nodes, {graph_info['edge_count']} edges)")
+    else:
+        print(f"   • Knowledge Graph:   Not initialized (run 'agtoosa graph build')")
+
+    return 0
+
+
 def main(argv=None) -> int:
     if argv is None:
         argv = sys.argv[1:]
@@ -134,6 +204,10 @@ def main(argv=None) -> int:
     ci_check_p.add_argument("--base-ref", type=str, default="origin/main", help="Base git ref for diff")
     ci_check_p.add_argument("--strict", action="store_true", help="Treat warnings as failures")
 
+    # agtoosa version
+    version_parser = subparsers.add_parser("version", help="Display version and runtime diagnostic information")
+    version_parser.add_argument("--json", action="store_true", help="Output diagnostic information as JSON")
+
     # agtoosa ship <story>
     ship_parser = subparsers.add_parser("ship", help="Verify proof graph and ship story")
     ship_parser.add_argument("story", type=str, help="Target Story ID to verify and ship")
@@ -196,6 +270,8 @@ def main(argv=None) -> int:
     elif args.command == "ship":
         from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_ship
         return cmd_lifecycle_ship(args, workspace_root)
+    elif args.command == "version":
+        return cmd_version(args, workspace_root)
     elif args.command == "mcp":
         from agtoosa.mcp.server import MCPServer
         server = MCPServer(workspace_root)

@@ -11,7 +11,7 @@
 | Repository | `https://github.com/sky2464/Agtoosa2` |
 | Version | `0.2.1-dev` |
 | Core Engine | Python 3.11+ (Tree-sitter, SQLite FTS5, NetworkX) |
-| Active Cycle | DEV-011 (Stage 11: CI/CD Quality Gate & GitHub Action Integration) |
+| Active Cycle | DEV-012 (Stage 12: Standalone Binary Packaging & Multi-Platform Distribution) |
 | Current Milestone | `v0.2.x` |
 
 ---
