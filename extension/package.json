@@ -37,9 +37,9 @@
     "onLanguage:c",
     "onLanguage:cpp",
     "onLanguage:csharp",
-    "onLanguage:shellscript",
-    "onCommand:agtoosa.rebuildGraph",
-    "onCommand:agtoosa.openVisualizer"
+    "onLanguage:shellscript"
+    
+    
   ],
   "contributes": {
     "viewsContainers": {
