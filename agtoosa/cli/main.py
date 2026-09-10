@@ -85,6 +85,15 @@ def main(argv=None) -> int:
     report_p.add_argument("-o", "--output", type=str, help="Path to write report output")
     report_p.add_argument("-f", "--format", type=str, default="text", choices=["text", "markdown", "json"], help="Report format (default: text)")
 
+    # agtoosa graph watch
+    watch_p = graph_sub.add_parser("watch", help="Continuously monitor workspace and incrementally sync graph")
+    watch_p.add_argument("--interval", type=float, default=1.0, help="Poll interval in seconds (default: 1.0)")
+    watch_p.add_argument("--debounce", type=float, default=0.5, help="Debounce window in seconds (default: 0.5)")
+
+    # agtoosa graph hooks
+    hooks_p = graph_sub.add_parser("hooks", help="Manage automated Agtoosa Git hooks")
+    hooks_p.add_argument("hook_action", type=str, nargs="?", default="status", choices=["install", "remove", "status"], help="Action: install, remove, or status")
+
     # agtoosa context compile <target>
     context_parser = subparsers.add_parser("context", help="Context Compilation v2 (Graph RAG for AI Agents)")
     context_sub = context_parser.add_subparsers(dest="context_action", required=True)
@@ -93,8 +102,20 @@ def main(argv=None) -> int:
     compile_p.add_argument("-r", "--radius", type=int, default=2, help="Context extraction radius (default: 2)")
     compile_p.add_argument("-o", "--output", type=str, help="Write context pack to file")
 
-    # agtoosa review
-    subparsers.add_parser("review", help="Review working tree changes against graph invariants")
+    # agtoosa review ...
+    review_parser = subparsers.add_parser("review", help="Review working tree changes against graph invariants")
+    review_parser.add_argument("--diff", type=str, help="Diff against Git base ref (e.g. main, HEAD~1)")
+    review_parser.add_argument("--strict", action="store_true", help="Fail with non-zero exit code on any drift warning")
+    review_parser.add_argument("--json", action="store_true", help="Output review report as JSON")
+    review_sub = review_parser.add_subparsers(dest="review_action")
+
+    remember_p = review_sub.add_parser("remember", help="Record architectural decision into project memory")
+    remember_p.add_argument("rule", type=str, help="Architectural rule or invariant to remember")
+    remember_p.add_argument("-d", "--domain", type=str, help="Associated domain or subsystem")
+    remember_p.add_argument("-t", "--tags", type=str, help="Comma-separated tags")
+
+    reflect_p = review_sub.add_parser("reflect", help="View stored architectural rules and memory")
+    reflect_p.add_argument("-d", "--domain", type=str, help="Filter by domain")
 
     # agtoosa ship <story>
     ship_parser = subparsers.add_parser("ship", help="Verify proof graph and ship story")
@@ -130,12 +151,25 @@ def main(argv=None) -> int:
         elif args.graph_action == "report":
             from agtoosa.cli.graph_cmd import cmd_graph_report
             return cmd_graph_report(args, workspace_root)
+        elif args.graph_action == "watch":
+            from agtoosa.cli.graph_cmd import cmd_graph_watch
+            return cmd_graph_watch(args, workspace_root)
+        elif args.graph_action == "hooks":
+            from agtoosa.cli.graph_cmd import cmd_graph_hooks
+            return cmd_graph_hooks(args, workspace_root)
     elif args.command == "context":
         from agtoosa.cli.lifecycle_cmd import cmd_context_compile
         return cmd_context_compile(args, workspace_root)
     elif args.command == "review":
-        from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_review
-        return cmd_lifecycle_review(args, workspace_root)
+        if getattr(args, "review_action", None) == "remember":
+            from agtoosa.cli.lifecycle_cmd import cmd_review_remember
+            return cmd_review_remember(args, workspace_root)
+        elif getattr(args, "review_action", None) == "reflect":
+            from agtoosa.cli.lifecycle_cmd import cmd_review_reflect
+            return cmd_review_reflect(args, workspace_root)
+        else:
+            from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_review
+            return cmd_lifecycle_review(args, workspace_root)
     elif args.command == "ship":
         from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_ship
         return cmd_lifecycle_ship(args, workspace_root)

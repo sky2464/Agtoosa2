@@ -3,7 +3,7 @@
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 from agtoosa.graph.store import GraphStore
 from agtoosa.graph.query import explain_node, compute_impact
@@ -21,6 +21,7 @@ class MCPServer:
         self.store = GraphStore(self.db_path)
         self.compiler = ContextCompiler(self.store)
         self.lifecycle = LifecycleEngine(self.store, workspace_root)
+        self.subscriptions: Set[str] = set()
 
     def get_tool_definitions(self) -> List[Dict[str, Any]]:
         return [
@@ -80,6 +81,14 @@ class MCPServer:
                     },
                     "required": ["story_id"]
                 }
+            },
+            {
+                "name": "agtoosa_watch_status",
+                "description": "Get real-time continuous watcher status, graph stats, and pending drift findings.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                }
             }
         ]
 
@@ -115,7 +124,32 @@ class MCPServer:
             can_ship, reasons = self.lifecycle.verify_ship_proof(story_id)
             return json.dumps({"approved": can_ship, "reasons": reasons}, indent=2)
 
+        elif name == "agtoosa_watch_status":
+            stats = self.store.get_stats().to_dict()
+            review_res = self.lifecycle.review()
+            return json.dumps({
+                "status": "active",
+                "graph_stats": stats,
+                "review_verdict": review_res.get("verdict"),
+                "modified_files": review_res.get("modified_files", []),
+                "findings": review_res.get("findings", [])
+            }, indent=2)
+
         return json.dumps({"error": f"Unknown tool: {name}"})
+
+    def notify_resource_updated(self, uri: str) -> None:
+        """Send a JSON-RPC notification to clients when a subscribed resource updates."""
+        if uri in self.subscriptions:
+            notification = {
+                "jsonrpc": "2.0",
+                "method": "notifications/resources/updated",
+                "params": {"uri": uri}
+            }
+            try:
+                sys.stdout.write(json.dumps(notification) + "\n")
+                sys.stdout.flush()
+            except OSError:
+                pass
 
     def handle_message(self, msg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         msg_id = msg.get("id")
@@ -128,7 +162,10 @@ class MCPServer:
                 "id": msg_id,
                 "result": {
                     "protocolVersion": "2024-11-05",
-                    "capabilities": {"tools": {}},
+                    "capabilities": {
+                        "tools": {},
+                        "resources": {"subscribe": True, "listChanged": True}
+                    },
                     "serverInfo": {"name": "agtoosa-mcp", "version": "2.0.0"}
                 }
             }
@@ -151,6 +188,50 @@ class MCPServer:
                     "content": [{"type": "text", "text": output_text}]
                 }
             }
+        elif method == "resources/list":
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": {
+                    "resources": [
+                        {
+                            "uri": "agtoosa://graph/stats",
+                            "name": "Knowledge Graph Stats",
+                            "mimeType": "application/json"
+                        },
+                        {
+                            "uri": "agtoosa://graph/review",
+                            "name": "Live Review Verdict",
+                            "mimeType": "application/json"
+                        }
+                    ]
+                }
+            }
+        elif method == "resources/subscribe":
+            uri = params.get("uri")
+            if uri:
+                self.subscriptions.add(uri)
+            return {"jsonrpc": "2.0", "id": msg_id, "result": {}}
+        elif method == "resources/unsubscribe":
+            uri = params.get("uri")
+            if uri and uri in self.subscriptions:
+                self.subscriptions.remove(uri)
+            return {"jsonrpc": "2.0", "id": msg_id, "result": {}}
+        elif method == "resources/read":
+            uri = params.get("uri")
+            if uri == "agtoosa://graph/stats":
+                text = json.dumps(self.store.get_stats().to_dict(), indent=2)
+            elif uri == "agtoosa://graph/review":
+                text = json.dumps(self.lifecycle.review(), indent=2)
+            else:
+                text = json.dumps({"error": f"Resource not found: {uri}"})
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": {
+                    "contents": [{"uri": uri, "mimeType": "application/json", "text": text}]
+                }
+            }
 
         if msg_id is not None:
             return {
@@ -158,6 +239,7 @@ class MCPServer:
                 "id": msg_id,
                 "error": {"code": -32601, "message": f"Method not found: {method}"}
             }
+        return None
         return None
 
     MAX_LINE_BYTES = 1024 * 1024  # 1MB limit to prevent DoS memory exhaustion

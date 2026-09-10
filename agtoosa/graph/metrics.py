@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from agtoosa.graph.store import GraphStore
 
 try:
-    import networkx as nx
+    import networkx as nx  # type: ignore[import-not-found,import-untyped]
     HAS_NETWORKX = True
 except ImportError:
     HAS_NETWORKX = False
@@ -64,6 +64,27 @@ class MetricsEngine:
             "cycles": cycles,
             "communities": communities
         }
+
+    def detect_cycles(self, max_cycles: int = 15) -> List[Dict[str, Any]]:
+        """Detect circular dependencies and return formatted summary."""
+        nodes = self.store.get_all_nodes()
+        edges = self.store.get_all_edges()
+        node_map = {n["id"]: n for n in nodes}
+        adj_out: Dict[str, List[str]] = defaultdict(list)
+        for e in edges:
+            if e.get("edge_type") not in ("contains",):
+                adj_out[e["source_id"]].append(e["target_id"])
+
+        raw_cycles = self._detect_cycles(nodes, adj_out, node_map, max_cycles=max_cycles)
+        result = []
+        for c in raw_cycles:
+            names = [n["name"] for n in c]
+            result.append({
+                "length": len(c),
+                "cycle_nodes": names,
+                "nodes": c
+            })
+        return result
 
     def _compute_pagerank(self, nodes: List[Dict[str, Any]], adj_out: Dict[str, List[str]], adj_in: Dict[str, List[str]],
                           alpha: float = 0.85, max_iter: int = 100, tol: float = 1e-6) -> Dict[str, float]:
@@ -309,7 +330,7 @@ class MetricsEngine:
 
     def format_text(self, report: Dict[str, Any]) -> str:
         """Format metrics into terminal-friendly text."""
-        lines = []
+        lines: List[str] = []
         lines.append("=" * 60)
         lines.append("📊 Agtoosa2 Architecture Health & Graph Intelligence Report")
         lines.append("=" * 60)
@@ -356,7 +377,7 @@ class MetricsEngine:
         stats = report["stats"]
         health = report["health_scorecard"]
 
-        md = [
+        md: List[str] = [
             "# Agtoosa2 Architecture Health & Graph Intelligence Report",
             "",
             "## 1. Executive Scorecard",

@@ -2,8 +2,9 @@
 
 import json
 import sys
+import time
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 
 from agtoosa.graph.store import GraphStore
 from agtoosa.parser import ParserEngine
@@ -274,3 +275,78 @@ def cmd_graph_impact(args: Any, workspace_root: Path) -> int:
             print(f"   {indent}└─ [Hop {imp['depth']}] {imp['node_type'].upper()}: {imp['name']} ({imp['path']}) via {imp['relationship']}")
 
     return 0
+
+
+def cmd_graph_watch(args: Any, workspace_root: Path) -> int:
+    """Continuously monitor workspace for changes and incrementally update knowledge graph."""
+    from agtoosa.watcher.watcher import WorkspaceWatcher
+
+    db_path = get_default_db_path(workspace_root)
+    store = GraphStore(db_path)
+    watcher = WorkspaceWatcher(workspace_root, store)
+
+    interval = getattr(args, "interval", 1.0)
+    debounce = getattr(args, "debounce", 0.5)
+
+    print(f"👀 Agtoosa Continuous Watcher active on: {workspace_root}")
+    print(f"   • Polling Interval: {interval}s | Debounce Window: {debounce}s")
+    print("   • Press Ctrl+C to stop.\n")
+
+    def on_change_callback(changed: List[str], stats: Any):
+        print(f"⚡ [{time.strftime('%H:%M:%S')}] Detected changes in {len(changed)} file(s):")
+        for f in changed[:5]:
+            print(f"     - {f}")
+        if len(changed) > 5:
+            print(f"     ... and {len(changed) - 5} more")
+        print(f"   ✅ Incremental sync complete: {stats.total_nodes} nodes, {stats.total_edges} edges across {stats.files_indexed} files.\n")
+
+    watcher.register_callback(on_change_callback)
+
+    # Initial poll
+    changed, stats = watcher.poll_once()
+    if changed and stats:
+        on_change_callback(changed, stats)
+
+    try:
+        watcher.watch_forever(interval=interval, debounce=debounce)
+    except KeyboardInterrupt:
+        print("\n🛑 Watcher stopped.")
+
+    return 0
+
+
+def cmd_graph_hooks(args: Any, workspace_root: Path) -> int:
+    """Manage Agtoosa Git hooks for automated pre-commit and checkout graph sync."""
+    from agtoosa.watcher.hooks import install_git_hooks, remove_git_hooks, get_git_hooks_status
+
+    action = getattr(args, "hook_action", "status")
+
+    if action == "install":
+        res = install_git_hooks(workspace_root)
+        if not res:
+            print("❌ .git repository not found in workspace.")
+            return 1
+        print("🪝 Agtoosa Git Hooks Installed:")
+        for hook, ok in res.items():
+            icon = "✅" if ok else "❌"
+            print(f"   {icon} {hook}")
+        return 0
+
+    elif action == "remove":
+        res = remove_git_hooks(workspace_root)
+        print("🪝 Agtoosa Git Hooks Removed:")
+        for hook, ok in res.items():
+            icon = "🗑️" if ok else "⚠️"
+            print(f"   {icon} {hook}")
+        return 0
+
+    else:
+        status = get_git_hooks_status(workspace_root)
+        if not status:
+            print("⚠️  No Git repository detected or no Agtoosa hooks installed.")
+            return 0
+        print("🪝 Agtoosa Git Hooks Status:")
+        for hook, active in status.items():
+            state = "✅ Active" if active else "⬜ Inactive"
+            print(f"   • {hook}: {state}")
+        return 0

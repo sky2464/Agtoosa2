@@ -1,7 +1,7 @@
 # Agtoosa2 — Capability Matrix & Parity Definition
 
 > **Reference Benchmark:** Graphify Open-Source Capabilities & Enterprise Graph OS.  
-> **Status:** Stages 1–8 complete; Stage 9 (DEV-009) in active planning; Stage 10 (DEV-010) mapped.
+> **Status:** Complete — All 10 Stages delivered and verified (`v0.2.0-GA`).
 
 ---
 

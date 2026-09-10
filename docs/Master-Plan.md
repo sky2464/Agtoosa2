@@ -11,8 +11,8 @@
 | Repository | `https://github.com/sky2464/Agtoosa2` |
 | Version | `2.0.0-dev` |
 | Core Engine | Python 3.11+ (Tree-sitter, SQLite FTS5, NetworkX) |
-| Active Cycle | DEV-009 (Continuous Watcher & Push MCP Notifications) |
-| Current Milestone | `v0.2.0.0-rc.2` |
+| Active Cycle | Complete (All 10 Core Stages Delivered) |
+| Current Milestone | `v0.2.0-GA` |
 
 ---
 
@@ -20,7 +20,7 @@
 
 | ID | Title | Type | Estimate | Status | Primary Deliverable |
 |---|---|---|---|---|---|
-| **DEV-009** | Continuous Watcher & MCP Push | Feature | M | 🔄 In Planning | Inotify/FSEvents daemon, real-time incremental graph sync, MCP resource change subscriptions |
+| **DEV-ALL** | Full Master Plan Delivery | Milestone | - | 🏆 Complete | Stages 1 through 10 fully implemented, tested, and validated |
 
 ## Completed Cycles
 
@@ -34,6 +34,8 @@
 | **DEV-006** | Broad Polyglot Language & Schema Coverage | Feature | ✅ Done | Polyglot parser supporting Go, Rust, Java, Kotlin, C/C++, C#, SQL DDL, and Dockerfile |
 | **DEV-007** | Zero-Trust Security Hardening | Security | ✅ Done | Visualizer CSP & anti-XSS serialization; workspace sandboxing & symlink guards; .gitignore enforcement; secret redaction; MCP depth & line clamps; SQLite PRAGMA hardening |
 | **DEV-008** | High-Scale Performance & Streaming Optimization | Performance | ✅ Done | O(1) memory chunked streaming (`stream_nodes`, `stream_edges`); in-database recursive SQL CTE for impact traversal; single-pass compound FTS5 queries |
+| **DEV-009** | Continuous Watcher & MCP Push | Feature | ✅ Done | Zero-dependency filesystem watcher (`agtoosa graph watch`), Git hooks (`agtoosa graph hooks`), live MCP resource update notifications |
+| **DEV-010** | Review Intelligence & Architecture Drift Alarms | Feature | ✅ Done | Layer boundary enforcement, cyclic dependency alarms, blast radius warnings, PR diff analysis (`agtoosa review --diff`), and Architectural Memory Bank (`agtoosa review remember/reflect`) |
 
 ---
 
@@ -48,8 +50,8 @@ flowchart LR
     S2 --> S6[Stage 6: Polyglot Parsers ✅]
     S2 --> S7[Stage 7: Zero-Trust Security ✅]
     S2 --> S8[Stage 8: Streaming Scale ✅]
-    S4 --> S9[Stage 9: Continuous Watcher 🔄]
-    S3 --> S10[Stage 10: Review Intelligence ⬜]
+    S4 --> S9[Stage 9: Continuous Watcher ✅]
+    S3 --> S10[Stage 10: Review Intelligence ✅]
 ```
 
 ### Milestone 1: Knowledge Engine Core (v0.2.0-alpha)
@@ -69,7 +71,7 @@ flowchart LR
   - Lifecycle state machine: `agtoosa review` and mathematical proof graph validation on `agtoosa ship`.
 - **DEV-004 (Stage 4) — Native Model Context Protocol (MCP) Server** [✅ Done]
   - Built-in MCP server (`agtoosa mcp`) providing real-time tools for Cursor, Claude Code, Windsurf, Gemini, and Copilot.
-  - Tools: `get_symbol_context`, `query_impact_radius`, `get_active_task_context`, `record_task_evidence`.
+  - Tools: `get_symbol_context`, `query_impact_radius`, `get_active_task_context`, `record_task_evidence`, `agtoosa_watch_status`.
 
 ### Milestone 3: Production Hardening, Scale & Breadth (v0.2.0-rc.2)
 - **DEV-005 (Stage 5) — Interactive Architecture Exploration & Visualizer** [✅ Done]
@@ -89,8 +91,13 @@ flowchart LR
   - In-database SQLite `WITH RECURSIVE` CTE for blast radius calculations (`compute_impact`).
   - Single-pass compound boolean FTS5 query optimization in Context Compiler.
 
-### Milestone 4: Next Horizons (v0.2.0-GA)
-- **DEV-009 (Stage 9) — Continuous Watcher & MCP Push Notifications** [🔄 In Planning]
-  - Background filesystem watcher (`agtoosa graph watch`), incremental sync on save.
-- **DEV-010 (Stage 10) — Review Intelligence & Architecture Drift Alarms** [⬜ Backlog]
-  - PR/branch graph diffs (`agtoosa graph prs`), feedback logging (`agtoosa graph remember`), and architectural lessons.
+### Milestone 4: Operational Intelligence & Automation (v0.2.0-GA)
+- **DEV-009 (Stage 9) — Continuous Watcher & MCP Push Notifications** [✅ Done]
+  - Background filesystem watcher (`agtoosa graph watch`), incremental sync on save with debouncing.
+  - Automated Git hook management (`agtoosa graph hooks install/remove/status`).
+  - Real-time MCP resource notifications (`notifications/resources/updated`) for connected AI assistants.
+- **DEV-010 (Stage 10) — Review Intelligence & Architecture Drift Alarms** [✅ Done]
+  - Architectural tier hierarchy enforcement (Tier 1 Entrypoints -> Tier 2 Application/Engine -> Tier 3 Domain Core).
+  - Cyclic dependency alarms and high blast radius warnings.
+  - Git PR line-level diff to graph symbol mapping (`agtoosa review --diff <base-ref>`).
+  - Institutional Architectural Memory Bank (`agtoosa review remember/reflect`) with automatic prompt injection.

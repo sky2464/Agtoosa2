@@ -119,6 +119,19 @@ class ContextCompiler:
                 lines.append(f"- `{s['node_type'].upper()}` **{s['name']}** ({s['path']}{line_info}){doc}")
             lines.append("")
 
+        # Architectural memory injection
+        try:
+            from agtoosa.review.memory import ArchitecturalMemory
+            memory = ArchitecturalMemory(self.store)
+            rules = memory.get_relevant_rules(root_node.get("name"))
+            if rules:
+                lines.append("## Architectural Invariants & Memory")
+                for r in rules[:5]:
+                    lines.append(f"- ⚠️ **Invariant:** {r}")
+                lines.append("")
+        except Exception:
+            pass
+
         lines.append("## Instructions for AI Assistant")
         lines.append("1. Fulfill only the assigned tasks above while strictly obeying the Acceptance Criteria.")
         lines.append("2. Do not modify unlinked modules or alter unrelated public interfaces.")
