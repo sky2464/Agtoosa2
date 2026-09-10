@@ -11,7 +11,7 @@
 | Repository | `https://github.com/sky2464/Agtoosa2` |
 | Version | `0.2.1-dev` |
 | Core Engine | Python 3.11+ (Tree-sitter, SQLite FTS5, NetworkX) |
-| Active Cycle | DEV-014 (Stage 14: Hybrid GraphRAG v2 & Semantic Vector Search) |
+| Active Cycle | All 14 Stages Delivered (`v0.2.1-dev` GA Ready) |
 | Current Milestone | `v0.2.x` |
 
 ---
@@ -20,7 +20,7 @@
 
 | ID | Title | Type | Estimate | Status | Primary Deliverable |
 |---|---|---|---|---|---|
-| **DEV-014** | Hybrid GraphRAG v2 & Semantic Vector Search | Feature | L | 🔄 Ready / Next | Zero-service local embeddings, hybrid FTS5 + vector similarity + graph CTE context compiler |
+| **—** | All Strategic Roadmap Stages Complete | Release | — | 🚀 Complete | 14/14 Stages Delivered & Verified with 95/95 passing tests |
 
 ## Completed Cycles
 
@@ -39,6 +39,7 @@
 | **DEV-011** | CI/CD Quality Gate & GitHub Action Integration | Feature | ✅ Done | Composite GitHub Action (`action.yml`), reference CI workflow, PR architectural impact markdown comment generator, CLI `agtoosa ci review/check` |
 | **DEV-012** | Standalone Binary Packaging & Multi-Platform Distribution | DevOps | ✅ Done | Standalone PyInstaller executable (`agtoosa.spec`), build orchestrator (`scripts/build_standalone.py`), Homebrew formula (`Formula/agtoosa.rb`), release workflow |
 | **DEV-013** | VS Code & Cursor IDE Extension | Extension | ✅ Done | Native extension package (`extension/`), architecture tree views, real-time CodeLens blast radius, CLI `agtoosa graph symbols` |
+| **DEV-014** | Hybrid GraphRAG v2 & Semantic Vector Search | Feature | ✅ Done | Zero-dependency dense vector embeddings (`node_embeddings` BLOBs), RRF lexical + semantic search, `compile_context --hybrid`, CLI & MCP |
 
 ---
 
@@ -58,7 +59,7 @@ flowchart LR
     S10 --> S11[Stage 11: CI/CD PR Gate ✅]
     S11 --> S12[Stage 12: Binary Packaging ✅]
     S4 --> S13[Stage 13: IDE Extension ✅]
-    S3 --> S14[Stage 14: Hybrid GraphRAG v2 🔄]
+    S3 --> S14[Stage 14: Hybrid GraphRAG v2 ✅]
 ```
 
 ### Milestone 1: Knowledge Engine Core (v0.2.0-alpha)
@@ -119,5 +120,6 @@ flowchart LR
   - Automated GitHub Releases matrix, Homebrew tap formula, PyPI publication.
 - **DEV-013 (Stage 13) — VS Code & Cursor IDE Extension** [✅ Done]
   - In-editor architecture tree view, caller/callee inspection, code lens annotations, and real-time blast radius alerts.
-- **DEV-014 (Stage 14) — Hybrid GraphRAG v2 & Semantic Vector Search** [🔄 Next Up]
-  - Embedded zero-service ONNX vector embeddings, cosine similarity + FTS5 + graph CTE hybrid prompt compiler.
+- **DEV-014 (Stage 14) — Hybrid GraphRAG v2 & Semantic Vector Search** [✅ Done]
+  - Embedded zero-dependency dense vector embeddings, cosine similarity + FTS5 + graph CTE hybrid prompt compiler.
+  - Reciprocal Rank Fusion (RRF) search, CLI `agtoosa graph embeddings build/status`, `agtoosa context compile --hybrid`, MCP `agtoosa_hybrid_search`.

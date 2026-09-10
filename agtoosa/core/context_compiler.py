@@ -11,7 +11,7 @@ class ContextCompiler:
     def __init__(self, store: GraphStore):
         self.store = store
 
-    def compile_context(self, target_id: str, radius: int = 2) -> Optional[str]:
+    def compile_context(self, target_id: str, radius: int = 2, hybrid: bool = False) -> Optional[str]:
         """Compile a bounded prompt pack for a target task, story, or symbol."""
         target_node = resolve_node(self.store, target_id)
         if not target_node:
@@ -48,15 +48,30 @@ class ContextCompiler:
         elif node_type in ("function", "class", "file"):
             # Symbol-focused context
             impact_res = compute_impact(self.store, target_node["id"], max_depth=radius)
-            return self._render_symbol_pack(target_node, impact_res)
+            sem_related = None
+            if hybrid:
+                try:
+                    from agtoosa.graph.query import hybrid_search
+                    query_text = f"{target_node['name']} {target_node.get('docstring', '')}"
+                    matches = hybrid_search(self.store, query_text, top_k=6)
+                    sem_related = [m for m in matches if m["node"]["id"] != target_node["id"]]
+                except Exception:
+                    sem_related = None
+            return self._render_symbol_pack(target_node, impact_res, sem_related)
 
         # 2. Extract relevant code symbols mentioned in criteria or tasks
-        symbols = self._find_related_code_symbols(story_node, criteria, tasks)
+        symbols = self._find_related_code_symbols(story_node, criteria, tasks, hybrid=hybrid)
 
         # 3. Render Markdown Context Pack
-        return self._render_lifecycle_pack(story_node or target_node, criteria, tasks, symbols)
+        return self._render_lifecycle_pack(story_node or target_node, criteria, tasks, symbols, hybrid=hybrid)
 
-    def _find_related_code_symbols(self, story: Optional[Dict[str, Any]], criteria: List[Dict[str, Any]], tasks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _find_related_code_symbols(
+        self,
+        story: Optional[Dict[str, Any]],
+        criteria: List[Dict[str, Any]],
+        tasks: List[Dict[str, Any]],
+        hybrid: bool = False
+    ) -> List[Dict[str, Any]]:
         text_corpus = ""
         if story:
             text_corpus += f"{story['name']} {story.get('docstring', '')} "
@@ -64,6 +79,30 @@ class ContextCompiler:
             text_corpus += f"{c['name']} {c.get('docstring', '')} "
         for t in tasks:
             text_corpus += f"{t['name']} {t.get('docstring', '')} "
+
+        if not text_corpus.strip():
+            return []
+
+        # If hybrid search is requested, use Hybrid GraphRAG v2 (Vector + FTS5 RRF)
+        if hybrid:
+            try:
+                from agtoosa.graph.query import hybrid_search
+                hybrid_matches = hybrid_search(self.store, text_corpus, top_k=15)
+                symbols: List[Dict[str, Any]] = []
+                seen: Set[str] = set()
+                for item in hybrid_matches:
+                    n = item["node"]
+                    if n["node_type"] in ("function", "class", "file") and n["id"] not in seen:
+                        seen.add(n["id"])
+                        node_copy = dict(n)
+                        node_copy["rrf_score"] = item.get("rrf_score")
+                        node_copy["vector_score"] = item.get("vector_score")
+                        node_copy["match_source"] = item.get("match_source")
+                        symbols.append(node_copy)
+                if symbols:
+                    return symbols[:10]
+            except Exception:
+                pass
 
         # Clean words and build single-pass query
         words = [w.strip("`'\",():.") for w in text_corpus.split() if len(w) > 4 and w.isalnum()]
@@ -89,9 +128,17 @@ class ContextCompiler:
                         symbols.append(m)
             return symbols[:10]
 
-    def _render_lifecycle_pack(self, root_node: Dict[str, Any], criteria: List[Dict[str, Any]], tasks: List[Dict[str, Any]], symbols: List[Dict[str, Any]]) -> str:
+    def _render_lifecycle_pack(
+        self,
+        root_node: Dict[str, Any],
+        criteria: List[Dict[str, Any]],
+        tasks: List[Dict[str, Any]],
+        symbols: List[Dict[str, Any]],
+        hybrid: bool = False
+    ) -> str:
         lines = []
-        lines.append(f"# Agtoosa Context Pack: {root_node['name']}")
+        engine_label = " (Hybrid GraphRAG v2)" if hybrid else ""
+        lines.append(f"# Agtoosa Context Pack{engine_label}: {root_node['name']}")
         lines.append(f"> **Target ID:** `{root_node['id']}`")
         lines.append(f"> **Source Spec:** `{root_node['path']}`\n")
 
@@ -112,11 +159,15 @@ class ContextCompiler:
             lines.append("")
 
         if symbols:
-            lines.append("## Direct Code Context (Symbols & Locations)")
+            title = "## Direct Code Context (Hybrid Vector & Graph Retrieval)" if hybrid else "## Direct Code Context (Symbols & Locations)"
+            lines.append(title)
             for s in symbols:
                 line_info = f":L{s['start_line']}" if s.get("start_line") else ""
                 doc = f"\n  > {s['docstring'][:120]}..." if s.get("docstring") else ""
-                lines.append(f"- `{s['node_type'].upper()}` **{s['name']}** ({s['path']}{line_info}){doc}")
+                score_badge = ""
+                if s.get("vector_score") is not None:
+                    score_badge = f" [Cosine: {s['vector_score']:.3f}, Source: {s.get('match_source', 'hybrid')}]"
+                lines.append(f"- `{s['node_type'].upper()}` **{s['name']}** ({s['path']}{line_info}){score_badge}{doc}")
             lines.append("")
 
         # Architectural memory injection
@@ -139,12 +190,26 @@ class ContextCompiler:
 
         return "\n".join(lines)
 
-    def _render_symbol_pack(self, target: Dict[str, Any], impact: Optional[Dict[str, Any]]) -> str:
+    def _render_symbol_pack(
+        self,
+        target: Dict[str, Any],
+        impact: Optional[Dict[str, Any]],
+        sem_related: Optional[List[Dict[str, Any]]] = None
+    ) -> str:
         lines = []
         lines.append(f"# Symbol Context Pack: {target['name']}")
         lines.append(f"> **Type:** `{target['node_type'].upper()}` | **Location:** `{target['path']}`")
         if target.get("docstring"):
             lines.append(f"> **Docstring:** {target['docstring']}\n")
+
+        if sem_related:
+            lines.append(f"## Semantically Related Symbols (Hybrid GraphRAG)")
+            for item in sem_related[:5]:
+                node = item["node"]
+                score = item.get("vector_score", 0.0)
+                source = item.get("match_source", "hybrid")
+                lines.append(f"- `{node['node_type'].upper()}` **{node['name']}** ({node['path']}) [Similarity: {score:.3f} | {source}]")
+            lines.append("")
 
         if impact and impact.get("impacted"):
             lines.append(f"## Blast Radius ({impact['impacted_count']} upstream callers/dependents)")

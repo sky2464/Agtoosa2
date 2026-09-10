@@ -21,7 +21,8 @@ def cmd_context_compile(args: Any, workspace_root: Path) -> int:
     compiler = ContextCompiler(store)
 
     radius = getattr(args, "radius", 2)
-    pack = compiler.compile_context(args.target, radius=radius)
+    hybrid = getattr(args, "hybrid", False)
+    pack = compiler.compile_context(args.target, radius=radius, hybrid=hybrid)
 
     if not pack:
         print(f"❌ Target '{args.target}' not found in knowledge graph.")

@@ -174,3 +174,74 @@ def compute_impact(store: GraphStore, target_query: str, max_depth: int = 3) -> 
         "impacted_count": len(impacted_nodes),
         "impacted": impacted_nodes
     }
+
+
+def hybrid_search(
+    store: GraphStore,
+    query: str,
+    top_k: int = 10,
+    rrf_k: int = 60
+) -> List[Dict[str, Any]]:
+    """Hybrid GraphRAG search combining FTS5 BM25 lexical ranking and dense vector semantic similarity using Reciprocal Rank Fusion (RRF)."""
+    from agtoosa.graph.embeddings import SemanticEmbeddingEngine
+
+    clean_q = query.strip()
+    if not clean_q:
+        return []
+
+    # 1. Lexical search via SQLite FTS5
+    fts_results = store.query_fts(clean_q, limit=max(top_k * 3, 20))
+    fts_map: Dict[str, Tuple[int, Dict[str, Any]]] = {}
+    for rank, item in enumerate(fts_results, start=1):
+        fts_map[item["id"]] = (rank, item)
+
+    # 2. Dense semantic vector similarity search
+    engine = SemanticEmbeddingEngine()
+    vec_results = engine.search(store, clean_q, top_k=max(top_k * 3, 20))
+    vec_map: Dict[str, Tuple[int, float, Dict[str, Any]]] = {}
+    for item in vec_results:
+        vec_map[item["node"]["id"]] = (item["rank"], item["score"], item["node"])
+
+    # 3. Reciprocal Rank Fusion (RRF)
+    all_candidate_ids = set(fts_map.keys()) | set(vec_map.keys())
+    if not all_candidate_ids:
+        return []
+
+    fused: List[Dict[str, Any]] = []
+    for cid in all_candidate_ids:
+        fts_rank = fts_map[cid][0] if cid in fts_map else None
+        vec_rank = vec_map[cid][0] if cid in vec_map else None
+        vec_score = vec_map[cid][1] if cid in vec_map else 0.0
+
+        rrf_score = 0.0
+        if fts_rank is not None:
+            rrf_score += 1.0 / (rrf_k + fts_rank)
+        if vec_rank is not None:
+            rrf_score += 1.0 / (rrf_k + vec_rank)
+
+        # Resolve node metadata
+        node = None
+        if cid in vec_map:
+            node = vec_map[cid][2]
+        elif cid in fts_map:
+            node = store.get_node(cid) or fts_map[cid][1]
+        else:
+            node = store.get_node(cid)
+
+        if not node:
+            continue
+
+        match_source = "hybrid" if (fts_rank and vec_rank) else ("lexical" if fts_rank else "semantic")
+
+        fused.append({
+            "node": node,
+            "rrf_score": round(rrf_score, 6),
+            "vector_score": round(vec_score, 4),
+            "fts_rank": fts_rank,
+            "vector_rank": vec_rank,
+            "match_source": match_source
+        })
+
+    # Sort descending by RRF score, tie-breaking by vector score
+    fused.sort(key=lambda x: (x["rrf_score"], x["vector_score"]), reverse=True)
+    return fused[:top_k]

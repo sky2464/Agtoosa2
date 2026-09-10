@@ -124,6 +124,7 @@ def main(argv=None) -> int:
     query_p = graph_sub.add_parser("query", help="Full-text search across indexed nodes")
     query_p.add_argument("query", type=str, help="Search query string")
     query_p.add_argument("-n", "--limit", type=int, default=15, help="Maximum results to return")
+    query_p.add_argument("--hybrid", action="store_true", help="Perform hybrid search combining FTS5 lexical ranking and dense vector similarity")
 
     # agtoosa graph explain <target>
     explain_p = graph_sub.add_parser("explain", help="Inspect an entity's definition, callers, and callees")
@@ -171,6 +172,13 @@ def main(argv=None) -> int:
     hooks_p = graph_sub.add_parser("hooks", help="Manage automated Agtoosa Git hooks")
     hooks_p.add_argument("hook_action", type=str, nargs="?", default="status", choices=["install", "remove", "status"], help="Action: install, remove, or status")
 
+    # agtoosa graph embeddings
+    emb_p = graph_sub.add_parser("embeddings", help="Manage dense semantic vector embeddings")
+    emb_sub = emb_p.add_subparsers(dest="embeddings_action", required=True)
+    emb_build = emb_sub.add_parser("build", help="Build or rebuild vector embeddings for all graph nodes")
+    emb_build.add_argument("--clean", action="store_true", help="Clean rebuild of all stored embeddings")
+    emb_sub.add_parser("status", help="Report vector embeddings index status")
+
     # agtoosa context compile <target>
     context_parser = subparsers.add_parser("context", help="Context Compilation v2 (Graph RAG for AI Agents)")
     context_sub = context_parser.add_subparsers(dest="context_action", required=True)
@@ -178,6 +186,7 @@ def main(argv=None) -> int:
     compile_p.add_argument("target", type=str, help="Target Story, Task, or Symbol name")
     compile_p.add_argument("-r", "--radius", type=int, default=2, help="Context extraction radius (default: 2)")
     compile_p.add_argument("-o", "--output", type=str, help="Write context pack to file")
+    compile_p.add_argument("--hybrid", action="store_true", help="Enable Hybrid GraphRAG v2 combining lexical FTS5, vector similarity, and structural graph traversal")
 
     # agtoosa review ...
     review_parser = subparsers.add_parser("review", help="Review working tree changes against graph invariants")
@@ -258,6 +267,13 @@ def main(argv=None) -> int:
         elif args.graph_action == "hooks":
             from agtoosa.cli.graph_cmd import cmd_graph_hooks
             return cmd_graph_hooks(args, workspace_root)
+        elif args.graph_action == "embeddings":
+            if args.embeddings_action == "build":
+                from agtoosa.cli.graph_cmd import cmd_graph_embeddings_build
+                return cmd_graph_embeddings_build(args, workspace_root)
+            elif args.embeddings_action == "status":
+                from agtoosa.cli.graph_cmd import cmd_graph_embeddings_status
+                return cmd_graph_embeddings_status(args, workspace_root)
     elif args.command == "context":
         from agtoosa.cli.lifecycle_cmd import cmd_context_compile
         return cmd_context_compile(args, workspace_root)

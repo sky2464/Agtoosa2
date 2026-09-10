@@ -66,9 +66,22 @@ class MCPServer:
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "task_or_story": {"type": "string", "description": "Story ID (e.g. DEV-001) or Task ID"}
+                        "task_or_story": {"type": "string", "description": "Story ID (e.g. DEV-001) or Task ID"},
+                        "hybrid": {"type": "boolean", "description": "Enable Hybrid GraphRAG v2 with semantic vector embeddings", "default": True}
                     },
                     "required": ["task_or_story"]
+                }
+            },
+            {
+                "name": "agtoosa_hybrid_search",
+                "description": "Hybrid semantic vector and full-text keyword search across codebase symbols using Reciprocal Rank Fusion (RRF).",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {"type": "string", "description": "Search query string"},
+                        "limit": {"type": "integer", "description": "Maximum matches to return", "default": 10}
+                    },
+                    "required": ["query"]
                 }
             },
             {
@@ -99,6 +112,13 @@ class MCPServer:
             results = self.store.query_fts(query, limit=limit)
             return json.dumps(results, indent=2)
 
+        elif name == "agtoosa_hybrid_search":
+            from agtoosa.graph.query import hybrid_search
+            query = args.get("query", "")
+            limit = args.get("limit", 10)
+            results = hybrid_search(self.store, query, top_k=limit)
+            return json.dumps(results, indent=2)
+
         elif name == "agtoosa_get_symbol":
             symbol = args.get("symbol", "")
             res = explain_node(self.store, symbol)
@@ -116,7 +136,8 @@ class MCPServer:
 
         elif name == "agtoosa_get_task_context":
             target = args.get("task_or_story", "")
-            pack = self.compiler.compile_context(target)
+            hybrid = args.get("hybrid", True)
+            pack = self.compiler.compile_context(target, hybrid=hybrid)
             return pack or f"Target '{target}' not found in knowledge graph."
 
         elif name == "agtoosa_verify_ship":

@@ -85,6 +85,14 @@ class GraphStore:
                 CREATE INDEX IF NOT EXISTS idx_edges_tgt ON edges(target_id);
                 CREATE INDEX IF NOT EXISTS idx_edges_type ON edges(edge_type);
 
+                CREATE TABLE IF NOT EXISTS node_embeddings (
+                    node_id TEXT PRIMARY KEY,
+                    dimension INTEGER NOT NULL,
+                    vector BLOB NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_node_embeddings_id ON node_embeddings(node_id);
+
                 CREATE VIRTUAL TABLE IF NOT EXISTS nodes_fts USING fts5(
                     id UNINDEXED,
                     name,
@@ -124,6 +132,7 @@ class GraphStore:
             conn.execute("DELETE FROM edges;")
             conn.execute("DELETE FROM nodes;")
             conn.execute("DELETE FROM file_fingerprints;")
+            conn.execute("DELETE FROM node_embeddings;")
             conn.execute("INSERT INTO nodes_fts(nodes_fts) VALUES('rebuild');")
 
     def get_fingerprints(self) -> Dict[str, str]:
@@ -148,7 +157,44 @@ class GraphStore:
             if node_ids:
                 placeholders = ",".join("?" for _ in node_ids)
                 conn.execute(f"DELETE FROM edges WHERE source_id IN ({placeholders}) OR target_id IN ({placeholders});", node_ids + node_ids)
+                conn.execute(f"DELETE FROM node_embeddings WHERE node_id IN ({placeholders});", node_ids)
                 conn.execute("DELETE FROM nodes WHERE path = ?;", (rel_path,))
+
+    def save_embeddings(self, embeddings: Dict[str, bytes], dimension: int) -> None:
+        """Save a dictionary of node_id -> vector BLOB transactionally."""
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            rows = [(nid, dimension, blob, now) for nid, blob in embeddings.items()]
+            conn.executemany(
+                """
+                INSERT OR REPLACE INTO node_embeddings (node_id, dimension, vector, updated_at)
+                VALUES (?, ?, ?, ?);
+                """,
+                rows
+            )
+
+    def get_all_embeddings(self) -> Dict[str, bytes]:
+        """Retrieve all node vector BLOBs."""
+        with self._get_connection() as conn:
+            rows = conn.execute("SELECT node_id, vector FROM node_embeddings;").fetchall()
+            return {r["node_id"]: r["vector"] for r in rows}
+
+    def get_embedding(self, node_id: str) -> Optional[bytes]:
+        """Retrieve a specific node's vector BLOB."""
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT vector FROM node_embeddings WHERE node_id = ?;", (node_id,)).fetchone()
+            return row[0] if row else None
+
+    def get_embedding_count(self) -> int:
+        """Return total count of indexed embeddings."""
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT COUNT(*) FROM node_embeddings;").fetchone()
+            return row[0] if row else 0
+
+    def clear_embeddings(self) -> None:
+        """Clear all stored embeddings."""
+        with self._get_connection() as conn:
+            conn.execute("DELETE FROM node_embeddings;")
 
     def insert_batch(self, nodes: List[Node], edges: List[Edge]) -> None:
         """Insert a batch of nodes and edges transactionally."""

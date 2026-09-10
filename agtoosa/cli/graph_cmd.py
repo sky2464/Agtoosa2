@@ -65,7 +65,7 @@ def cmd_graph_status(args: Any, workspace_root: Path) -> int:
 
 
 def cmd_graph_query(args: Any, workspace_root: Path) -> int:
-    """Search the graph using full-text search."""
+    """Search the graph using full-text search or hybrid vector + FTS5 search."""
     db_path = get_default_db_path(workspace_root)
     if not db_path.exists():
         print(f"⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
@@ -73,8 +73,26 @@ def cmd_graph_query(args: Any, workspace_root: Path) -> int:
 
     query_str = args.query
     limit = getattr(args, "limit", 15)
-
     store = GraphStore(db_path)
+
+    if getattr(args, "hybrid", False):
+        from agtoosa.graph.query import hybrid_search
+        hybrid_results = hybrid_search(store, query_str, top_k=limit)
+        if not hybrid_results:
+            print(f"🔍 No hybrid matches found for: '{query_str}'")
+            return 0
+        print(f"🔮 Found {len(hybrid_results)} hybrid match(es) for '{query_str}':\n")
+        for idx, item in enumerate(hybrid_results, start=1):
+            r = item["node"]
+            score = item["vector_score"]
+            rrf = item["rrf_score"]
+            source = item["match_source"]
+            line_info = f":L{r['start_line']}" if r.get("start_line") else ""
+            doc_snippet = f"\n     Doc: {r['docstring'][:100]}..." if r.get("docstring") else ""
+            print(f" [{idx}] {r['node_type'].upper()}: {r['name']} [RRF: {rrf:.4f} | Cosine: {score:.3f} | {source}]")
+            print(f"     Location: {r['path']}{line_info}{doc_snippet}")
+        return 0
+
     results = store.query_fts(query_str, limit=limit)
 
     if not results:
@@ -425,3 +443,47 @@ def cmd_graph_hooks(args: Any, workspace_root: Path) -> int:
             state = "✅ Active" if active else "⬜ Inactive"
             print(f"   • {hook}: {state}")
         return 0
+
+
+def cmd_graph_embeddings_build(args: Any, workspace_root: Path) -> int:
+    """Build or rebuild dense semantic vector embeddings for all graph nodes."""
+    from agtoosa.graph.embeddings import SemanticEmbeddingEngine
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    clean = getattr(args, "clean", False)
+    action = "Rebuilding" if clean else "Building"
+    print(f"⚡ {action} dense vector embeddings at {db_path}...")
+
+    store = GraphStore(db_path)
+    engine = SemanticEmbeddingEngine()
+    stats = engine.build_embeddings(store, clean=clean)
+
+    print("✅ Embeddings indexing complete!")
+    print(f"   • Nodes Embedded: {stats['indexed_count']}")
+    print(f"   • Vector Dimension: {stats['dimension']}")
+    print(f"   • Storage: SQLite 'node_embeddings' table (L2-normalized float BLOBs)")
+    return 0
+
+
+def cmd_graph_embeddings_status(args: Any, workspace_root: Path) -> int:
+    """Report vector embeddings status and index statistics."""
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    store = GraphStore(db_path)
+    total_nodes = len(store.get_all_nodes())
+    embedding_count = store.get_embedding_count()
+
+    print("📊 Agtoosa2 Vector Embeddings Status")
+    print(f"   • Indexed Embeddings: {embedding_count} / {total_nodes} nodes")
+    coverage = (embedding_count / total_nodes * 100.0) if total_nodes > 0 else 0.0
+    print(f"   • Index Coverage: {coverage:.1f}%")
+    print(f"   • Vector Dimension: 128-D dense subword/n-gram hashing projection")
+    print(f"   • Distance Metric: Cosine Similarity (dot product)")
+    print(f"   • Status: {'Ready' if embedding_count > 0 else 'Unindexed (run agtoosa graph embeddings build)'}")
+    return 0
