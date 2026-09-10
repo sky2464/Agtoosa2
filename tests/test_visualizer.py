@@ -37,7 +37,11 @@ class TestVisualizer(unittest.TestCase):
     def test_generate_html_content(self):
         html = self.visualizer.generate_html()
         self.assertIn("<!DOCTYPE html>", html)
-        self.assertIn("Agtoosa2 — Architecture Graph Visualizer", html)
+        self.assertIn("Agtoosa Studio — Architecture Command Center", html)
+        self.assertIn("kpi-strip", html)
+        self.assertIn("perspective-switcher", html)
+        self.assertIn("Domain Blueprint", html)
+        self.assertIn("btn-copy-ai", html)
         self.assertIn("canvas-container", html)
         self.assertIn("sidebar", html)
         self.assertIn("class:Service", html)
