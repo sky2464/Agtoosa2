@@ -290,6 +290,22 @@ class ReviewIntelligenceEngine:
         # 4. Unlinked code & debt
         findings.extend(self.check_unlinked_debt(modified_files))
 
+        # 5. Monorepo package boundary checks (if monorepo detected)
+        try:
+            from agtoosa.review.monorepo import MonorepoBoundaryEngine
+            mono_engine = MonorepoBoundaryEngine(self.workspace_root, store=self.store)
+            mono_report = mono_engine.check_boundaries()
+            if mono_report.is_monorepo:
+                for v in mono_report.violations:
+                    findings.append(DriftFinding(
+                        severity=v.severity,
+                        category=f"MONOREPO_{v.rule}",
+                        message=f"[{v.rule}] {v.message}",
+                        symbol_or_path=v.source_file or v.source_package
+                    ))
+        except Exception:
+            pass
+
         # 5. Affected stories
         affected_stories = set()
         for fpath in modified_files:

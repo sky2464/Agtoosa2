@@ -121,6 +121,16 @@ class MCPServer:
                     "type": "object",
                     "properties": {}
                 }
+            },
+            {
+                "name": "agtoosa_check_monorepo_boundaries",
+                "description": "Inspect monorepo package isolation boundaries, encapsulation leaks, circular package dependencies, and undeclared imports.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "strict": {"type": "boolean", "description": "Fail on warnings as well as errors", "default": False}
+                    }
+                }
             }
         ]
 
@@ -178,6 +188,13 @@ class MCPServer:
             story_id = args.get("story_id", "")
             can_ship, reasons = self.lifecycle.verify_ship_proof(story_id)
             return json.dumps({"approved": can_ship, "reasons": reasons}, indent=2)
+
+        elif name == "agtoosa_check_monorepo_boundaries":
+            from agtoosa.review.monorepo import MonorepoBoundaryEngine
+            strict = args.get("strict", False)
+            engine = MonorepoBoundaryEngine(self.workspace_root, store=self.store)
+            report = engine.check_boundaries(strict=strict)
+            return json.dumps(report.to_dict(), indent=2)
 
         elif name == "agtoosa_watch_status":
             stats = self.store.get_stats().to_dict()

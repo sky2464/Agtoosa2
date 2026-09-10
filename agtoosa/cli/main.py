@@ -223,6 +223,11 @@ def main(argv=None) -> int:
     reflect_p = review_sub.add_parser("reflect", help="View stored architectural rules and memory")
     reflect_p.add_argument("-d", "--domain", type=str, help="Filter by domain")
 
+    boundaries_p = review_sub.add_parser("boundaries", help="Enforce monorepo package encapsulation and import boundaries")
+    boundaries_p.add_argument("--path", type=str, default=".", help="Workspace root path (default: current dir)")
+    boundaries_p.add_argument("--strict", action="store_true", help="Fail if any warnings are detected")
+    boundaries_p.add_argument("--json", action="store_true", help="Output boundaries report as JSON")
+
     # agtoosa ci ...
     ci_parser = subparsers.add_parser("ci", help="CI/CD Quality Gate & automated PR verification")
     ci_sub = ci_parser.add_subparsers(dest="ci_action", required=True)
@@ -307,8 +312,12 @@ def main(argv=None) -> int:
         elif getattr(args, "review_action", None) == "reflect":
             from agtoosa.cli.lifecycle_cmd import cmd_review_reflect
             return cmd_review_reflect(args, workspace_root)
+        elif getattr(args, "review_action", None) == "boundaries":
+            from agtoosa.cli.lifecycle_cmd import cmd_review_boundaries
+            return cmd_review_boundaries(args, workspace_root)
         else:
             from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_review
+            return cmd_lifecycle_review(args, workspace_root)
     elif args.command == "ci":
         if args.ci_action == "review":
             from agtoosa.cli.lifecycle_cmd import cmd_ci_review

@@ -500,10 +500,6 @@ def cmd_graph_federate(args: Any, workspace_root: Path) -> int:
     from agtoosa.federation.manager import FederationManager
 
     db_path = get_default_db_path(workspace_root)
-    if not db_path.exists():
-        print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
-        return 1
-
     store = GraphStore(db_path)
     manager = FederationManager(store, workspace_root)
     action = getattr(args, "federate_action", "list")

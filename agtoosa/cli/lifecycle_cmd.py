@@ -1,5 +1,6 @@
 """CLI command implementations for lifecycle commands (context compile, review, ship)."""
 
+import json
 import sys
 from pathlib import Path
 from typing import Any
@@ -235,3 +236,55 @@ def cmd_ci_check(args: Any, workspace_root: Path) -> int:
         strict=strict
     )
     return exit_code
+
+
+def cmd_review_boundaries(args: Any, workspace_root: Path) -> int:
+    """Validate monorepo package boundaries, encapsulation, and dependency rules."""
+    from agtoosa.review.monorepo import MonorepoBoundaryEngine
+
+    target_path = Path(getattr(args, "path", "."))
+    if not target_path.is_absolute():
+        target_path = (workspace_root / target_path).resolve()
+
+    db_path = get_default_db_path(target_path)
+    store = GraphStore(db_path) if db_path.exists() else None
+
+    engine = MonorepoBoundaryEngine(target_path, store=store)
+    report = engine.check_boundaries(strict=getattr(args, "strict", False))
+
+    if getattr(args, "json", False):
+        print(json.dumps(report.to_dict(), indent=2))
+        return 0 if report.passed else 1
+
+    print(f"📦 Monorepo Package Boundary Review:")
+    print(f"   • Workspace Root: {target_path}")
+    print(f"   • Monorepo Detected: {'Yes' if report.is_monorepo else 'No'}")
+    print(f"   • Packages Discovered: {len(report.packages)}")
+
+    for pkg in report.packages:
+        manifest_str = f" ({pkg['manifest_type']})" if pkg.get("manifest_type") else ""
+        print(f"     - 📦 {pkg['name']}{manifest_str} ➔ {pkg['path']}")
+
+    if report.package_dependencies:
+        print(f"\n   🔗 Inter-Package Dependencies ({len(report.package_dependencies)}):")
+        for dep in report.package_dependencies:
+            print(f"     • {dep['from']} ➔ {dep['to']}")
+
+    if report.cycles:
+        print(f"\n   🚨 Package Cycles Detected ({len(report.cycles)}):")
+        for c in report.cycles:
+            print(f"     ❌ {' ➔ '.join(c)}")
+
+    if report.violations:
+        print(f"\n   🚨 Boundary Violations ({len(report.violations)}):")
+        for v in report.violations:
+            sev_icon = "❌" if v.severity == "ERROR" else "⚠️"
+            print(f"     {sev_icon} [{v.rule}] {v.message}")
+            print(f"        Remediation: {v.remediation}")
+    else:
+        print("\n   ✨ All package encapsulation boundaries and dependency rules respected!")
+
+    verdict_icon = "✅ PASSED" if report.passed else "🚫 FAILED"
+    print(f"\nVerdict: {verdict_icon}")
+    return 0 if report.passed else 1
+

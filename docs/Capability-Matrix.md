@@ -1,7 +1,7 @@
 # Agtoosa2 — Capability Matrix & Parity Definition
 
 > **Reference Benchmark:** Graphify Open-Source Capabilities & Enterprise Graph OS.  
-> **Status:** All 14 Stages Delivered & Verified (`v0.2.1-dev`) — 95/95 Automated Tests Passing (100% Pass Rate).
+> **Status:** 15 Stages Delivered & Verified (`v0.3.0-dev`) — 103/103 Automated Tests Passing (100% Pass Rate).
 
 ---
 
@@ -33,3 +33,5 @@
 | **Standalone Distribution** | PyPI, Homebrew, standalone binary | **Stage 12** (DEV-012)| PyInstaller/uv binary, homebrew tap, PyPI wheel | `tests/test_distribution.py`|
 | **IDE Extension Integration** | VS Code / Cursor extension | **Stage 13** (DEV-013)| Editor tree view, code lens, real-time blast radius | `tests/test_extension.py` |
 | **Hybrid GraphRAG v2** | `agtoosa context compile --hybrid`| **Stage 14** (DEV-014)| Dense subword embeddings, FTS5 BM25, RRF rank fusion, SQLite BLOBs | `tests/test_hybrid_rag.py` |
+| **Cross-Repo Graph Federation** | `agtoosa graph federate` | **Stage 15** (DEV-015)| Multi-repo git shallow clone, OpenAPI/gRPC/GraphQL contract bindings, cross-service impact | `tests/test_federation.py` |
+
