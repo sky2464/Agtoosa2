@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from agtoosa.graph.store import GraphStore
-from agtoosa.core.model import Node, Edge, NodeType
+from agtoosa.core.model import Node, Edge, NodeType, EdgeType
 from agtoosa.graph.query import compute_impact
 from agtoosa.cli.graph_cmd import cmd_graph_impact
 from agtoosa.mcp.server import MCPServer
@@ -53,9 +53,9 @@ def production_store(tmp_path: Path) -> GraphStore:
     )
 
     edges = [
-        Edge(source_id=caller_checkout.id, target_id=target.id, edge_type="calls", provenance="ast"),
-        Edge(source_id=caller_batch.id, target_id=target.id, edge_type="calls", provenance="ast"),
-        Edge(source_id=caller_dormant.id, target_id=target.id, edge_type="calls", provenance="ast"),
+        Edge(source_id=caller_checkout.id, target_id=target.id, edge_type=EdgeType.CALLS, provenance="ast"),
+        Edge(source_id=caller_batch.id, target_id=target.id, edge_type=EdgeType.CALLS, provenance="ast"),
+        Edge(source_id=caller_dormant.id, target_id=target.id, edge_type=EdgeType.CALLS, provenance="ast"),
     ]
 
     store.insert_batch([target, caller_checkout, caller_batch, caller_dormant], edges)
@@ -123,7 +123,7 @@ def test_dormant_production_blast_radius(tmp_path: Path):
     store = GraphStore(db_path)
     n1 = Node(id="func:a", name="fn_a", node_type=NodeType.FUNCTION, path="a.py", start_line=1, end_line=10)
     n2 = Node(id="func:b", name="fn_b", node_type=NodeType.FUNCTION, path="b.py", start_line=1, end_line=10)
-    store.insert_batch([n1, n2], [Edge(source_id=n2.id, target_id=n1.id, edge_type="calls", provenance="ast")])
+    store.insert_batch([n1, n2], [Edge(source_id=n2.id, target_id=n1.id, edge_type=EdgeType.CALLS, provenance="ast")])
 
     res = compute_impact(store, "fn_a", production=True)
     assert res is not None

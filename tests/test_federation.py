@@ -51,6 +51,7 @@ def test_federation_store_crud(temp_workspace: Path):
     # 3. Update sync timestamp
     store.update_federated_repo_sync("auth-service", "2026-09-10T12:00:00Z")
     r_updated = store.get_federated_repo("auth-service")
+    assert r_updated is not None
     assert r_updated["synced_at"] == "2026-09-10T12:00:00Z"
 
     # 4. Remove repo

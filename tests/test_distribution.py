@@ -47,6 +47,7 @@ class TestDistributionManifests(unittest.TestCase):
         from agtoosa.mcp.server import MCPServer
         server = MCPServer(REPO_ROOT)
         init_resp = server.handle_message({"id": 1, "method": "initialize", "params": {}})
+        assert init_resp is not None
         server_version = init_resp["result"]["serverInfo"]["version"]
         clean_pkg_version = __version__.split("-")[0]
         self.assertTrue(
