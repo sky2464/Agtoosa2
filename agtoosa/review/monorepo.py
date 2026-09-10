@@ -513,7 +513,7 @@ class MonorepoBoundaryEngine:
         src_scope = rule.get("source_scope")
         disallow_scopes = rule.get("disallow_scopes", rule.get("disallow", []))
         if src_scope and src_pkg.scope == src_scope:
-            if tgt_pkg.scope in disallow_scopes:
+            if disallow_scopes and tgt_pkg.scope and tgt_pkg.scope in disallow_scopes:
                 return True
 
         src_name = rule.get("source_package")

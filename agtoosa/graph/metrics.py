@@ -100,7 +100,7 @@ class MetricsEngine:
                 for src, tgts in adj_out.items():
                     for tgt in tgts:
                         g.add_edge(src, tgt)
-                return nx.pagerank(g, alpha=alpha, max_iter=max_iter, tol=tol)
+                return dict(nx.pagerank(g, alpha=alpha, max_iter=max_iter, tol=tol))
             except Exception:
                 pass
 
@@ -149,8 +149,8 @@ class MetricsEngine:
                 formatted = []
                 for c in raw_cycles:
                     formatted.append([
-                        {"id": nid, "name": node_map.get(nid, {}).get("name", nid),
-                         "path": node_map.get(nid, {}).get("path", "")}
+                        {"id": str(nid), "name": node_map.get(str(nid), {}).get("name", str(nid)),
+                         "path": node_map.get(str(nid), {}).get("path", "")}
                         for nid in c
                     ])
                 return formatted

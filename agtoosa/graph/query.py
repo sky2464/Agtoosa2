@@ -211,7 +211,7 @@ def compute_impact(
             imp["is_active"] = calls > 0
 
             total_traffic += calls
-            depth = max(1, imp["depth"])
+            depth = max(1, int(imp["depth"]))
             weighted_traffic_score += (calls * (1.0 + 2.0 * err_rate)) / (depth ** 1.5)
 
             if calls > 0:
@@ -220,7 +220,7 @@ def compute_impact(
                 dormant_callers += 1
 
         # Determine Production Risk Tier
-        if total_traffic >= 10000 or any(i.get("error_rate", 0) >= 0.15 and i.get("call_count", 0) >= 100 for i in impacted_nodes):
+        if total_traffic >= 10000 or any(float(i.get("error_rate", 0)) >= 0.15 and int(i.get("call_count", 0)) >= 100 for i in impacted_nodes):
             risk_tier = "P0_CRITICAL"
         elif total_traffic >= 1000:
             risk_tier = "P1_HIGH"

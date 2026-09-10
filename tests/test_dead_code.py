@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from agtoosa.graph.store import GraphStore
-from agtoosa.core.model import Node, Edge, NodeType
+from agtoosa.core.model import Node, Edge, NodeType, EdgeType
 from agtoosa.refactor.dead_code import DeadCodePruner, DeadCodeReport, format_dead_code_text
 from agtoosa.cli.refactor_cmd import cmd_refactor_dead_code
 from agtoosa.mcp.server import MCPServer
@@ -24,7 +24,7 @@ def test_no_dead_code_all_connected(tmp_path: Path):
     helper = _make_node("func:helper", "helper", "function", "utils.py")
     store.insert_batch(
         [main, helper],
-        [Edge(source_id=main.id, target_id=helper.id, edge_type="calls", provenance="ast")]
+        [Edge(source_id=main.id, target_id=helper.id, edge_type=EdgeType.CALLS, provenance="ast")]
     )
 
     pruner = DeadCodePruner(store, tmp_path)
@@ -149,7 +149,7 @@ def test_called_function_not_flagged(tmp_path: Path):
 
     store.insert_batch(
         [caller, callee],
-        [Edge(source_id=caller.id, target_id=callee.id, edge_type="calls", provenance="ast")]
+        [Edge(source_id=caller.id, target_id=callee.id, edge_type=EdgeType.CALLS, provenance="ast")]
     )
 
     pruner = DeadCodePruner(store, tmp_path)
@@ -168,7 +168,7 @@ def test_downstream_callees_warning(tmp_path: Path):
 
     store.insert_batch(
         [dead, downstream],
-        [Edge(source_id=dead.id, target_id=downstream.id, edge_type="calls", provenance="ast")]
+        [Edge(source_id=dead.id, target_id=downstream.id, edge_type=EdgeType.CALLS, provenance="ast")]
     )
 
     pruner = DeadCodePruner(store, tmp_path)

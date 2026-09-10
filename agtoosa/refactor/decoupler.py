@@ -163,7 +163,7 @@ class CycleDecouplerEngine:
                 f"3. Inject concrete {tgt_name} instance from higher-level composition root (e.g. main/cli)."
             ]
 
-        cycle_names = [n.get("name", n.get("id", "")) for n in cycle_nodes]
+        cycle_names = [n.get("name") or n.get("id") or "" for n in cycle_nodes]
 
         return DecouplingStrategy(
             strategy_type=strat_type,

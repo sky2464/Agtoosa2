@@ -362,7 +362,6 @@ class MCPServer:
                 "error": {"code": -32601, "message": f"Method not found: {method}"}
             }
         return None
-        return None
 
     MAX_LINE_BYTES = 1024 * 1024  # 1MB limit to prevent DoS memory exhaustion
 

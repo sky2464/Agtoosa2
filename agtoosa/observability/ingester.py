@@ -189,7 +189,7 @@ class TelemetryIngester:
         """Extract frame metrics from Py-Spy or speedscope flamegraph JSON."""
         records: List[TelemetryRecord] = []
         # Speedscope / Py-Spy flamebearer format
-        frames = data.get("frames", data.get("shared", {}).get("frames", []))
+        frames = data.get("frames", data.get("shared", {}).get("frames", [])) or []
         for frame in frames:
             name = frame.get("name", "")
             file_name = frame.get("file", frame.get("filename", ""))

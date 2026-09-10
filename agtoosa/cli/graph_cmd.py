@@ -131,6 +131,7 @@ def cmd_graph_export(args: Any, workspace_root: Path) -> int:
             if fmt == "obsidian":
                 print(f"✅ {result}")
             else:
+                assert out_path_obj is not None
                 print(f"✅ Graph exported to {out_path_obj} ({out_path_obj.stat().st_size / 1024:.1f} KB)")
         else:
             print(result)
@@ -392,7 +393,7 @@ def cmd_graph_symbols(args: Any, workspace_root: Path) -> int:
     print(f"🏛️  Symbols in '{rel_path}' ({len(symbols)} found):")
     for s in symbols:
         line_str = f"L{s['start_line']}-{s['end_line']}" if s['start_line'] else "unknown line"
-        print(f"   • {s['type'].upper()} {s['name']} ({line_str}) ➔ {s['caller_count']} callers [{s['risk']} RISK]")
+        print(f"   • {str(s['type']).upper()} {s['name']} ({line_str}) ➔ {s['caller_count']} callers [{s['risk']} RISK]")
     return 0
 
 
