@@ -125,37 +125,49 @@ def find_path(store: GraphStore, source_query: str, target_query: str, max_depth
 
 
 def compute_impact(store: GraphStore, target_query: str, max_depth: int = 3) -> Optional[Dict[str, Any]]:
-    """Compute the upstream blast radius (who calls or depends on target)."""
+    """Compute the upstream blast radius using in-database Recursive CTE for ultra-fast traversal."""
     target_node = resolve_node(store, target_query)
     if not target_node:
         return None
 
-    queue = deque([(target_node["id"], 0)])
-    visited: Set[str] = {target_node["id"]}
+    target_id = target_node["id"]
+    safe_depth = max(1, min(max_depth, 10))
 
-    impacted_nodes: List[Dict[str, Any]] = []
+    query_sql = """
+    WITH RECURSIVE impact_cte(curr_id, depth, rel_type, via_id) AS (
+        SELECT source_id, 1, edge_type, target_id
+        FROM edges
+        WHERE target_id = ?
 
-    while queue:
-        curr_id, depth = queue.popleft()
-        if depth >= max_depth:
-            continue
+        UNION
 
-        # Ingress: who points to curr_id?
-        in_neighbors = store.get_neighbors(curr_id, direction="in")
-        for neighbor in in_neighbors:
-            nxt_id = neighbor["id"]
-            if nxt_id not in visited:
-                visited.add(nxt_id)
-                impacted_nodes.append({
-                    "id": neighbor["id"],
-                    "name": neighbor["name"],
-                    "node_type": neighbor["node_type"],
-                    "path": neighbor["path"],
-                    "depth": depth + 1,
-                    "relationship": neighbor["edge_type"],
-                    "via": curr_id
-                })
-                queue.append((nxt_id, depth + 1))
+        SELECT e.source_id, ic.depth + 1, e.edge_type, e.target_id
+        FROM edges e
+        JOIN impact_cte ic ON e.target_id = ic.curr_id
+        WHERE ic.depth < ?
+    )
+    SELECT ic.curr_id AS id, n.name, n.node_type, n.path, MIN(ic.depth) AS depth, ic.rel_type, ic.via_id
+    FROM impact_cte ic
+    JOIN nodes n ON ic.curr_id = n.id
+    WHERE ic.curr_id != ?
+    GROUP BY ic.curr_id
+    ORDER BY depth ASC, n.name ASC;
+    """
+
+    with store._get_connection() as conn:
+        rows = conn.execute(query_sql, (target_id, safe_depth, target_id)).fetchall()
+        impacted_nodes = [
+            {
+                "id": r["id"],
+                "name": r["name"],
+                "node_type": r["node_type"],
+                "path": r["path"],
+                "depth": r["depth"],
+                "relationship": r["rel_type"],
+                "via": r["via_id"]
+            }
+            for r in rows
+        ]
 
     return {
         "target": target_node,

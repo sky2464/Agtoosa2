@@ -267,21 +267,26 @@ class VisualizerEngine:
 
         hubs_list = [h for h in metrics_report["top_hubs"] if not filter_type or h.get("type", "").lower() == filter_type.lower()]
 
-        json_payload = json.dumps(elements_data, indent=None)
-        stats_json = json.dumps(stats, indent=None)
-        health_json = json.dumps(health_scorecard, indent=None)
-        domains_json = json.dumps(self.DOMAIN_CONFIG, indent=None)
-        domain_counts_json = json.dumps(dict(domain_counts), indent=None)
-        cycles_json = json.dumps(cycles, indent=None)
-        conduits_json = json.dumps(conduits, indent=None)
-        stories_json = json.dumps(story_cards, indent=None)
-        top_hubs_json = json.dumps(hubs_list, indent=None)
-        subsystems_json = json.dumps(subsystems_data, indent=None)
+        def _safe_json(data: Any) -> str:
+            raw = json.dumps(data, indent=None)
+            return raw.replace("</", "<\\/")
+
+        json_payload = _safe_json(elements_data)
+        stats_json = _safe_json(stats)
+        health_json = _safe_json(health_scorecard)
+        domains_json = _safe_json(self.DOMAIN_CONFIG)
+        domain_counts_json = _safe_json(dict(domain_counts))
+        cycles_json = _safe_json(cycles)
+        conduits_json = _safe_json(conduits)
+        stories_json = _safe_json(story_cards)
+        top_hubs_json = _safe_json(hubs_list)
+        subsystems_json = _safe_json(subsystems_data)
 
         return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Agtoosa Studio — Architecture Command Center</title>
   <style>
@@ -1355,6 +1360,17 @@ class VisualizerEngine:
   </div>
 
   <script>
+    // HTML Sanitization for XSS Defense
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
     // Injected Data Payloads
     const graphData = {json_payload};
     const graphStats = {stats_json};

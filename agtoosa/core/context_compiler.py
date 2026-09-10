@@ -65,19 +65,29 @@ class ContextCompiler:
         for t in tasks:
             text_corpus += f"{t['name']} {t.get('docstring', '')} "
 
-        # Find symbols in graph matching words in text
-        words = {w.strip("`'\",():.") for w in text_corpus.split() if len(w) > 4}
-        symbols: List[Dict[str, Any]] = []
-        seen_ids: Set[str] = set()
+        # Clean words and build single-pass query
+        words = [w.strip("`'\",():.") for w in text_corpus.split() if len(w) > 4 and w.isalnum()]
+        if not words:
+            return []
 
-        for word in words:
-            matches = self.store.query_fts(word, limit=3)
-            for m in matches:
-                if m["node_type"] in ("function", "class") and m["id"] not in seen_ids:
-                    seen_ids.add(m["id"])
-                    symbols.append(m)
+        # Deduplicate terms while preserving order
+        unique_words = list(dict.fromkeys(words))[:20]
+        query_terms = " OR ".join(unique_words)
 
-        return symbols[:10]
+        try:
+            matches = self.store.query_fts(query_terms, limit=20)
+            symbols = [m for m in matches if m["node_type"] in ("function", "class")]
+            return symbols[:10]
+        except Exception:
+            # Fallback to batched individual queries if compound query syntax fails
+            symbols: List[Dict[str, Any]] = []
+            seen_ids: Set[str] = set()
+            for word in unique_words[:8]:
+                for m in self.store.query_fts(word, limit=3):
+                    if m["node_type"] in ("function", "class") and m["id"] not in seen_ids:
+                        seen_ids.add(m["id"])
+                        symbols.append(m)
+            return symbols[:10]
 
     def _render_lifecycle_pack(self, root_node: Dict[str, Any], criteria: List[Dict[str, Any]], tasks: List[Dict[str, Any]], symbols: List[Dict[str, Any]]) -> str:
         lines = []

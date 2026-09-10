@@ -1,8 +1,10 @@
-"""File scanner with configurable exclusions and safety filters."""
+"""File scanner with configurable exclusions, security sandboxing, and safety filters."""
 
 import os
 from pathlib import Path
 from typing import List, Set
+
+from agtoosa.core.security import is_safe_path, is_sensitive_filename, load_gitignore_patterns, matches_gitignore
 
 DEFAULT_IGNORE_DIRS = {
     ".git",
@@ -41,14 +43,17 @@ DEFAULT_IGNORE_EXTENSIONS = {
     ".pdf",
     ".key",
     ".pem",
+    ".pfx",
+    ".p12",
 }
 
 MAX_FILE_BYTES = 2 * 1024 * 1024  # 2MB
 
 
 def scan_workspace(workspace_root: Path) -> List[Path]:
-    """Scan workspace directory and return list of processable source files."""
+    """Scan workspace directory and return list of processable source files with security sandboxing."""
     valid_files: List[Path] = []
+    gitignore_patterns = load_gitignore_patterns(workspace_root)
 
     for root_str, dirs, files in os.walk(workspace_root):
         root = Path(root_str)
@@ -60,7 +65,25 @@ def scan_workspace(workspace_root: Path) -> List[Path]:
                 continue
 
             file_path = root / file_name
+
+            # 1. Zero-trust path sandboxing (prevent symlinks escaping workspace root)
+            if not is_safe_path(file_path, workspace_root):
+                continue
+
+            # 2. Sensitive filename exclusion (API keys, private keys, .env credentials)
+            if is_sensitive_filename(file_path):
+                continue
+
+            # 3. Extension exclusions
             if file_path.suffix.lower() in DEFAULT_IGNORE_EXTENSIONS:
+                continue
+
+            # 4. .gitignore pattern enforcement
+            try:
+                rel_path_str = str(file_path.relative_to(workspace_root))
+                if gitignore_patterns and matches_gitignore(rel_path_str, gitignore_patterns):
+                    continue
+            except ValueError:
                 continue
 
             try:

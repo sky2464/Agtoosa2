@@ -7,7 +7,7 @@ import sys
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Tuple, Any, Iterator
 
 # Ensure repository root is on sys.path if run directly as a script
 repo_root = Path(__file__).resolve().parent.parent.parent
@@ -19,6 +19,7 @@ if sys.version_info < (3, 11):
     sys.exit(f"Error: Agtoosa2 requires Python 3.11 or newer (currently running on Python {sys.version.split()[0]}).")
 
 from agtoosa.core.model import Node, Edge, NodeType, EdgeType, GraphStats
+from agtoosa.core.security import redact_secrets
 
 
 class GraphStore:
@@ -36,6 +37,9 @@ class GraphStore:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute("PRAGMA busy_timeout = 5000;")
+        conn.execute("PRAGMA temp_store = MEMORY;")
+        conn.execute("PRAGMA synchronous = NORMAL;")
         try:
             with conn:
                 yield conn
@@ -158,7 +162,7 @@ class GraphStore:
                     n.path,
                     n.start_line,
                     n.end_line,
-                    n.docstring,
+                    redact_secrets(n.docstring),
                     json.dumps(n.metadata)
                 )
                 for n in nodes
@@ -259,6 +263,49 @@ class GraphStore:
                 d["metadata"] = json.loads(d.pop("metadata_json", "{}") or "{}")
                 results.append(d)
             return results
+
+    def stream_nodes(self, chunk_size: int = 1000) -> Iterator[List[Dict[str, Any]]]:
+        """Stream nodes in chunks to avoid O(N) memory consumption."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM nodes ORDER BY id;")
+            while True:
+                rows = cursor.fetchmany(chunk_size)
+                if not rows:
+                    break
+                yield [
+                    {
+                        "id": r["id"],
+                        "name": r["name"],
+                        "node_type": r["node_type"],
+                        "path": r["path"],
+                        "start_line": r["start_line"],
+                        "end_line": r["end_line"],
+                        "docstring": r["docstring"],
+                        "metadata": json.loads(r["metadata_json"]) if r["metadata_json"] else {}
+                    }
+                    for r in rows
+                ]
+
+    def stream_edges(self, chunk_size: int = 1000) -> Iterator[List[Dict[str, Any]]]:
+        """Stream edges in chunks to avoid O(N) memory consumption."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM edges;")
+            while True:
+                rows = cursor.fetchmany(chunk_size)
+                if not rows:
+                    break
+                yield [
+                    {
+                        "source_id": r["source_id"],
+                        "target_id": r["target_id"],
+                        "edge_type": r["edge_type"],
+                        "provenance": r["provenance"],
+                        "metadata": json.loads(r["metadata_json"]) if r["metadata_json"] else {}
+                    }
+                    for r in rows
+                ]
 
     def get_node(self, node_id: str) -> Optional[Dict[str, Any]]:
         with self._get_connection() as conn:

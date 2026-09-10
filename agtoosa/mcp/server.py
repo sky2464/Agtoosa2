@@ -97,7 +97,11 @@ class MCPServer:
 
         elif name == "agtoosa_query_impact":
             target = args.get("target", "")
-            depth = args.get("depth", 3)
+            raw_depth = args.get("depth", 3)
+            try:
+                depth = max(1, min(int(raw_depth), 5))
+            except (ValueError, TypeError):
+                depth = 3
             res = compute_impact(self.store, target, max_depth=depth)
             return json.dumps(res or {"error": f"Target '{target}' not found"}, indent=2)
 
@@ -156,9 +160,13 @@ class MCPServer:
             }
         return None
 
+    MAX_LINE_BYTES = 1024 * 1024  # 1MB limit to prevent DoS memory exhaustion
+
     def run_stdio(self) -> None:
-        """Run standard stdio message loop."""
+        """Run standard stdio message loop with input bounds."""
         for line in sys.stdin:
+            if len(line) > self.MAX_LINE_BYTES:
+                continue
             line_str = line.strip()
             if not line_str:
                 continue
