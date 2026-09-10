@@ -9,10 +9,10 @@
 |---|---|
 | Product | `Agtoosa2` |
 | Repository | `https://github.com/sky2464/Agtoosa2` |
-| Version | `2.0.0-dev` |
+| Version | `0.2.1-dev` |
 | Core Engine | Python 3.11+ (Tree-sitter, SQLite FTS5, NetworkX) |
-| Active Cycle | Complete (All 10 Core Stages Delivered) |
-| Current Milestone | `v0.2.0-GA` |
+| Active Cycle | DEV-011 (Stage 11: CI/CD Quality Gate & GitHub Action Integration) |
+| Current Milestone | `v0.2.x` |
 
 ---
 
@@ -20,7 +20,7 @@
 
 | ID | Title | Type | Estimate | Status | Primary Deliverable |
 |---|---|---|---|---|---|
-| **DEV-ALL** | Full Master Plan Delivery | Milestone | - | 🏆 Complete | Stages 1 through 10 fully implemented, tested, and validated |
+| **DEV-012** | Standalone Binary Packaging & Multi-Platform Distribution | DevOps | M | 🔄 Ready / Next | Standalone compiled executables, PyPI wheel distribution, Homebrew tap formula |
 
 ## Completed Cycles
 
@@ -36,6 +36,7 @@
 | **DEV-008** | High-Scale Performance & Streaming Optimization | Performance | ✅ Done | O(1) memory chunked streaming (`stream_nodes`, `stream_edges`); in-database recursive SQL CTE for impact traversal; single-pass compound FTS5 queries |
 | **DEV-009** | Continuous Watcher & MCP Push | Feature | ✅ Done | Zero-dependency filesystem watcher (`agtoosa graph watch`), Git hooks (`agtoosa graph hooks`), live MCP resource update notifications |
 | **DEV-010** | Review Intelligence & Architecture Drift Alarms | Feature | ✅ Done | Layer boundary enforcement, cyclic dependency alarms, blast radius warnings, PR diff analysis (`agtoosa review --diff`), and Architectural Memory Bank (`agtoosa review remember/reflect`) |
+| **DEV-011** | CI/CD Quality Gate & GitHub Action Integration | Feature | ✅ Done | Composite GitHub Action (`action.yml`), reference CI workflow, PR architectural impact markdown comment generator, CLI `agtoosa ci review/check` |
 
 ---
 
@@ -52,6 +53,10 @@ flowchart LR
     S2 --> S8[Stage 8: Streaming Scale ✅]
     S4 --> S9[Stage 9: Continuous Watcher ✅]
     S3 --> S10[Stage 10: Review Intelligence ✅]
+    S10 --> S11[Stage 11: CI/CD PR Gate ✅]
+    S11 --> S12[Stage 12: Binary Packaging 🔄]
+    S4 --> S13[Stage 13: IDE Extension ⬜]
+    S3 --> S14[Stage 14: Hybrid GraphRAG v2 ⬜]
 ```
 
 ### Milestone 1: Knowledge Engine Core (v0.2.0-alpha)
@@ -101,3 +106,16 @@ flowchart LR
   - Cyclic dependency alarms and high blast radius warnings.
   - Git PR line-level diff to graph symbol mapping (`agtoosa review --diff <base-ref>`).
   - Institutional Architectural Memory Bank (`agtoosa review remember/reflect`) with automatic prompt injection.
+
+### Milestone 5: Ecosystem, Packaging & CI/CD Intelligence (v0.2.x)
+- **DEV-011 (Stage 11) — CI/CD Quality Gate & GitHub Action Integration** [✅ Done]
+  - Composite GitHub Action (`action.yml`) running `agtoosa review --diff origin/main --strict`.
+  - Automated rich PR architectural impact markdown comment generator.
+  - Merge blocking on circular dependencies or layer boundary regressions.
+- **DEV-012 (Stage 12) — Standalone Binary Packaging & Distribution** [🔄 Next Up]
+  - Standalone compiled executables (macOS Apple Silicon/Intel, Linux x86_64, Windows x64).
+  - Automated GitHub Releases matrix, Homebrew tap formula, PyPI publication.
+- **DEV-013 (Stage 13) — VS Code & Cursor IDE Extension** [⬜ Backlog]
+  - In-editor architecture tree view, caller/callee inspection, code lens annotations, and real-time blast radius alerts.
+- **DEV-014 (Stage 14) — Hybrid GraphRAG v2 & Semantic Vector Search** [⬜ Backlog]
+  - Embedded zero-service ONNX vector embeddings, cosine similarity + FTS5 + graph CTE hybrid prompt compiler.

@@ -1,0 +1,30 @@
+name: Agtoosa Architecture Gate
+
+on:
+  pull_request:
+    branches: [main, master, develop]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  architecture-review:
+    name: Verify Architectural Invariants
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code with History
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Agtoosa Quality Gate
+        uses: ./
+        with:
+          base-ref: origin/${{ github.base_ref || 'main' }}
+          strict: 'false'
+          post-comment: 'true'
+          github-token: ${{ secrets.GITHUB_TOKEN }}

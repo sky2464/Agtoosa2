@@ -4,7 +4,7 @@ requires-python = ">=3.11"
 
 [[package]]
 name = "agtoosa"
-version = "2.0.0.dev1"
+version = "0.2.1.dev0"
 source = { editable = "." }
 
 [package.optional-dependencies]

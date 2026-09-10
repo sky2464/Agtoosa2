@@ -156,6 +156,10 @@ class ReviewIntelligenceEngine:
         findings: List[DriftFinding] = []
 
         for fpath in modified_files:
+            # Skip hidden files or configuration files in hidden directories (e.g. .github, .gitignore)
+            if fpath.startswith(".") or "/." in fpath:
+                continue
+
             file_node = self.store.get_node(f"file:{fpath}")
             if not file_node:
                 findings.append(DriftFinding(

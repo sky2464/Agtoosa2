@@ -1,0 +1,87 @@
+name: 'Agtoosa Architecture Quality Gate'
+description: 'Zero-dependency graph-native architecture drift and quality gatekeeper for GitHub Actions.'
+author: 'Agtoosa Team'
+
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  workspace:
+    description: 'Path to workspace repository root'
+    required: false
+    default: '.'
+  base-ref:
+    description: 'Base Git reference for PR diff comparison (e.g. origin/main, main)'
+    required: false
+    default: 'origin/main'
+  strict:
+    description: 'Fail check on architectural warnings in addition to critical errors'
+    required: false
+    default: 'false'
+  output-comment:
+    description: 'Path to write generated GitHub Flavored Markdown PR comment'
+    required: false
+    default: 'pr-comment.md'
+  post-comment:
+    description: 'Automatically post or update sticky architectural review comment on PR'
+    required: false
+    default: 'true'
+  github-token:
+    description: 'GitHub token for posting PR comments and updating check annotations'
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  verdict:
+    description: 'Final architecture gate verdict (APPROVED, WARNING, BLOCKED)'
+    value: ${{ steps.agtoosa-gate.outputs.verdict }}
+  comment-path:
+    description: 'Path to generated PR comment markdown file'
+    value: ${{ inputs.output-comment }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Agtoosa
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e "${{ inputs.workspace }}"
+
+    - name: Build Knowledge Graph
+      shell: bash
+      run: |
+        python -m agtoosa.cli.main graph build -C "${{ inputs.workspace }}"
+
+    - name: Run Agtoosa Architecture Quality Gate
+      id: agtoosa-gate
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_REF: ${{ github.ref }}
+        GITHUB_EVENT_PATH: ${{ github.event_path }}
+      run: |
+        STRICT_FLAG=""
+        if [ "${{ inputs.strict }}" = "true" ]; then
+          STRICT_FLAG="--strict"
+        fi
+
+        POST_FLAG=""
+        if [ "${{ inputs.post-comment }}" = "true" ]; then
+          POST_FLAG="--post-comment"
+        fi
+
+        python -m agtoosa.cli.main ci review \
+          -C "${{ inputs.workspace }}" \
+          --base-ref "${{ inputs.base-ref }}" \
+          --output-comment "${{ inputs.output-comment }}" \
+          --github-token "${{ inputs.github-token }}" \
+          $STRICT_FLAG \
+          $POST_FLAG

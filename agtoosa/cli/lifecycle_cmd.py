@@ -164,3 +164,73 @@ def cmd_lifecycle_ship(args: Any, workspace_root: Path) -> int:
         for r in reasons:
             print(f"     - {r}")
         return 1
+
+
+def cmd_ci_review(args: Any, workspace_root: Path) -> int:
+    """Run automated CI architecture quality gate and generate PR markdown report."""
+    from agtoosa.review.ci import run_ci_gate
+
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    store = GraphStore(db_path)
+    base_ref = getattr(args, "base_ref", "origin/main")
+    strict = getattr(args, "strict", False)
+    output_comment = getattr(args, "output_comment", None)
+    post_comment = getattr(args, "post_comment", False)
+    token = getattr(args, "github_token", None)
+    repo = getattr(args, "repo", None)
+    pr_number = getattr(args, "pr_number", None)
+
+    exit_code, report, comment_md = run_ci_gate(
+        store=store,
+        workspace_root=workspace_root,
+        base_ref=base_ref,
+        strict=strict,
+        output_comment_path=output_comment,
+        post_comment=post_comment,
+        token=token,
+        repo=repo,
+        pr_number=pr_number
+    )
+
+    verdict_icons = {"APPROVED": "✅", "WARNING": "⚠️", "BLOCKED": "🚫"}
+    print(f"🏛️  Agtoosa CI Quality Gate: {verdict_icons.get(report.verdict, '❓')} [{report.verdict}]")
+    print(f"   • Base Git Ref: {base_ref}")
+    print(f"   • Modified Files: {len(report.modified_files)}")
+    print(f"   • Invariant Findings: {len(report.findings)}")
+
+    if output_comment:
+        print(f"   • PR Comment Written: {output_comment}")
+
+    if report.verdict == "BLOCKED":
+        print("\n🚫 CI Quality Gate failed: Critical architectural invariants violated.")
+    elif report.verdict == "WARNING" and strict:
+        print("\n🚫 CI Quality Gate failed: Warnings detected under --strict mode.")
+    elif report.verdict == "APPROVED":
+        print("\n✨ CI Quality Gate passed! Clean architectural invariants.")
+
+    return exit_code
+
+
+def cmd_ci_check(args: Any, workspace_root: Path) -> int:
+    """Fast CI check returning exit code 0 on clean architecture, 1 on violation."""
+    from agtoosa.review.ci import run_ci_gate
+
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        return 1
+
+    store = GraphStore(db_path)
+    base_ref = getattr(args, "base_ref", "origin/main")
+    strict = getattr(args, "strict", False)
+
+    exit_code, _, _ = run_ci_gate(
+        store=store,
+        workspace_root=workspace_root,
+        base_ref=base_ref,
+        strict=strict
+    )
+    return exit_code

@@ -166,7 +166,7 @@ class MCPServer:
                         "tools": {},
                         "resources": {"subscribe": True, "listChanged": True}
                     },
-                    "serverInfo": {"name": "agtoosa-mcp", "version": "2.0.0"}
+                    "serverInfo": {"name": "agtoosa-mcp", "version": "0.2.1"}
                 }
             }
         elif method == "notifications/initialized":

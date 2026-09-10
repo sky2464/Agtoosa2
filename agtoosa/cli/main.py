@@ -117,6 +117,23 @@ def main(argv=None) -> int:
     reflect_p = review_sub.add_parser("reflect", help="View stored architectural rules and memory")
     reflect_p.add_argument("-d", "--domain", type=str, help="Filter by domain")
 
+    # agtoosa ci ...
+    ci_parser = subparsers.add_parser("ci", help="CI/CD Quality Gate & automated PR verification")
+    ci_sub = ci_parser.add_subparsers(dest="ci_action", required=True)
+
+    ci_review_p = ci_sub.add_parser("review", help="Run CI architectural drift review and generate PR comment")
+    ci_review_p.add_argument("--base-ref", type=str, default="origin/main", help="Base git ref for PR diff (default: origin/main)")
+    ci_review_p.add_argument("--strict", action="store_true", help="Fail with non-zero exit code if warnings or alarms are present")
+    ci_review_p.add_argument("--output-comment", type=str, help="Path to write GitHub PR Markdown comment (e.g. pr-comment.md)")
+    ci_review_p.add_argument("--post-comment", action="store_true", help="Post or update sticky PR comment via GitHub REST API")
+    ci_review_p.add_argument("--github-token", type=str, help="GitHub token for PR comment posting (defaults to $GITHUB_TOKEN)")
+    ci_review_p.add_argument("--pr-number", type=int, help="Pull Request number (defaults to $PR_NUMBER or CI detection)")
+    ci_review_p.add_argument("--repo", type=str, help="GitHub repository owner/repo (defaults to $GITHUB_REPOSITORY)")
+
+    ci_check_p = ci_sub.add_parser("check", help="Fast CI gate check returning 0 on clean architecture, 1 on violation")
+    ci_check_p.add_argument("--base-ref", type=str, default="origin/main", help="Base git ref for diff")
+    ci_check_p.add_argument("--strict", action="store_true", help="Treat warnings as failures")
+
     # agtoosa ship <story>
     ship_parser = subparsers.add_parser("ship", help="Verify proof graph and ship story")
     ship_parser.add_argument("story", type=str, help="Target Story ID to verify and ship")
@@ -169,7 +186,13 @@ def main(argv=None) -> int:
             return cmd_review_reflect(args, workspace_root)
         else:
             from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_review
-            return cmd_lifecycle_review(args, workspace_root)
+    elif args.command == "ci":
+        if args.ci_action == "review":
+            from agtoosa.cli.lifecycle_cmd import cmd_ci_review
+            return cmd_ci_review(args, workspace_root)
+        elif args.ci_action == "check":
+            from agtoosa.cli.lifecycle_cmd import cmd_ci_check
+            return cmd_ci_check(args, workspace_root)
     elif args.command == "ship":
         from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_ship
         return cmd_lifecycle_ship(args, workspace_root)
