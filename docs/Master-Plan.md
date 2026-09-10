@@ -12,7 +12,7 @@
 | Version | `2.0.0-dev` |
 | Core Engine | Python 3.11+ (Tree-sitter, SQLite FTS5, NetworkX) |
 | Active Cycle | DEV-006 (Stage 6: Broad Language & Schema Coverage) |
-| Current Milestone | `v2.0.0-rc.1` |
+| Current Milestone | `v0.2.0.0-rc.1` |
 
 ---
 
@@ -28,7 +28,7 @@
 |---|---|---|---|---|
 | **DEV-001** | Core Foundation & AST Knowledge Graph | Feature | ✅ Done | Unified CLI, polyglot AST extractors (Py/JS/TS/Sh), SQLite FTS5 graph store, `/agtoosa graph build/query/status/export` |
 | **DEV-002** | Reliable Incremental Updates & Investigation | Feature | ✅ Done | Content hash fingerprints, incremental sync, `/agtoosa graph explain/path/impact` |
-| **DEV-003** | Graph-Driven Lifecycle & Context Compilation v2 | Feature | ✅ Done | Spec/Story/Criteria/Task ingestion, Context Compiler v2 (Graph RAG), `review`, and mathematical proof `ship` gates |
+| **DEV-003** | Graph-Driven Lifecycle & Context Compilation v0.2 | Feature | ✅ Done | Spec/Story/Criteria/Task ingestion, Context Compiler v0.2 (Graph RAG), `review`, and mathematical proof `ship` gates |
 | **DEV-004** | Native Model Context Protocol (MCP) Server | Feature | ✅ Done | Built-in stdio/SSE MCP server exposing real-time graph navigation tools to AI coding agents |
 | **DEV-005** | Interactive Architecture Exploration & Visualizer | Feature | ✅ Done | Offline Cytoscape.js HTML visualizer (`agtoosa graph view`), architecture health & cycle reports (`agtoosa graph report`), and multi-format exports (Obsidian, GraphML, Cypher, DOT) |
 
@@ -48,7 +48,7 @@ flowchart LR
     S3 --> S9[Stage 9: Review Intelligence]
 ```
 
-### Milestone 1: Knowledge Engine Core (v2.0-alpha)
+### Milestone 1: Knowledge Engine Core (v0.2.0-alpha)
 - **DEV-001 (Stage 1) — Core Foundation & AST Knowledge Graph** [✅ Done]
   - Python 3.11+ packaging, zero-service architecture, single `agtoosa` CLI.
   - Parsers for Python, JavaScript/TypeScript, and Shell.
@@ -58,16 +58,16 @@ flowchart LR
   - Content hash fingerprints, rename and deletion handling.
   - Commands: `agtoosa graph explain <symbol>`, `agtoosa graph path <from> <to>`, `agtoosa graph impact <target>`.
 
-### Milestone 2: Lifecycle Integration & Agent Context (v2.0-beta)
-- **DEV-003 (Stage 3) — Graph-Driven Lifecycle & Context Compilation v2** [✅ Done]
+### Milestone 2: Lifecycle Integration & Agent Context (v0.2.0-beta)
+- **DEV-003 (Stage 3) — Graph-Driven Lifecycle & Context Compilation v0.2** [✅ Done]
   - Ingestion of Story, Criterion, Task, and Test nodes into the knowledge graph.
-  - Context RAG v2: Bounded subgraph prompt compilation replacing bloated markdown templates.
+  - Context RAG v0.2: Bounded subgraph prompt compilation replacing bloated markdown templates.
   - Lifecycle state machine: `agtoosa review` and mathematical proof graph validation on `agtoosa ship`.
 - **DEV-004 (Stage 4) — Native Model Context Protocol (MCP) Server** [✅ Done]
   - Built-in MCP server (`agtoosa mcp`) providing real-time tools for Cursor, Claude Code, Windsurf, Gemini, and Copilot.
   - Tools: `get_symbol_context`, `query_impact_radius`, `get_active_task_context`, `record_task_evidence`.
 
-### Milestone 3: Visualization & Parity Breadth (v2.0-GA)
+### Milestone 3: Visualization & Parity Breadth (v0.2.0-GA)
 - **DEV-005 (Stage 5) — Interactive Architecture Exploration & Visualizer** [✅ Done]
   - Bundled standalone offline viewer (`agtoosa graph view`).
   - Community clustering (Louvain / modularity), PageRank importance scoring, cycle detection, health scorecard (`agtoosa graph report`).
