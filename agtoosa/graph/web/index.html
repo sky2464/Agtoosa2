@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agtoosa Studio — Architecture Command Center</title>
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/views.css">
+</head>
+<body>
+
+  <!-- Top Command Header -->
+  <header>
+    <div class="brand-section">
+      <div class="brand-icon">🏛️</div>
+      <div class="brand-logo">
+        <span>Agtoosa</span> Studio
+      </div>
+      <span class="brand-badge">Studio</span>
+    </div>
+
+    <!-- Perspective Switcher Tabs -->
+    <div class="perspective-switcher">
+      <button class="tab-btn active" data-view="c4">
+        <span>🏛️</span> C4 Blueprint
+      </button>
+      <button class="tab-btn" data-view="network">
+        <span>🌐</span> Network Graph
+      </button>
+      <button class="tab-btn" data-view="radar">
+        <span>⚡</span> Risk Radar
+      </button>
+      <button class="tab-btn" data-view="pipeline">
+        <span>🛡️</span> Delivery Pipeline
+      </button>
+      <button class="tab-btn" data-view="blast">
+        <span>🎯</span> Blast Radius
+      </button>
+    </div>
+
+    <!-- Quick Controls & Omni-Search -->
+    <div class="controls-bar">
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" class="search-input-box" placeholder="Search symbol, file..." autocomplete="off">
+        <span class="search-kbd">⌘K</span>
+        <div id="search-dropdown"></div>
+      </div>
+      <button id="btn-guide" style="padding: 6px 10px;" title="Architecture Guide & System Capabilities">ℹ️ Guide</button>
+      <button id="btn-export-hdr" class="primary" style="padding: 6px 11px;" title="Export Context Pack or Graph">📥 Export</button>
+    </div>
+  </header>
+
+  <!-- Executive Governance KPI Strip (Dedicated Full-Width Ribbon) -->
+  <div class="kpi-strip">
+    <div class="kpi-item">
+      <span class="kpi-lbl">Architecture Grade</span>
+      <div class="kpi-val">
+        <span class="kpi-pill grade" id="kpi-grade">Grade A+ (94/100)</span>
+        <span style="font-size: 0.68rem; color: #34d399; font-weight: 600;">+2.4% vs last commit</span>
+      </div>
+    </div>
+    <div class="kpi-item">
+      <span class="kpi-lbl">Dependency Cycles</span>
+      <div class="kpi-val">
+        <strong id="kpi-cycles" class="kpi-pill clean">0 Cycles (Clean)</strong>
+        <span style="font-size: 0.68rem; color: var(--text-dim);">Strict DAG verified</span>
+      </div>
+    </div>
+    <div class="kpi-item">
+      <span class="kpi-lbl">Critical Centrality Hubs</span>
+      <div class="kpi-val">
+        <strong id="kpi-hubs" class="kpi-pill hubs">5 Monitored</strong>
+        <span style="font-size: 0.68rem; color: var(--text-dim);">3 Tiers active</span>
+      </div>
+    </div>
+    <div class="kpi-item">
+      <span class="kpi-lbl">AI Context Cut</span>
+      <div class="kpi-val">
+        <span class="kpi-pill ai" id="kpi-ai-cut">~74% Saved</span>
+        <span style="font-size: 0.68rem; color: #a5b4fc; font-weight: 600;">Token efficiency</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Viewport -->
+  <div id="main-viewport">
+
+    <!-- 1. PRIMARY VIEW: C4 Architecture Blueprint (Domain Blueprint) -->
+    <div class="view-panel active" id="view-c4">
+      <div class="c4-header-banner">
+        <div class="c4-header-text">
+          <h2>🏛️ C4 Container Architecture Blueprint (Domain Blueprint)</h2>
+          <p>Deterministic, zero-hairball architectural container flow. Click any container to inspect internal files, blast radius, or export bounded AI context.</p>
+        </div>
+        <div class="c4-legend">
+          <div class="legend-item"><span class="legend-dot" style="background: #38bdf8;"></span> Tier 1 (Entrypoints)</div>
+          <div class="legend-item"><span class="legend-dot" style="background: #818cf8;"></span> Tier 2 (Core & Analysis)</div>
+          <div class="legend-item"><span class="legend-dot" style="background: #10b981;"></span> Tier 3 (Storage & Verification)</div>
+        </div>
+      </div>
+
+      <div class="c4-tiers-container" id="c4-tiers">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+
+    <!-- 1B. Interactive Network Graph View (Sunflower 2D Canvas) -->
+    <div class="view-panel" id="view-network">
+      <div class="graph-toolbar">
+        <div class="graph-filter-group">
+          <label for="graph-domain-select">Domain:</label>
+          <select id="graph-domain-select" class="graph-select">
+            <option value="all">All Domains (8 Subsystems)</option>
+          </select>
+        </div>
+        <div class="graph-filter-group">
+          <label for="graph-type-select">Type:</label>
+          <select id="graph-type-select" class="graph-select">
+            <option value="all">All Entity Types</option>
+            <option value="class">Class</option>
+            <option value="function">Function</option>
+            <option value="file">File</option>
+            <option value="story">Story</option>
+            <option value="test">Test</option>
+          </select>
+        </div>
+        <div class="graph-filter-group" style="flex: 1; max-width: 260px;">
+          <input type="text" id="graph-search-input" class="search-input-box" placeholder="Filter/highlight nodes..." style="width: 100%;">
+        </div>
+        <div class="graph-btn-group">
+          <button id="graph-btn-reset" class="graph-btn" title="Fit to View">🎯 Fit View</button>
+          <button id="graph-btn-zoom-in" class="graph-btn" title="Zoom In">➕</button>
+          <button id="graph-btn-zoom-out" class="graph-btn" title="Zoom Out">➖</button>
+        </div>
+      </div>
+      <div class="network-canvas-container" id="network-container">
+        <canvas id="network-canvas"></canvas>
+        <div id="network-tooltip" class="graph-tooltip"></div>
+        <div class="canvas-help-hint">💡 Drag to Pan &bull; Scroll to Zoom &bull; Click Node to Inspect &bull; Hover for Details</div>
+      </div>
+    </div>
+
+    <!-- 2. Governance & Risk Radar View -->
+    <div class="view-panel" id="view-radar">
+      <div class="scorecard-banner">
+        <div class="score-card">
+          <div class="lbl">Architecture Grade</div>
+          <div class="val" style="color: #34d399;" id="score-grade">A+</div>
+          <p style="font-size: 0.74rem; color: var(--text-muted);">Calculated via PageRank, cycle freedom, and domain cohesion.</p>
+        </div>
+        <div class="score-card">
+          <div class="lbl">Circular Dependencies</div>
+          <div class="val" style="color: #38bdf8;" id="score-cycles">0</div>
+          <p style="font-size: 0.74rem; color: var(--text-muted);">Verified with Tarjan strongly-connected components algorithm.</p>
+        </div>
+        <div class="score-card">
+          <div class="lbl">Critical Centrality Hubs</div>
+          <div class="val" style="color: #f59e0b;" id="score-hubs">5</div>
+          <p style="font-size: 0.74rem; color: var(--text-muted);">High-blast-radius components requiring stable interfaces.</p>
+        </div>
+        <div class="score-card">
+          <div class="lbl">Spec Lineage Coverage</div>
+          <div class="val" style="color: #c084fc;">100%</div>
+          <p style="font-size: 0.74rem; color: var(--text-muted);">All DEV stories mapped to concrete AST code and test proofs.</p>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <span>⚡</span> Top Architectural Bottleneck Hubs (PageRank Centrality)
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">These core components have the highest blast radius in Agtoosa2. Refactoring here propagates across subsystems.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Symbol</th>
+              <th>Subsystem</th>
+              <th>Type</th>
+              <th>Centrality Score</th>
+              <th>Architectural Risk Role</th>
+            </tr>
+          </thead>
+          <tbody id="table-hubs-body">
+            <!-- Injected via JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-card">
+        <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <span>🔄</span> Circular Dependency Audit (Tarjan Algorithm)
+        </div>
+        <div id="cycles-audit-content">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+
+      <!-- Stage 19: Cycle Decoupler Blueprints -->
+      <div class="table-card" id="decoupler-section">
+        <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <span>🪓</span> Stage 19: Automated Cycle Decoupler &amp; Refactoring Blueprints
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+          Identifies cyclic feedback loops and automatically synthesizes dependency inversion interfaces, shared kernels, or event-driven patterns.
+        </p>
+        <div id="decoupler-content" style="margin-top: 12px;"></div>
+      </div>
+
+      <!-- Stage 20: Dead Code & Zombie Symbol Pruning -->
+      <div class="table-card" id="dead-code-section">
+        <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <span>🧟</span> Stage 20: Dead Code &amp; Zombie Symbol Pruning
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+          Detects unreachable symbols (0 incoming call edges) excluding entrypoints, framework hooks, and test fixtures.
+        </p>
+        <div id="dead-code-summary-pills" style="display: flex; gap: 10px; margin: 12px 0;"></div>
+        <table>
+          <thead>
+            <tr>
+              <th>Confidence</th>
+              <th>Symbol</th>
+              <th>Location</th>
+              <th>Reason</th>
+              <th>Est. Lines</th>
+              <th>Safe to Delete</th>
+            </tr>
+          </thead>
+          <tbody id="table-dead-code-body">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3. Delivery Assurance View -->
+    <div class="view-panel" id="view-pipeline">
+      <div id="delivery-container">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+
+    <!-- 4. Focused Blast Radius Explorer -->
+    <div class="view-panel" id="view-blast">
+      <div class="blast-toolbar">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-weight: 700; font-size: 0.9rem;">Target Entity:</span>
+          <select id="blast-select" style="min-width: 280px;"></select>
+        </div>
+        <div class="prod-toggle-group">
+          <label class="prod-toggle-label" title="Enable production telemetry weighting (Stage 18: Production Blast Radius)">
+            <input type="checkbox" id="blast-prod-toggle">
+            <span class="prod-toggle-slider"></span>
+            <span class="prod-toggle-text">🔥 Production Traffic Weighting</span>
+          </label>
+        </div>
+        <div id="blast-prod-badge" class="prod-risk-badge" style="display: none;">
+          ⚡ Telemetry Active: Critical Traffic
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-left: auto;">
+          Isolates direct 1-hop callers (ingress) and callees (egress) with zero canvas clutter.
+        </div>
+      </div>
+
+      <div class="blast-flow-canvas" id="canvas-container">
+        <div class="blast-col" id="blast-ingress-col">
+          <div class="blast-col-header">📥 Upstream Callers (<span id="blast-in-count">0</span>)</div>
+          <div id="blast-ingress-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+        <div class="blast-col" id="blast-target-col">
+          <div class="blast-col-header">🎯 Target Component</div>
+          <div id="blast-target-box"></div>
+        </div>
+        <div class="blast-col" id="blast-egress-col">
+          <div class="blast-col-header">📤 Downstream Dependencies (<span id="blast-out-count">0</span>)</div>
+          <div id="blast-egress-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide-Over Inspection Drawer -->
+    <div id="sidebar">
+      <div class="sidebar-header">
+        <div>
+          <span id="side-badge" class="badge">Component</span>
+          <div id="side-domain" class="domain-tag">Domain</div>
+          <h2 id="side-name" style="margin-top: 6px; font-size: 1.18rem; font-weight: 800;">Entity Name</h2>
+        </div>
+        <button class="close-btn" id="side-close">&times;</button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="drawer-actions">
+        <button class="action-btn ai-context" id="btn-copy-ai">
+          🤖 Copy AI Agent Context Pack
+        </button>
+        <button class="action-btn" id="btn-open-blast">
+          💥 Open in Blast Radius DAG
+        </button>
+        <button class="action-btn" id="btn-copy-path">
+          📋 Copy File Path
+        </button>
+      </div>
+
+      <div class="detail-group">
+        <label>File Location</label>
+        <p id="side-path" style="font-family: monospace; font-size: 0.8rem; color: #38bdf8;">-</p>
+      </div>
+
+      <div class="detail-group" id="group-doc" style="display: none;">
+        <label>Description & Docstring</label>
+        <p id="side-doc" style="line-height: 1.45; color: #cbd5e1; font-size: 0.82rem;"></p>
+      </div>
+
+      <div class="detail-group" id="group-subsystem-items" style="display: none;">
+        <label>Contained Files & Symbols (<span id="subsystem-items-count">0</span>)</label>
+        <div class="subsystem-members-list" id="subsystem-members-container"></div>
+      </div>
+
+      <div class="detail-group">
+        <label>Incoming Ingress Callers (<span id="side-in-count">0</span>)</label>
+        <div class="connection-list" id="side-in-list"></div>
+      </div>
+
+      <div class="detail-group">
+        <label>Outgoing Egress Dependencies (<span id="side-out-count">0</span>)</label>
+        <div class="connection-list" id="side-out-list"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast">📋 Copied to clipboard!</div>
+
+  <!-- Guided Architecture Onboarding Modal -->
+  <div id="welcome-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Agtoosa Studio Architecture Command Center 🚀</div>
+        <button class="close-btn" id="modal-close">&times;</button>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.5;">
+        Agtoosa Studio provides <strong>deterministic, senior-grade architecture assurance</strong> and precision context generation for AI coding workflows.
+      </p>
+
+      <div class="feature-grid">
+        <div class="feature-item">
+          <h4>🏛️ C4 Container Blueprint</h4>
+          <p>Deterministic architectural tier layout showing subsystems, responsibilities, public exports, and data conduits with zero physics clutter.</p>
+        </div>
+        <div class="feature-item">
+          <h4>⚡ Governance & Health</h4>
+          <p>Real-time architectural scorecard auditing circular dependencies (0 cycles), modular cohesion, and PageRank bottleneck hubs.</p>
+        </div>
+        <div class="feature-item">
+          <h4>🎯 Focused Blast Radius</h4>
+          <p>Select any entity to isolate its direct callers and callees in a clean 3-column flow. See exact blast radius before editing code.</p>
+        </div>
+        <div class="feature-item">
+          <h4>🤖 AI Context Pack Exporter</h4>
+          <p>One-click bounded prompt packs for Claude/Cursor that reduce token consumption by over 70% while eliminating hallucinations.</p>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
+        <button class="primary" id="btn-explore-studio" style="padding: 10px 22px; font-size: 0.9rem;">
+          Enter Architecture Command Center ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/state.js"></script>
+  <script src="js/c4_view.js"></script>
+  <script src="js/network_view.js"></script>
+  <script src="js/blast_view.js"></script>
+  <script src="js/radar_view.js"></script>
+  <script src="js/delivery_view.js"></script>
+  <script src="js/drawer.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

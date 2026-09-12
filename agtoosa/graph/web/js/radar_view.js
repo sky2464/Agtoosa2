@@ -1,0 +1,115 @@
+    // 2. Build Governance & Risk Radar Tables
+    const hubsBody = document.getElementById("table-hubs-body");
+    topHubsData.slice(0, 10).forEach((h, idx) => {
+      const tr = document.createElement("tr");
+      tr.style.cursor = "pointer";
+      tr.innerHTML = `
+        <td><strong>#${idx + 1}</strong></td>
+        <td><span style="color: #38bdf8; font-weight: 700; font-family: monospace;">${h.name}</span></td>
+        <td><span style="color: var(--text-muted);">${nodeMap.get(h.id)?.domain || 'Core Engine'}</span></td>
+        <td><span class="badge" style="background: rgba(255, 255, 255, 0.08);">${h.type}</span></td>
+        <td><strong>${h.score}</strong></td>
+        <td><span class="badge" style="background: ${idx < 3 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${idx < 3 ? '#f87171' : '#fbbf24'};">${idx < 3 ? 'Critical Core Hub' : 'High Centrality'}</span></td>
+      `;
+      tr.addEventListener("click", () => inspectEntity(h.id));
+      hubsBody.appendChild(tr);
+    });
+
+    const cyclesContent = document.getElementById("cycles-audit-content");
+    if (cycleData.length === 0) {
+      cyclesContent.innerHTML = `
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 16px; border-radius: 8px; color: #34d399; font-size: 0.86rem; display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.2rem;">✅</span>
+          <div>
+            <strong>Zero Circular Dependencies Detected.</strong><br>
+            <span style="color: var(--text-muted); font-size: 0.78rem;">The entire Agtoosa2 dependency graph is strictly acyclic across all modules and functions.</span>
+          </div>
+        </div>
+      `;
+    } else {
+      cyclesContent.innerHTML = cycleData.map((c, i) => `
+        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 12px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 8px;">
+          <strong>Cycle #${i + 1}:</strong> ${c.map(x => x.name).join(" ➔ ")}
+        </div>
+      `).join('');
+    }
+
+    // Stage 19: Cycle Decoupler Blueprints
+    const decouplerContent = document.getElementById("decoupler-content");
+    if (decouplerData && decouplerData.strategies && decouplerData.strategies.length > 0) {
+      decouplerContent.innerHTML = decouplerData.strategies.map((strat, idx) => `
+        <div class="decoupler-card">
+          <div class="decoupler-card-header">
+            <div style="font-weight: 800; font-size: 0.95rem; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">
+              <span>🪓 Decoupling Strategy #${idx + 1}:</span>
+              <span style="font-family: monospace; color: #38bdf8;">${escapeHtml(strat.proposed_interface_name)}</span>
+            </div>
+            <span class="decoupler-strategy-badge">${escapeHtml(strat.strategy_type)}</span>
+          </div>
+          <p style="font-size: 0.8rem; color: #cbd5e1; line-height: 1.45;">${escapeHtml(strat.rationale)}</p>
+          <div style="margin-top: 8px; font-size: 0.76rem; color: var(--text-dim);">
+            <strong>Recommended Decoupling Cut:</strong>
+            <span style="font-family: monospace; color: #f87171;">${escapeHtml(strat.cut_edge[0])}</span> ➔
+            <span style="font-family: monospace; color: #34d399;">${escapeHtml(strat.cut_edge[1])}</span>
+          </div>
+          ${strat.generated_code_stub ? `
+            <div style="margin-top: 8px; font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Generated Code Blueprint Stub:</div>
+            <pre class="code-stub-block"><code>${escapeHtml(strat.generated_code_stub)}</code></pre>
+          ` : ''}
+          <div style="margin-top: 8px; font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Refactoring Steps:</div>
+          <div class="decoupler-steps">
+            ${strat.refactor_steps.map((step, sIdx) => `
+              <div class="step-item">
+                <span class="step-num">${sIdx + 1}</span>
+                <span>${escapeHtml(step)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    } else {
+      decouplerContent.innerHTML = `
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); padding: 14px; border-radius: 8px; color: #34d399; font-size: 0.84rem; display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.2rem;">✨</span>
+          <div>
+            <strong>Architecture is Perfectly Acyclic.</strong><br>
+            <span style="color: var(--text-muted); font-size: 0.76rem;">No feedback loops detected. The cycle decoupler engine stands active to synthesize dependency inversion interfaces if loops are introduced.</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // Stage 20: Dead Code & Zombie Symbol Pruning
+    const deadCodePills = document.getElementById("dead-code-summary-pills");
+    const deadCodeBody = document.getElementById("table-dead-code-body");
+    deadCodePills.innerHTML = `
+      <div class="metric-chip"><strong>${deadCodeData.total_symbols_analyzed || graphData.nodes.length}</strong> Symbols Analyzed</div>
+      <div class="metric-chip"><strong style="color: ${deadCodeData.total_dead_candidates > 0 ? '#f59e0b' : '#34d399'};">${deadCodeData.total_dead_candidates || 0}</strong> Unreachable Candidates</div>
+      <div class="metric-chip"><strong>~${deadCodeData.total_estimated_dead_lines || 0}</strong> Lines Recoverable</div>
+    `;
+
+    if (deadCodeData.zombies && deadCodeData.zombies.length > 0) {
+      deadCodeBody.innerHTML = deadCodeData.zombies.map(z => `
+        <tr style="cursor: pointer;" onclick="inspectEntity('${escapeHtml(z.node_id)}')">
+          <td><span class="confidence-pill ${escapeHtml(z.confidence)}">${escapeHtml(z.confidence)}</span></td>
+          <td><span style="color: #38bdf8; font-weight: 700; font-family: monospace;">${escapeHtml(z.name)}</span></td>
+          <td><span style="color: var(--text-muted); font-family: monospace; font-size: 0.74rem;">${escapeHtml(z.path)}:L${z.start_line}-${z.end_line}</span></td>
+          <td><span style="font-size: 0.76rem; color: #cbd5e1;">${escapeHtml(z.reason)}</span></td>
+          <td><strong>${z.estimated_lines}</strong></td>
+          <td>
+            <span class="badge" style="background: ${z.safe_to_delete ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${z.safe_to_delete ? '#34d399' : '#fbbf24'};">
+              ${z.safe_to_delete ? 'Safe to Prune' : 'Needs Review'}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    } else {
+      deadCodeBody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center; color: #34d399; padding: 18px; font-size: 0.82rem;">
+            ✅ Zero Dead Code Detected — All symbols have active call edges or are documented entrypoints.
+          </td>
+        </tr>
+      `;
+    }
+

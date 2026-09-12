@@ -1,0 +1,68 @@
+    // HTML Sanitization for XSS Defense
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Injected Data Payloads (from window.GRAPH_DATA)
+    const DATA = window.GRAPH_DATA || {};
+    const graphData = DATA.graphData || { nodes: [], edges: [] };
+    const graphStats = DATA.graphStats || {};
+    const healthData = DATA.healthData || {};
+    const domainConfig = DATA.domainConfig || {};
+    const domainCounts = DATA.domainCounts || {};
+    const cycleData = DATA.cycleData || [];
+    const conduitData = DATA.conduitData || [];
+    const storyData = DATA.storyData || [];
+    const topHubsData = DATA.topHubsData || [];
+    const subsystemsData = DATA.subsystemsData || {};
+    const telemetryData = DATA.telemetryData || {};
+    const decouplerData = DATA.decouplerData || {};
+    const deadCodeData = DATA.deadCodeData || {};
+
+    // Update Executive KPIs
+    document.getElementById("kpi-grade").textContent = `Grade ${healthData.grade || 'A+'} (${healthData.score || 94}/100)`;
+    document.getElementById("score-grade").textContent = healthData.grade || 'A+';
+    document.getElementById("kpi-cycles").textContent = `${cycleData.length} Cycles (${cycleData.length === 0 ? 'Clean' : 'Warning'})`;
+    document.getElementById("score-cycles").textContent = `${cycleData.length}`;
+    if (cycleData.length > 0) {
+      document.getElementById("kpi-cycles").style.color = "var(--danger)";
+      document.getElementById("score-cycles").style.color = "var(--danger)";
+    }
+    document.getElementById("kpi-hubs").textContent = `${topHubsData.length} Monitored`;
+    document.getElementById("score-hubs").textContent = `${topHubsData.length}`;
+
+    // Map & index elements
+    const nodeMap = new Map();
+    const inEdges = new Map();
+    const outEdges = new Map();
+    const domainNodes = new Map();
+
+    Object.keys(domainConfig).forEach(dom => domainNodes.set(dom, []));
+
+    graphData.nodes.forEach(n => {
+      const d = n.data.domain || "Core Engine";
+      if (!domainNodes.has(d)) domainNodes.set(d, []);
+      domainNodes.get(d).push(n.data);
+      nodeMap.set(n.data.id, n.data);
+      inEdges.set(n.data.id, []);
+      outEdges.set(n.data.id, []);
+    });
+
+    graphData.edges.forEach(e => {
+      if (nodeMap.has(e.data.source) && nodeMap.has(e.data.target)) {
+        const edgeObj = {
+          source: nodeMap.get(e.data.source),
+          target: nodeMap.get(e.data.target),
+          type: e.data.type
+        };
+        outEdges.get(e.data.source).push(edgeObj);
+        inEdges.get(e.data.target).push(edgeObj);
+      }
+    });
+
