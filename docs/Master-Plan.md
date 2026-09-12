@@ -9,14 +9,32 @@
 |---|---|
 | Product | `Agtoosa2` |
 | Repository | `https://github.com/sky2464/Agtoosa2` |
-| Version | `0.2.1` (GA Released) |
+| Version | `0.4.0` (GA Released) |
 | Core Engine | Python 3.11+ (Tree-sitter, SQLite FTS5, NetworkX) |
-| Active Cycle | DEV-017 (Stage 17: OpenTelemetry & Profiler Heatmap Overlay) |
-| Current Milestone | `v0.3.5` (Milestone 7: Runtime Observability & Dynamic Heatmaps) |
+| Active Cycle | `DEV-021` (Stage 21: Autonomous AST Patch Engine) |
+| Current Milestone | `v0.5.0` (Milestone 9: Autonomous Code Actions & 2-Way Studio Sync) |
 
 ---
 
 ## Active Cycle
+
+| ID | Title | Type | Status | Primary Deliverable |
+|---|---|---|---|---|
+| **DEV-021** | Autonomous AST Patch Engine | Feature | 📋 In Progress | AST rewriting engine applying safe dead-code deletions and dependency inversion interface abstractions to source files |
+
+---
+
+## Planned Cycles
+
+| ID | Title | Type | Status | Primary Deliverable |
+|---|---|---|---|---|
+| **DEV-021** | Autonomous AST Patch Engine | Feature | 📋 In Progress | AST rewriting engine applying safe dead-code deletions and dependency inversion interfaces to source files |
+| **DEV-022** | Two-Way Interactive Studio Actions | Feature | 📋 Planned | Web Studio action backend: 1-click "Safe Prune" & "Decouple Cycle" executing git branch and commit diffs |
+| **DEV-023** | Pre-Push Architectural Daemon & Drift Linter | Feature | 📋 Planned | Pre-commit/pre-push guard daemon enforcing zero circular dependencies and blast radius thresholds |
+| **DEV-024** | Framework Dependency Injection & Dynamic Routes | Feature | 📋 Planned | AST extractors for FastAPI, Flask, Express, NestJS DI containers and ORM relation mapping |
+| **DEV-025** | Async Message Queue & Event Bus Lineage | Feature | 📋 Planned | Event-driven graph lineage for Kafka, RabbitMQ, Redis Pub/Sub, and Celery background task graphs |
+
+---
 
 ## Completed Cycles
 
@@ -51,11 +69,11 @@
 flowchart LR
     S1[Stage 1: AST Graph Core ✅] --> S2[Stage 2: Updates & Impact ✅]
     S2 --> S3[Stage 3: Lifecycle RAG ✅]
-    S3 --> S4[Stage 4: Native MCP Server ✅]
-    S3 --> S5[Stage 5: Visual Explorer ✅]
     S2 --> S6[Stage 6: Polyglot Parsers ✅]
     S2 --> S7[Stage 7: Zero-Trust Security ✅]
     S2 --> S8[Stage 8: Streaming Scale ✅]
+    S3 --> S4[Stage 4: Native MCP Server ✅]
+    S3 --> S5[Stage 5: Visual Explorer ✅]
     S4 --> S9[Stage 9: Continuous Watcher ✅]
     S3 --> S10[Stage 10: Review Intelligence ✅]
     S10 --> S11[Stage 11: CI/CD PR Gate ✅]
@@ -68,6 +86,11 @@ flowchart LR
     S17 --> S18[Stage 18: Production Blast Radius ✅]
     S10 --> S19[Stage 19: Cycle Decoupler ✅]
     S19 --> S20[Stage 20: Dead Code Pruning ✅]
+    S20 --> S21[Stage 21: Auto-Fix Patch Engine 📋]
+    S21 --> S22[Stage 22: Two-Way Studio Actions 📋]
+    S21 --> S23[Stage 23: Pre-Push Arch Daemon 📋]
+    S15 --> S24[Stage 24: Framework DI & Routes 📋]
+    S24 --> S25[Stage 25: Async Event Bus Lineage 📋]
 ```
 
 ### Milestone 1: Knowledge Engine Core (v0.2.0-alpha)
@@ -154,3 +177,63 @@ flowchart LR
 - **DEV-020 (Stage 20) — Dead Code & Zombie Symbol Pruning** [✅ Done]
   - Identify zero-caller unreachable AST nodes and generate safe deprecation/deletion refactors.
   - Confidence scoring (low/medium/high), entrypoint exclusion, CLI `agtoosa refactor dead-code`, MCP `agtoosa_detect_dead_code`.
+
+### Milestone 9: Autonomous Code Actions & 2-Way Studio Sync (v0.4.1)
+- **DEV-021 (Stage 21) — Autonomous AST Patch Engine** [📋 In Progress]
+  - AST rewriting engine applying safe dead-code deletions and dependency inversion interface abstractions to source files.
+  - Generates atomic Git diff patches with rollbacks.
+  - CLI: `agtoosa refactor apply --plan <plan-id> [--dry-run]`.
+- **DEV-022 (Stage 22) — Two-Way Interactive Studio Actions** [📋 Planned]
+  - Embedded HTTP mutation endpoints inside Agtoosa Studio web interface.
+  - Direct 1-click **"Safe Prune"** button in Dead Code table and **"Decouple Loop"** in Cycle Decoupler.
+  - Creates dedicated git branches and commits directly from the browser UI.
+- **DEV-023 (Stage 23) — Pre-Push Architectural Daemon & Drift Linter** [📋 Planned]
+  - Background daemon and pre-push Git hook preventing commits with cyclic dependencies or layer boundary breaches.
+  - CLI: `agtoosa guard [--install-hooks] [--daemon]`.
+
+### Milestone 10: Deep Polyglot Framework Semantics & Distributed Event Lineage (v0.4.2)
+- **DEV-024 (Stage 24) — Framework Dependency Injection & Dynamic Routes** [📋 Planned]
+  - AST extractors for FastAPI, Flask, Express, NestJS DI containers, route decorators, and ORM relation mapping (SQLAlchemy, Prisma, Django).
+- **DEV-025 (Stage 25) — Async Message Queue & Event Bus Lineage** [📋 Planned]
+  - Event-driven graph lineage for Kafka topics, RabbitMQ queues, Redis Pub/Sub channels, and Celery background task call trees.
+
+---
+
+## Architectural Refactoring Track: Modular Native Studio (Zero Build Tools)
+
+> **Objective:** Eliminate the 3,000-line monolithic `f-string` in `agtoosa/graph/visualizer.py` by decoupling it into clean, maintainable, modular native assets under `agtoosa/graph/web/` without introducing external Node/Bun/Vite dependencies, adhering strictly to the zero-service Python 3.11+ charter in `draft.md`.
+
+### Core Architectural Contracts
+- **Zero External Tooling:** Pure standard HTML5, CSS3, and native ES Modules. No Node.js, Bun, or npm required at runtime or build time.
+- **Strict Size Budget:** `index.html` < 150 lines; all CSS and JS component modules < 250 lines each.
+- **Python Engine Footprint:** `visualizer.py` reduced from 2,979 lines to < 200 lines (focused solely on data extraction and asset bundling).
+- **Zero-Collision Escaping:** Eliminates all Python f-string escaping issues (`{{}}` and `${{}}`).
+- **Dual-Mode Serving:**
+  - *Dev / Local Mode:* Dynamically loads separate CSS/JS assets from `agtoosa/graph/web/` for instant editing and debugging.
+  - *Portable Offline Export Mode:* Lightweight Python single-file bundler inlines assets into a self-contained `.agtoosa/graph_view.html` for offline sharing.
+
+### Work Breakdown & Traceable Tasks
+- [ ] **TASK-WEB-01: Asset Directory & Template Architecture**
+  - Create `agtoosa/graph/web/` with subdirectories `css/` and `js/`.
+  - Establish `index.html` semantic layout shell (< 150 lines) with `<header id="top-nav">`, `<section id="kpi-ribbon">`, `<main id="view-container">`, `<aside id="sidebar">`, and modal overlays.
+- [ ] **TASK-WEB-02: Modular CSS Token & View Separation**
+  - Extract `theme.css` (< 100 lines): CSS variables, design tokens, typography, and glassmorphism styling.
+  - Extract `layout.css` (< 150 lines): Flexbox top navigation, omni-search bar, KPI ribbon, docked drawer, and responsive media queries.
+  - Extract `views.css` (< 250 lines): Component styles for C4 Blueprint, 2D Network Canvas, Risk Radar tables, and Blast Radius flow columns.
+- [ ] **TASK-WEB-03: ES Module Script Decomposition**
+  - Extract `state.js` (< 80 lines): Central reactive state, active perspective, selection, and telemetry toggle.
+  - Extract `c4_view.js` (< 200 lines): Cytoscape.js initialization, compound domain clustering, and layout controls.
+  - Extract `network_view.js` (< 250 lines): 2D Canvas sunflower spiral engine, pan/zoom, domain camera centering, and search highlighting.
+  - Extract `blast_view.js` (< 180 lines): Blast radius column flow, telemetry weighting, and production risk badges.
+  - Extract `radar_view.js` (< 200 lines): Centrality rankings, Stage 19 Cycle Decoupler blueprints, and Stage 20 Dead Code pruning table.
+  - Extract `drawer.js` (< 120 lines): Slide-over inspector panel, symbol metadata, and 1-click AI Context Pack generator.
+  - Extract `app.js` (< 120 lines): Global tab router, omni-search modal (`⌘K`), keyboard shortcuts, and export menu.
+- [ ] **TASK-WEB-04: Python Engine Data Extractor & Packager**
+  - Refactor `visualizer.py` to decouple data extraction into `extract_graph_payload(store)` returning a clean Python dict.
+  - Implement `VisualizerEngine.generate_html()` to read `agtoosa/graph/web/index.html` and stitch modular assets with `GRAPH_DATA` JSON injection.
+  - Preserve 100% backward compatibility with `agtoosa graph view --output ... --filter ... --open`.
+- [ ] **TASK-WEB-05: Verification & Parity Audit**
+  - Verify all 142 repository tests pass (`tests/test_visualizer.py` and full suite).
+  - Verify live rendering in browser on `http://localhost:8080/graph_view.html` across all 5 perspective tabs.
+  - Verify standalone offline export produces valid single-file HTML without broken external links.
+
