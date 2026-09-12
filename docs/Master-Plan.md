@@ -18,10 +18,6 @@
 
 ## Active Cycle
 
-| ID | Title | Type | Estimate | Status | Primary Deliverable |
-|---|---|---|---|---|---|
-| **DEV-017** | OpenTelemetry & Profiler Heatmap Overlay | Feature | L | 🔄 In Progress | OpenTelemetry span / profiler ingestion, execution latency & call frequency heatmaps |
-
 ## Completed Cycles
 
 | ID | Title | Type | Status | Primary Deliverable |
@@ -42,6 +38,10 @@
 | **DEV-014** | Hybrid GraphRAG v2 & Semantic Vector Search | Feature | ✅ Done | Zero-dependency dense vector embeddings (`node_embeddings` BLOBs), RRF lexical + semantic search, `compile_context --hybrid`, CLI & MCP |
 | **DEV-015** | Cross-Repo Graph Federation | Feature | ✅ Done | Multi-repository graph ingestion (`agtoosa graph federate`), OpenAPI/gRPC/GraphQL contract bindings, distributed cross-service blast radius |
 | **DEV-016** | Monorepo Package Boundary Enforcement | Feature | ✅ Done | Monorepo workspace discovery, encapsulation leak detection, undeclared dependencies, package cycles, `agtoosa review boundaries` |
+| **DEV-017** | OpenTelemetry & Profiler Heatmap Overlay | Feature | ✅ Done | OpenTelemetry span / profiler ingestion, execution latency & call frequency heatmaps |
+| **DEV-018** | Production Blast Radius | Feature | ✅ Done | Runtime telemetry traffic weighting, live error rates, caller risk multipliers, and dormant dependency detection |
+| **DEV-019** | Autonomous Cycle Decoupling Engine | Feature | ✅ Done | Automated dependency inversion, shared kernel, and event-driven decoupling blueprints with executable code stubs |
+| **DEV-020** | Dead Code & Zombie Symbol Pruning | Feature | ✅ Done | Unreachable AST node detection, confidence scoring, entrypoint exclusion, safe deletion refactoring blueprints |
 
 ---
 
@@ -64,10 +64,10 @@ flowchart LR
     S3 --> S14[Stage 14: Hybrid GraphRAG v2 ✅]
     S14 --> S15[Stage 15: Cross-Repo Federation ✅]
     S15 --> S16[Stage 16: Monorepo Boundaries ✅]
-    S15 --> S17[Stage 17: Runtime Observability 🔄]
-    S17 --> S18[Stage 18: Production Blast Radius 📋]
-    S10 --> S19[Stage 19: Cycle Decoupler 📋]
-    S19 --> S20[Stage 20: Dead Code Pruning 📋]
+    S15 --> S17[Stage 17: Runtime Observability ✅]
+    S17 --> S18[Stage 18: Production Blast Radius ✅]
+    S10 --> S19[Stage 19: Cycle Decoupler ✅]
+    S19 --> S20[Stage 20: Dead Code Pruning ✅]
 ```
 
 ### Milestone 1: Knowledge Engine Core (v0.2.0-alpha)

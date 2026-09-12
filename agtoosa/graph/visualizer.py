@@ -37,6 +37,8 @@ class VisualizerEngine:
             "tier_num": 1,
             "color": "#38bdf8",
             "icon": "⚡",
+            "cx": -460,
+            "cy": -240,
             "desc": "Unified command dispatcher, CLI flags, terminal UX, and process launchers."
         },
         "Native MCP Protocol": {
@@ -44,6 +46,8 @@ class VisualizerEngine:
             "tier_num": 1,
             "color": "#818cf8",
             "icon": "🔌",
+            "cx": 460,
+            "cy": -240,
             "desc": "Model Context Protocol JSON-RPC 2.0 stdio server for AI coding agents."
         },
         "Core Engine": {
@@ -51,6 +55,8 @@ class VisualizerEngine:
             "tier_num": 2,
             "color": "#6366f1",
             "icon": "⚙️",
+            "cx": 0,
+            "cy": -240,
             "desc": "Lifecycle state machine, domain models, and bounded context compiler."
         },
         "AST Parser Subsystem": {
@@ -58,6 +64,8 @@ class VisualizerEngine:
             "tier_num": 2,
             "color": "#06b6d4",
             "icon": "🌳",
+            "cx": -460,
+            "cy": 60,
             "desc": "Polyglot AST extractors (Python, JS/TS, Shell) and workspace scanner."
         },
         "Specifications & Delivery": {
@@ -65,6 +73,8 @@ class VisualizerEngine:
             "tier_num": 2,
             "color": "#c084fc",
             "icon": "📋",
+            "cx": 460,
+            "cy": 60,
             "desc": "User stories (DEV-001..005), acceptance criteria, and traceable tasks."
         },
         "Knowledge Graph & Storage": {
@@ -72,6 +82,8 @@ class VisualizerEngine:
             "tier_num": 3,
             "color": "#0ea5e9",
             "icon": "🧠",
+            "cx": 0,
+            "cy": 60,
             "desc": "Transactional SQLite store, FTS5 full-text indexing, and graph metrics engine."
         },
         "Verification & Quality": {
@@ -79,6 +91,8 @@ class VisualizerEngine:
             "tier_num": 3,
             "color": "#10b981",
             "icon": "🛡️",
+            "cx": -260,
+            "cy": 340,
             "desc": "Unit and integration test suites, proof verification gates, and evidence."
         },
         "Decisions & Architecture": {
@@ -86,6 +100,8 @@ class VisualizerEngine:
             "tier_num": 3,
             "color": "#f59e0b",
             "icon": "📐",
+            "cx": 260,
+            "cy": 340,
             "desc": "Master Plan, Master Architecture, ADRs, and capability matrices."
         }
     }
@@ -267,6 +283,37 @@ class VisualizerEngine:
 
         hubs_list = [h for h in metrics_report["top_hubs"] if not filter_type or h.get("type", "").lower() == filter_type.lower()]
 
+        # Stage 18: Telemetry Data
+        telemetry_data = self.store.get_all_telemetry()
+
+        # Stage 19: Cycle Decoupling Strategies
+        try:
+            from agtoosa.refactor.decoupler import CycleDecouplerEngine
+            decoupler_engine = CycleDecouplerEngine(self.store)
+            decoupler_data = decoupler_engine.analyze_cycles().to_dict()
+        except Exception:
+            decoupler_data = {"total_cycles_detected": 0, "strategies": []}
+
+        # Stage 20: Dead Code & Zombie Symbol Pruning
+        try:
+            from agtoosa.refactor.dead_code import DeadCodePruner
+            dead_code_pruner = DeadCodePruner(self.store)
+            dead_code_data = dead_code_pruner.analyze().to_dict()
+            if filter_type:
+                dead_code_data["zombies"] = [
+                    z for z in dead_code_data.get("zombies", [])
+                    if z.get("node_type", "").lower() == filter_type.lower()
+                ]
+                dead_code_data["total_dead_candidates"] = len(dead_code_data["zombies"])
+        except Exception:
+            dead_code_data = {
+                "total_symbols_analyzed": len(nodes),
+                "total_dead_candidates": 0,
+                "total_estimated_dead_lines": 0,
+                "confidence_breakdown": {},
+                "zombies": []
+            }
+
         def _safe_json(data: Any) -> str:
             raw = json.dumps(data, indent=None)
             return raw.replace("</", "<\\/")
@@ -281,6 +328,9 @@ class VisualizerEngine:
         stories_json = _safe_json(story_cards)
         top_hubs_json = _safe_json(hubs_list)
         subsystems_json = _safe_json(subsystems_data)
+        telemetry_json = _safe_json(telemetry_data)
+        decoupler_json = _safe_json(decoupler_data)
+        dead_code_json = _safe_json(dead_code_data)
 
         return f"""<!DOCTYPE html>
 <html lang="en">
@@ -1278,6 +1328,289 @@ class VisualizerEngine:
       color: var(--text-muted);
       line-height: 1.4;
     }}
+
+    /* Interactive Network Graph View */
+    #view-network {{
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      position: relative;
+      height: 100%;
+      overflow: hidden;
+    }}
+    #view-network.active {{
+      display: flex;
+    }}
+
+    .graph-toolbar {{
+      height: 48px;
+      background: rgba(15, 23, 42, 0.85);
+      border-bottom: 1px solid var(--surface-border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 14px;
+      flex-shrink: 0;
+      backdrop-filter: blur(12px);
+      z-index: 10;
+    }}
+
+    .graph-filter-group {{
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }}
+
+    .graph-select {{
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--surface-border);
+      color: var(--text);
+      font-size: 0.8rem;
+      padding: 5px 10px;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }}
+    .graph-select:focus {{
+      border-color: var(--primary);
+    }}
+
+    .graph-btn-group {{
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+    }}
+
+    .graph-btn {{
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--surface-border);
+      color: var(--text);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }}
+    .graph-btn:hover {{
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--surface-border-hover);
+    }}
+
+    .network-canvas-container {{
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: calc(100% - 48px);
+      background: radial-gradient(circle at 50% 30%, #111a2f 0%, #080c16 100%);
+      overflow: hidden;
+    }}
+
+    #network-canvas {{
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }}
+    #network-canvas:active {{
+      cursor: grabbing;
+    }}
+
+    .graph-tooltip {{
+      position: absolute;
+      pointer-events: none;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--surface-border-hover);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 16px var(--primary-glow);
+      backdrop-filter: blur(12px);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      color: #e2e8f0;
+      opacity: 0;
+      transform: translate(-50%, -120%);
+      transition: opacity 0.15s ease;
+      z-index: 20;
+      max-width: 320px;
+    }}
+    .graph-tooltip.visible {{
+      opacity: 1;
+    }}
+
+    .canvas-help-hint {{
+      position: absolute;
+      bottom: 14px;
+      left: 16px;
+      font-size: 0.73rem;
+      color: var(--text-dim);
+      background: rgba(11, 15, 25, 0.7);
+      backdrop-filter: blur(6px);
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--surface-border);
+      pointer-events: none;
+    }}
+
+    /* Production Blast Radius Toggle (Stage 18) */
+    .prod-toggle-group {{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }}
+    .prod-toggle-label {{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.1);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      transition: all 0.2s;
+    }}
+    .prod-toggle-label:hover {{
+      background: rgba(245, 158, 11, 0.18);
+      border-color: rgba(245, 158, 11, 0.4);
+    }}
+    .prod-toggle-label input {{
+      display: none;
+    }}
+    .prod-toggle-slider {{
+      width: 28px;
+      height: 16px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+      position: relative;
+      transition: background 0.2s;
+      display: inline-block;
+    }}
+    .prod-toggle-slider::after {{
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 12px;
+      height: 12px;
+      background: #ffffff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }}
+    .prod-toggle-label input:checked + .prod-toggle-slider {{
+      background: #f59e0b;
+    }}
+    .prod-toggle-label input:checked + .prod-toggle-slider::after {{
+      transform: translateX(12px);
+    }}
+
+    .prod-risk-badge {{
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(245, 158, 11, 0.2));
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }}
+
+    /* Decoupler & Dead Code Cards (Stage 19 & 20) */
+    .decoupler-card {{
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 12px;
+    }}
+    .decoupler-card-header {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }}
+    .decoupler-strategy-badge {{
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(129, 140, 248, 0.2);
+      color: #a5b4fc;
+      border: 1px solid rgba(129, 140, 248, 0.35);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }}
+    .code-stub-block {{
+      background: #060911;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.76rem;
+      color: #7dd3fc;
+      overflow-x: auto;
+      margin: 10px 0;
+      white-space: pre;
+    }}
+    .decoupler-steps {{
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      margin-top: 8px;
+    }}
+    .step-item {{
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }}
+    .step-num {{
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }}
+
+    .confidence-pill {{
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }}
+    .confidence-pill.high {{
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }}
+    .confidence-pill.medium {{
+      background: rgba(245, 158, 11, 0.15);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }}
+    .confidence-pill.low {{
+      background: rgba(148, 163, 184, 0.15);
+      color: #cbd5e1;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }}
   </style>
 </head>
 <body>
@@ -1296,6 +1629,9 @@ class VisualizerEngine:
     <div class="perspective-switcher">
       <button class="tab-btn active" data-view="c4">
         <span>🏛️</span> C4 Blueprint
+      </button>
+      <button class="tab-btn" data-view="network">
+        <span>🌐</span> Network Graph
       </button>
       <button class="tab-btn" data-view="radar">
         <span>⚡</span> Risk Radar
@@ -1375,6 +1711,42 @@ class VisualizerEngine:
       </div>
     </div>
 
+    <!-- 1B. Interactive Network Graph View (Sunflower 2D Canvas) -->
+    <div class="view-panel" id="view-network">
+      <div class="graph-toolbar">
+        <div class="graph-filter-group">
+          <label for="graph-domain-select">Domain:</label>
+          <select id="graph-domain-select" class="graph-select">
+            <option value="all">All Domains (8 Subsystems)</option>
+          </select>
+        </div>
+        <div class="graph-filter-group">
+          <label for="graph-type-select">Type:</label>
+          <select id="graph-type-select" class="graph-select">
+            <option value="all">All Entity Types</option>
+            <option value="class">Class</option>
+            <option value="function">Function</option>
+            <option value="file">File</option>
+            <option value="story">Story</option>
+            <option value="test">Test</option>
+          </select>
+        </div>
+        <div class="graph-filter-group" style="flex: 1; max-width: 260px;">
+          <input type="text" id="graph-search-input" class="search-input-box" placeholder="Filter/highlight nodes..." style="width: 100%;">
+        </div>
+        <div class="graph-btn-group">
+          <button id="graph-btn-reset" class="graph-btn" title="Fit to View">🎯 Fit View</button>
+          <button id="graph-btn-zoom-in" class="graph-btn" title="Zoom In">➕</button>
+          <button id="graph-btn-zoom-out" class="graph-btn" title="Zoom Out">➖</button>
+        </div>
+      </div>
+      <div class="network-canvas-container" id="network-container">
+        <canvas id="network-canvas"></canvas>
+        <div id="network-tooltip" class="graph-tooltip"></div>
+        <div class="canvas-help-hint">💡 Drag to Pan &bull; Scroll to Zoom &bull; Click Node to Inspect &bull; Hover for Details</div>
+      </div>
+    </div>
+
     <!-- 2. Governance & Risk Radar View -->
     <div class="view-panel" id="view-radar">
       <div class="scorecard-banner">
@@ -1430,6 +1802,42 @@ class VisualizerEngine:
           <!-- Injected via JS -->
         </div>
       </div>
+
+      <!-- Stage 19: Cycle Decoupler Blueprints -->
+      <div class="table-card" id="decoupler-section">
+        <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <span>🪓</span> Stage 19: Automated Cycle Decoupler &amp; Refactoring Blueprints
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+          Identifies cyclic feedback loops and automatically synthesizes dependency inversion interfaces, shared kernels, or event-driven patterns.
+        </p>
+        <div id="decoupler-content" style="margin-top: 12px;"></div>
+      </div>
+
+      <!-- Stage 20: Dead Code & Zombie Symbol Pruning -->
+      <div class="table-card" id="dead-code-section">
+        <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <span>🧟</span> Stage 20: Dead Code &amp; Zombie Symbol Pruning
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+          Detects unreachable symbols (0 incoming call edges) excluding entrypoints, framework hooks, and test fixtures.
+        </p>
+        <div id="dead-code-summary-pills" style="display: flex; gap: 10px; margin: 12px 0;"></div>
+        <table>
+          <thead>
+            <tr>
+              <th>Confidence</th>
+              <th>Symbol</th>
+              <th>Location</th>
+              <th>Reason</th>
+              <th>Est. Lines</th>
+              <th>Safe to Delete</th>
+            </tr>
+          </thead>
+          <tbody id="table-dead-code-body">
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- 3. Delivery Assurance View -->
@@ -1444,9 +1852,19 @@ class VisualizerEngine:
       <div class="blast-toolbar">
         <div style="display: flex; align-items: center; gap: 10px;">
           <span style="font-weight: 700; font-size: 0.9rem;">Target Entity:</span>
-          <select id="blast-select" style="min-width: 320px;"></select>
+          <select id="blast-select" style="min-width: 280px;"></select>
         </div>
-        <div style="font-size: 0.8rem; color: var(--text-muted);">
+        <div class="prod-toggle-group">
+          <label class="prod-toggle-label" title="Enable production telemetry weighting (Stage 18: Production Blast Radius)">
+            <input type="checkbox" id="blast-prod-toggle">
+            <span class="prod-toggle-slider"></span>
+            <span class="prod-toggle-text">🔥 Production Traffic Weighting</span>
+          </label>
+        </div>
+        <div id="blast-prod-badge" class="prod-risk-badge" style="display: none;">
+          ⚡ Telemetry Active: Critical Traffic
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-left: auto;">
           Isolates direct 1-hop callers (ingress) and callees (egress) with zero canvas clutter.
         </div>
       </div>
@@ -1583,6 +2001,9 @@ class VisualizerEngine:
     const storyData = {stories_json};
     const topHubsData = {top_hubs_json};
     const subsystemsData = {subsystems_json};
+    const telemetryData = {telemetry_json};
+    const decouplerData = {decoupler_json};
+    const deadCodeData = {dead_code_json};
 
     // Update Executive KPIs
     document.getElementById("kpi-grade").textContent = `Grade ${{healthData.grade || 'A+'}} (${{healthData.score || 94}}/100)`;
@@ -1731,6 +2152,85 @@ class VisualizerEngine:
       `).join('');
     }}
 
+    // Stage 19: Cycle Decoupler Blueprints
+    const decouplerContent = document.getElementById("decoupler-content");
+    if (decouplerData && decouplerData.strategies && decouplerData.strategies.length > 0) {{
+      decouplerContent.innerHTML = decouplerData.strategies.map((strat, idx) => `
+        <div class="decoupler-card">
+          <div class="decoupler-card-header">
+            <div style="font-weight: 800; font-size: 0.95rem; color: #f1f5f9; display: flex; align-items: center; gap: 8px;">
+              <span>🪓 Decoupling Strategy #${{idx + 1}}:</span>
+              <span style="font-family: monospace; color: #38bdf8;">${{escapeHtml(strat.proposed_interface_name)}}</span>
+            </div>
+            <span class="decoupler-strategy-badge">${{escapeHtml(strat.strategy_type)}}</span>
+          </div>
+          <p style="font-size: 0.8rem; color: #cbd5e1; line-height: 1.45;">${{escapeHtml(strat.rationale)}}</p>
+          <div style="margin-top: 8px; font-size: 0.76rem; color: var(--text-dim);">
+            <strong>Recommended Decoupling Cut:</strong>
+            <span style="font-family: monospace; color: #f87171;">${{escapeHtml(strat.cut_edge[0])}}</span> ➔
+            <span style="font-family: monospace; color: #34d399;">${{escapeHtml(strat.cut_edge[1])}}</span>
+          </div>
+          ${{strat.generated_code_stub ? `
+            <div style="margin-top: 8px; font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Generated Code Blueprint Stub:</div>
+            <pre class="code-stub-block"><code>${{escapeHtml(strat.generated_code_stub)}}</code></pre>
+          ` : ''}}
+          <div style="margin-top: 8px; font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Refactoring Steps:</div>
+          <div class="decoupler-steps">
+            ${{strat.refactor_steps.map((step, sIdx) => `
+              <div class="step-item">
+                <span class="step-num">${{sIdx + 1}}</span>
+                <span>${{escapeHtml(step)}}</span>
+              </div>
+            `).join('')}}
+          </div>
+        </div>
+      `).join('');
+    }} else {{
+      decouplerContent.innerHTML = `
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); padding: 14px; border-radius: 8px; color: #34d399; font-size: 0.84rem; display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.2rem;">✨</span>
+          <div>
+            <strong>Architecture is Perfectly Acyclic.</strong><br>
+            <span style="color: var(--text-muted); font-size: 0.76rem;">No feedback loops detected. The cycle decoupler engine stands active to synthesize dependency inversion interfaces if loops are introduced.</span>
+          </div>
+        </div>
+      `;
+    }}
+
+    // Stage 20: Dead Code & Zombie Symbol Pruning
+    const deadCodePills = document.getElementById("dead-code-summary-pills");
+    const deadCodeBody = document.getElementById("table-dead-code-body");
+    deadCodePills.innerHTML = `
+      <div class="metric-chip"><strong>${{deadCodeData.total_symbols_analyzed || graphData.nodes.length}}</strong> Symbols Analyzed</div>
+      <div class="metric-chip"><strong style="color: ${{deadCodeData.total_dead_candidates > 0 ? '#f59e0b' : '#34d399'}};">${{deadCodeData.total_dead_candidates || 0}}</strong> Unreachable Candidates</div>
+      <div class="metric-chip"><strong>~${{deadCodeData.total_estimated_dead_lines || 0}}</strong> Lines Recoverable</div>
+    `;
+
+    if (deadCodeData.zombies && deadCodeData.zombies.length > 0) {{
+      deadCodeBody.innerHTML = deadCodeData.zombies.map(z => `
+        <tr style="cursor: pointer;" onclick="inspectEntity('${{escapeHtml(z.node_id)}}')">
+          <td><span class="confidence-pill ${{escapeHtml(z.confidence)}}">${{escapeHtml(z.confidence)}}</span></td>
+          <td><span style="color: #38bdf8; font-weight: 700; font-family: monospace;">${{escapeHtml(z.name)}}</span></td>
+          <td><span style="color: var(--text-muted); font-family: monospace; font-size: 0.74rem;">${{escapeHtml(z.path)}}:L${{z.start_line}}-${{z.end_line}}</span></td>
+          <td><span style="font-size: 0.76rem; color: #cbd5e1;">${{escapeHtml(z.reason)}}</span></td>
+          <td><strong>${{z.estimated_lines}}</strong></td>
+          <td>
+            <span class="badge" style="background: ${{z.safe_to_delete ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)'}}; color: ${{z.safe_to_delete ? '#34d399' : '#fbbf24'}};">
+              ${{z.safe_to_delete ? 'Safe to Prune' : 'Needs Review'}}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }} else {{
+      deadCodeBody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center; color: #34d399; padding: 18px; font-size: 0.82rem;">
+            ✅ Zero Dead Code Detected — All symbols have active call edges or are documented entrypoints.
+          </td>
+        </tr>
+      `;
+    }}
+
     // 3. Build Delivery Assurance Board
     const deliveryContainer = document.getElementById("delivery-container");
     storyData.forEach(s => {{
@@ -1782,23 +2282,72 @@ class VisualizerEngine:
       document.getElementById("blast-in-count").textContent = inList.length;
       document.getElementById("blast-out-count").textContent = outList.length;
 
+      const isProdWeighted = document.getElementById("blast-prod-toggle").checked;
+      const targetTelem = telemetryData[targetId] || null;
+      const prodBadge = document.getElementById("blast-prod-badge");
+
+      if (isProdWeighted && targetTelem) {{
+        prodBadge.style.display = "inline-flex";
+        const calls = (targetTelem.call_count || 0).toLocaleString();
+        const errRate = ((targetTelem.error_rate || 0) * 100).toFixed(2);
+        prodBadge.textContent = `⚡ Live Telemetry: ${{calls}} calls (${{errRate}}% err)`;
+      }} else if (isProdWeighted) {{
+        prodBadge.style.display = "inline-flex";
+        prodBadge.textContent = "⚡ Telemetry Active (Dormant / Low Traffic)";
+      }} else {{
+        prodBadge.style.display = "none";
+      }}
+
+      let telemSummaryHtml = '';
+      if (isProdWeighted && targetTelem) {{
+        const callsStr = (targetTelem.call_count || 0).toLocaleString();
+        const latStr = (targetTelem.avg_duration_ms || 0).toFixed(1);
+        const errStr = ((targetTelem.error_rate || 0) * 100).toFixed(2);
+        const errBg = targetTelem.error_count ? 'rgba(239, 68, 68, 0.25)' : 'rgba(16, 185, 129, 0.25)';
+        const errColor = targetTelem.error_count ? '#fca5a5' : '#34d399';
+        telemSummaryHtml = '<div style="margin-top: 10px; padding: 10px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; text-align: left;">' +
+          '<div style="font-size: 0.72rem; font-weight: 800; color: #fbbf24; text-transform: uppercase;">🔥 Stage 18 Production Telemetry</div>' +
+          '<div style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">' +
+            '<span class="badge" style="background: rgba(245, 158, 11, 0.25); color: #fbbf24;">' + callsStr + ' calls</span>' +
+            '<span class="badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;">' + latStr + 'ms latency</span>' +
+            '<span class="badge" style="background: ' + errBg + '; color: ' + errColor + ';">' + errStr + '% err</span>' +
+          '</div>' +
+        '</div>';
+      }}
+
       document.getElementById("blast-target-box").innerHTML = `
         <div class="blast-item center-node">
           <div style="font-size: 0.72rem; text-transform: uppercase; color: #38bdf8; font-weight: 800;">${{target.type}}</div>
           <div style="font-size: 1.15rem; font-weight: 800; margin: 4px 0;">${{target.name}}</div>
           <div style="font-size: 0.74rem; color: var(--text-muted); font-family: monospace;">${{target.path}}</div>
           ${{target.docstring ? `<p style="font-size: 0.78rem; color: #cbd5e1; margin-top: 8px; line-height: 1.4;">${{target.docstring}}</p>` : ''}}
+          ${{telemSummaryHtml}}
           <div style="margin-top: 12px; display: flex; gap: 8px;">
             <button class="primary" style="font-size: 0.75rem; padding: 5px 10px;" onclick="copyAiContext('${{target.id}}')">🤖 Copy AI Context</button>
           </div>
         </div>
       `;
 
+      function formatTelemBadge(nid) {{
+        if (!isProdWeighted) return '';
+        const telem = telemetryData[nid];
+        if (!telem) return '';
+        const callsStr = (telem.call_count || 0).toLocaleString();
+        const latStr = (telem.avg_duration_ms || 0).toFixed(1);
+        const errSpan = telem.error_count ? ('<span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;">⚠️ ' + ((telem.error_rate || 0) * 100).toFixed(1) + '% err</span>') : '';
+        return '<div style="display: flex; gap: 6px; margin-top: 4px; font-size: 0.68rem;">' +
+          '<span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">🔥 ' + callsStr + ' calls</span>' +
+          errSpan +
+          '<span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">⚡ ' + latStr + 'ms</span>' +
+        '</div>';
+      }}
+
       document.getElementById("blast-ingress-list").innerHTML = inList.map(e => `
         <div class="blast-item" onclick="selectBlastNode('${{e.source.id}}')">
           <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase;">${{e.source.domain}} &bull; ${{e.source.type}}</div>
           <div style="font-weight: 700; color: #38bdf8; margin: 2px 0;">${{e.source.name}}</div>
           <div style="font-size: 0.7rem; color: var(--text-dim); font-family: monospace;">${{e.type}} ➔</div>
+          ${{formatTelemBadge(e.source.id)}}
         </div>
       `).join('') || '<p style="color: var(--text-muted); font-size: 0.8rem;">No incoming callers.</p>';
 
@@ -1807,9 +2356,14 @@ class VisualizerEngine:
           <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase;">${{e.target.domain}} &bull; ${{e.target.type}}</div>
           <div style="font-weight: 700; color: #f59e0b; margin: 2px 0;">${{e.target.name}}</div>
           <div style="font-size: 0.7rem; color: var(--text-dim); font-family: monospace;">➔ ${{e.type}}</div>
+          ${{formatTelemBadge(e.target.id)}}
         </div>
       `).join('') || '<p style="color: var(--text-muted); font-size: 0.8rem;">No outgoing dependencies.</p>';
     }}
+
+    document.getElementById("blast-prod-toggle").addEventListener("change", () => {{
+      renderBlastRadius(blastSelect.value);
+    }});
 
     window.selectBlastNode = function(nid) {{
       blastSelect.value = nid;
@@ -1981,6 +2535,321 @@ class VisualizerEngine:
       }}
     }});
 
+    // ==========================================
+    // Interactive Network Graph Engine (Sunflower 2D Canvas)
+    // ==========================================
+    const netCanvas = document.getElementById("network-canvas");
+    const netCtx = netCanvas.getContext("2d");
+    const netContainer = document.getElementById("network-container");
+    const netTooltip = document.getElementById("network-tooltip");
+
+    let netW = 0, netH = 0;
+    function resizeNetwork() {{
+      if (!netContainer || netContainer.clientWidth === 0) return;
+      netW = netContainer.clientWidth;
+      netH = netContainer.clientHeight;
+      const dpr = window.devicePixelRatio || 1;
+      netCanvas.width = netW * dpr;
+      netCanvas.height = netH * dpr;
+      netCtx.setTransform(1, 0, 0, 1, 0, 0);
+      netCtx.scale(dpr, dpr);
+      renderNetwork();
+    }}
+    window.addEventListener("resize", resizeNetwork);
+
+    // Sunflower Spiral Packing per Subsystem Domain
+    const GOLDEN_ANGLE = 2.399963229728653;
+    const NODE_SPACING = 24;
+
+    const simNodes = [];
+    const simNodeMap = new Map();
+
+    domainNodes.forEach((nodesInDom, domName) => {{
+      const domConf = domainConfig[domName] || {{ cx: 0, cy: 0, color: "#38bdf8" }};
+      nodesInDom.forEach((n, idx) => {{
+        const r = 28 + NODE_SPACING * Math.sqrt(idx);
+        const theta = idx * GOLDEN_ANGLE;
+        const relX = domConf.cx + r * Math.cos(theta);
+        const relY = domConf.cy + r * Math.sin(theta);
+
+        const item = {{
+          id: n.id,
+          name: n.name,
+          type: n.type,
+          domain: domName,
+          path: n.path,
+          start_line: n.start_line,
+          end_line: n.end_line,
+          docstring: n.docstring,
+          color: n.color,
+          is_hub: n.is_hub,
+          hub_score: n.hub_score,
+          relX: relX,
+          relY: relY,
+          radius: n.is_hub ? 9 : n.type === 'class' ? 8 : n.type === 'file' ? 7 : 5,
+          visible: true,
+          highlight: false
+        }};
+        simNodes.push(item);
+        simNodeMap.set(item.id, item);
+      }});
+    }});
+
+    const netEdges = graphData.edges
+      .filter(e => simNodeMap.has(e.data.source) && simNodeMap.has(e.data.target))
+      .map(e => ({{
+        source: simNodeMap.get(e.data.source),
+        target: simNodeMap.get(e.data.target),
+        type: e.data.type
+      }}));
+
+    let netZoom = 0.82;
+    let netPanX = 0;
+    let netPanY = 0;
+    let isNetDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let hoveredNetNode = null;
+    let selectedNetNode = null;
+
+    function resetNetView() {{
+      netZoom = 0.82;
+      netPanX = netW / 2;
+      netPanY = netH / 2;
+      renderNetwork();
+    }}
+
+    // Populate Domain Selector
+    const domSelect = document.getElementById("graph-domain-select");
+    Object.keys(domainConfig).forEach(dom => {{
+      const opt = document.createElement("option");
+      opt.value = dom;
+      opt.textContent = dom;
+      domSelect.appendChild(opt);
+    }});
+
+    function updateNetFilters() {{
+      const domVal = domSelect.value;
+      const typeVal = document.getElementById("graph-type-select").value;
+      const query = document.getElementById("graph-search-input").value.toLowerCase().trim();
+
+      simNodes.forEach(n => {{
+        const matchDom = (domVal === "all" || n.domain === domVal);
+        const matchType = (typeVal === "all" || n.type === typeVal);
+        n.visible = matchDom && matchType;
+        n.highlight = query ? (n.name.toLowerCase().includes(query) || (n.path && n.path.toLowerCase().includes(query))) : false;
+      }});
+
+      if (domVal !== "all" && domainConfig[domVal]) {{
+        const dc = domainConfig[domVal];
+        netPanX = netW / 2 - dc.cx * netZoom;
+        netPanY = netH / 2 - dc.cy * netZoom;
+      }}
+      renderNetwork();
+    }}
+
+    domSelect.addEventListener("change", updateNetFilters);
+    document.getElementById("graph-type-select").addEventListener("change", updateNetFilters);
+    document.getElementById("graph-search-input").addEventListener("input", updateNetFilters);
+
+    document.getElementById("graph-btn-reset").addEventListener("click", resetNetView);
+    document.getElementById("graph-btn-zoom-in").addEventListener("click", () => {{
+      netZoom = Math.min(3.5, netZoom * 1.25);
+      renderNetwork();
+    }});
+    document.getElementById("graph-btn-zoom-out").addEventListener("click", () => {{
+      netZoom = Math.max(0.2, netZoom / 1.25);
+      renderNetwork();
+    }});
+
+    function isConnectedTo(nodeAId, nodeBId) {{
+      const inList = inEdges.get(nodeBId) || [];
+      if (inList.some(e => e.source.id === nodeAId)) return true;
+      const outList = outEdges.get(nodeBId) || [];
+      if (outList.some(e => e.target.id === nodeAId)) return true;
+      return false;
+    }}
+
+    function renderNetwork() {{
+      if (!netW || !netH) return;
+      netCtx.clearRect(0, 0, netW, netH);
+      netCtx.save();
+      netCtx.translate(netPanX, netPanY);
+      netCtx.scale(netZoom, netZoom);
+
+      // 1. Subsystem Domain Hulls
+      Object.entries(domainConfig).forEach(([domName, dom]) => {{
+        const count = domainCounts[domName] || 0;
+        if (count === 0) return;
+        const bubbleR = Math.max(160, 28 + NODE_SPACING * Math.sqrt(count) + 36);
+
+        netCtx.beginPath();
+        netCtx.arc(dom.cx, dom.cy, bubbleR, 0, Math.PI * 2);
+        netCtx.fillStyle = `${{dom.color}}0a`;
+        netCtx.fill();
+        netCtx.lineWidth = 1.5;
+        netCtx.strokeStyle = `${{dom.color}}35`;
+        netCtx.setLineDash([8, 8]);
+        netCtx.stroke();
+        netCtx.setLineDash([]);
+
+        // Label
+        netCtx.textAlign = "center";
+        netCtx.fillStyle = "#ffffff";
+        netCtx.font = "bold 13px sans-serif";
+        netCtx.fillText(`${{dom.icon}} ${{domName}}`, dom.cx, dom.cy - bubbleR - 16);
+        netCtx.fillStyle = "#94a3b8";
+        netCtx.font = "11px sans-serif";
+        netCtx.fillText(`${{count}} entities`, dom.cx, dom.cy - bubbleR - 2);
+      }});
+
+      // 2. High-level conduits between domains
+      conduitData.forEach(c => {{
+        const sDom = domainConfig[c.source];
+        const tDom = domainConfig[c.target];
+        if (!sDom || !tDom) return;
+        netCtx.beginPath();
+        netCtx.moveTo(sDom.cx, sDom.cy);
+        netCtx.lineTo(tDom.cx, tDom.cy);
+        netCtx.strokeStyle = "rgba(56, 189, 248, 0.12)";
+        netCtx.lineWidth = Math.min(6, Math.max(1.5, c.count / 8));
+        netCtx.stroke();
+      }});
+
+      // 3. Active micro-edges for selected or hovered node
+      const activeNode = hoveredNetNode || selectedNetNode;
+      if (activeNode) {{
+        netEdges.forEach(e => {{
+          if (!e.source.visible || !e.target.visible) return;
+          if (e.source.id === activeNode.id || e.target.id === activeNode.id) {{
+            netCtx.beginPath();
+            netCtx.moveTo(e.source.relX, e.source.relY);
+            netCtx.lineTo(e.target.relX, e.target.relY);
+            netCtx.strokeStyle = e.source.id === activeNode.id ? "rgba(56, 189, 248, 0.75)" : "rgba(245, 158, 11, 0.75)";
+            netCtx.lineWidth = 2;
+            netCtx.stroke();
+          }}
+        }});
+      }}
+
+      // 4. Nodes
+      simNodes.forEach(n => {{
+        if (!n.visible) return;
+
+        netCtx.beginPath();
+        netCtx.arc(n.relX, n.relY, n.radius, 0, Math.PI * 2);
+
+        if (n.highlight) {{
+          netCtx.fillStyle = "#facc15";
+          netCtx.shadowColor = "#facc15";
+          netCtx.shadowBlur = 14;
+        }} else if (activeNode && (n.id === activeNode.id || isConnectedTo(n.id, activeNode.id))) {{
+          netCtx.fillStyle = n.color;
+          netCtx.shadowColor = n.color;
+          netCtx.shadowBlur = 10;
+        }} else {{
+          netCtx.fillStyle = n.color;
+          netCtx.shadowBlur = 0;
+        }}
+
+        netCtx.fill();
+        netCtx.shadowBlur = 0;
+        netCtx.lineWidth = n.is_hub ? 2.5 : 1;
+        netCtx.strokeStyle = n.is_hub ? "#ffffff" : "rgba(255, 255, 255, 0.4)";
+        netCtx.stroke();
+
+        // If zoomed in or is hub, draw text label
+        if (netZoom >= 1.1 || n.is_hub || n.highlight || (activeNode && n.id === activeNode.id)) {{
+          netCtx.fillStyle = "#f1f5f9";
+          netCtx.font = `${{n.is_hub ? 'bold 11px' : '10px'}} sans-serif`;
+          netCtx.textAlign = "center";
+          netCtx.fillText(n.name, n.relX, n.relY + n.radius + 12);
+        }}
+      }});
+
+      netCtx.restore();
+    }}
+
+    netCanvas.addEventListener("mousedown", e => {{
+      isNetDragging = true;
+      dragStartX = e.clientX - netPanX;
+      dragStartY = e.clientY - netPanY;
+    }});
+
+    window.addEventListener("mouseup", () => {{
+      isNetDragging = false;
+    }});
+
+    netCanvas.addEventListener("mousemove", e => {{
+      if (isNetDragging) {{
+        netPanX = e.clientX - dragStartX;
+        netPanY = e.clientY - dragStartY;
+        renderNetwork();
+        return;
+      }}
+
+      const rect = netCanvas.getBoundingClientRect();
+      const mouseX = (e.clientX - rect.left - netPanX) / netZoom;
+      const mouseY = (e.clientY - rect.top - netPanY) / netZoom;
+
+      let found = null;
+      for (let i = simNodes.length - 1; i >= 0; i--) {{
+        const n = simNodes[i];
+        if (!n.visible) continue;
+        const dx = mouseX - n.relX;
+        const dy = mouseY - n.relY;
+        if (dx * dx + dy * dy <= (n.radius + 4) * (n.radius + 4)) {{
+          found = n;
+          break;
+        }}
+      }}
+
+      if (found !== hoveredNetNode) {{
+        hoveredNetNode = found;
+        if (found) {{
+          netTooltip.innerHTML = `
+            <div style="font-weight: 800; color: ${{found.color}}; font-size: 0.88rem;">${{escapeHtml(found.name)}}</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">${{escapeHtml(found.type)}} &bull; ${{escapeHtml(found.domain)}}</div>
+            <div style="font-size: 0.72rem; color: var(--text-dim); font-family: monospace; margin-top: 3px;">${{escapeHtml(found.path || '')}}</div>
+            <div style="font-size: 0.7rem; color: #a5b4fc; margin-top: 4px;">Click to inspect details &rarr;</div>
+          `;
+          netTooltip.style.left = `${{e.clientX - rect.left}}px`;
+          netTooltip.style.top = `${{e.clientY - rect.top}}px`;
+          netTooltip.classList.add("visible");
+        }} else {{
+          netTooltip.classList.remove("visible");
+        }}
+        renderNetwork();
+      }} else if (found) {{
+        netTooltip.style.left = `${{e.clientX - rect.left}}px`;
+        netTooltip.style.top = `${{e.clientY - rect.top}}px`;
+      }}
+    }});
+
+    netCanvas.addEventListener("click", () => {{
+      if (hoveredNetNode) {{
+        selectedNetNode = hoveredNetNode;
+        inspectEntity(hoveredNetNode.id);
+        renderNetwork();
+      }}
+    }});
+
+    netCanvas.addEventListener("wheel", e => {{
+      e.preventDefault();
+      const rect = netCanvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
+      const newZoom = Math.min(3.5, Math.max(0.2, netZoom * zoomFactor));
+
+      netPanX = mouseX - (mouseX - netPanX) * (newZoom / netZoom);
+      netPanY = mouseY - (mouseY - netPanY) * (newZoom / netZoom);
+      netZoom = newZoom;
+
+      renderNetwork();
+    }}, {{ passive: false }});
+
     // Perspective Tab Switching
     function switchView(viewName) {{
       document.querySelectorAll(".tab-btn").forEach(btn => {{
@@ -1990,6 +2859,12 @@ class VisualizerEngine:
       document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
       if (viewName === "c4") {{
         document.getElementById("view-c4").classList.add("active");
+      }} else if (viewName === "network") {{
+        document.getElementById("view-network").classList.add("active");
+        setTimeout(() => {{
+          resizeNetwork();
+          if (netPanX === 0 && netPanY === 0) resetNetView();
+        }}, 40);
       }} else if (viewName === "radar") {{
         document.getElementById("view-radar").classList.add("active");
       }} else if (viewName === "pipeline") {{
