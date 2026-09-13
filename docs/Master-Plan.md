@@ -9,10 +9,10 @@
 |---|---|
 | Product | `Agtoosa2` |
 | Repository | `https://github.com/sky2464/Agtoosa2` |
-| Version | `0.4.1` (GA Released) |
-| Core Engine | Python 3.11+ (Tree-sitter, SQLite FTS5, NetworkX) |
-| Active Cycle | `DEV-026` (Stage 26: Async Message Queue & Event Bus Lineage) |
-| Current Milestone | `v0.4.2` (Milestone 10: Deep Polyglot Framework Semantics) |
+| Version | `0.5.0` (GA Released) |
+| Core Engine | Python 3.11+ (SQLite FTS5, Zero-Dependency Standard Library) |
+| Active Milestone | `v0.5.0` — **All 27 Stages Delivered (100% Complete)** |
+| Next Frontier | `v0.6.0` — Automated Architecture CI Bot & Distributed OpenTelemetry Ingestion |
 
 ---
 
@@ -20,39 +20,23 @@
 
 Evaluated across architectural impact, AI agent context amplification, enterprise readiness, and developer workflow leverage:
 
-| Rank | Cycle ID | Title | Rating | Target Milestone | Strategic Value & Architectural Impact |
-|:---:|---|---|:---:|---|---|
-| 🥇 | **DEV-025** | Framework Dependency Injection & Dynamic Routes | **96 / 100** | Milestone 10 (v0.4.2) | **Highest Architectural Leverage**: Transforms Agtoosa from a syntax AST parser into a true runtime architecture graph by extracting FastAPI/Flask/NestJS/Express DI containers, decorators (`@app.get`), and ORM schema bindings (SQLAlchemy, Prisma). AI agents gain real execution context. |
-| 🥈 | **DEV-027** | VS Code & Cursor In-Editor Gutter Lens & Marketplace | **89 / 100** | Milestone 11 (v0.5.0) | **Maximum Developer Adoption**: Brings real-time CodeLens blast radius, caller count, and 1-click Studio refactor actions ("✂️ Prune", "🔄 Decouple") directly into IDE editor gutters. Published to VS Code Marketplace & Open VSX. |
-| 🥉 | **DEV-026** | Async Message Queue & Event Bus Lineage | **85 / 100** | Milestone 10 (v0.4.2) | **Distributed System Visibility**: Maps asynchronous event-driven topologies across microservices (Kafka topics, RabbitMQ exchanges, Redis Pub/Sub, and Celery task queues) to complete cross-service blast radius graphs. |
-| 4th | **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | **72 / 100** | Milestone 9 (v0.4.1) | **Shift-Left Local Protection**: Hardens local developer workflows by preventing commits/pushes that introduce circular dependencies or exceed blast radius thresholds, backed by a sub-millisecond status cache (`.agtoosa/guard_status.json`). |
+| Rank | Cycle ID | Title | Rating | Milestone | Status | Strategic Value & Architectural Impact |
+|:---:|---|---|:---:|---|:---:|---|
+| 🥇 | **DEV-025** | Framework Dependency Injection & Dynamic Routes | **96 / 100** | Milestone 10 (v0.4.2) | ✅ Done | **Highest Architectural Leverage**: Transforms Agtoosa from a syntax AST parser into a true runtime architecture graph by extracting FastAPI/Flask/NestJS/Express DI containers, decorators (`@app.get`), and ORM schema bindings (SQLAlchemy, Prisma). AI agents gain real execution context. |
+| 🥈 | **DEV-027** | VS Code & Cursor In-Editor Gutter Lens & Marketplace | **89 / 100** | Milestone 11 (v0.5.0) | ✅ Done | **Maximum Developer Adoption**: Brings real-time CodeLens blast radius, caller count, and 1-click Studio refactor actions ("✂️ Prune", "🔄 Decouple") directly into IDE editor gutters. Published to VS Code Marketplace & Open VSX. |
+| 🥉 | **DEV-026** | Async Message Queue & Event Bus Lineage | **85 / 100** | Milestone 10 (v0.4.2) | ✅ Done | **Distributed System Visibility**: Maps asynchronous event-driven topologies across microservices (Kafka topics, RabbitMQ exchanges, Redis Pub/Sub, and Celery task queues) to complete cross-service blast radius graphs. |
+| 4th | **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | **72 / 100** | Milestone 9 (v0.4.1) | ✅ Done | **Shift-Left Local Protection**: Hardens local developer workflows by preventing commits/pushes that introduce circular dependencies or exceed blast radius thresholds, backed by a sub-millisecond status cache (`.agtoosa/guard_status.json`). |
 
 ---
 
-## Active Cycle
-
-| ID | Title | Type | Status | Rating | Primary Deliverable |
-|---|---|---|---|:---:|---|
-| **DEV-026** | Async Message Queue & Event Bus Lineage | Feature | 📋 Ready | **85 / 100** | Event-driven graph lineage for Kafka, RabbitMQ, Redis Pub/Sub, and Celery background task graphs |
-
----
-
-## Planned Cycles
-
-| ID | Title | Type | Status | Rating | Primary Deliverable |
-|---|---|---|---|:---:|---|
-| **DEV-026** | Async Message Queue & Event Bus Lineage | Feature | 📋 Ready | **85 / 100** | Event-driven graph lineage for Kafka, RabbitMQ, Redis Pub/Sub, and Celery background task graphs |
-| **DEV-027** | VS Code & Cursor In-Editor Gutter Lens & Marketplace | Extension | 📋 Planned | **89 / 100** | Real-time gutter blast radius, in-editor 1-click refactoring actions, and VS Code / Open VSX packaging |
-
-
-
-
----
-
-## Completed Cycles
+## Completed Cycles (All 27 Stages Delivered)
 
 | ID | Title | Type | Status | Primary Deliverable |
 |---|---|---|---|---|
+| **DEV-027** | VS Code & Cursor In-Editor Gutter Lens & Marketplace | Extension | ✅ Done | In-editor gutter heatmaps, 1-click QuickFix refactor actions, guard status bar, and `.vsix` packaging |
+| **DEV-026** | Async Message Queue & Event Bus Lineage | Feature | ✅ Done | Event-driven graph lineage for Kafka, RabbitMQ, Redis Pub/Sub, Celery, and BullMQ queues |
+| **DEV-025** | Framework Dependency Injection & Dynamic Routes | Feature | ✅ Done | Runtime routes & DI resolvers (FastAPI, Flask, Express, NestJS) + ORM schemas (SQLAlchemy, Prisma, Django) |
+| **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | Feature | ✅ Done | Real-time daemon, pre-push hook integration, sub-millisecond cache `.agtoosa/guard_status.json` |
 | **DEV-001** | Core Foundation & AST Knowledge Graph | Feature | ✅ Done | Unified CLI, polyglot AST extractors (Py/JS/TS/Sh), SQLite FTS5 graph store, `/agtoosa graph build/query/status/export` |
 | **DEV-002** | Reliable Incremental Updates & Investigation | Feature | ✅ Done | Content hash fingerprints, incremental sync, `/agtoosa graph explain/path/impact` |
 | **DEV-003** | Graph-Driven Lifecycle & Context Compilation v0.2 | Feature | ✅ Done | Spec/Story/Criteria/Task ingestion, Context Compiler v0.2 (Graph RAG), `review`, and mathematical proof `ship` gates |
@@ -295,4 +279,15 @@ flowchart LR
     - Zero-dependency Python VSIX builder: `scripts/build_extension.py` generating Open VSIX OPC packages (`agtoosa-vscode-0.5.0.vsix`).
     - Automated GitHub Actions release pipeline (`.github/workflows/marketplace-release.yml`) publishing to **VS Code Marketplace** and **Open VSX Registry**.
     - Full version synchronization across repository to `0.5.0`.
+
+---
+
+## Future Frontiers: Milestone 12 (v0.6.0 Proposal)
+
+| Rank | Cycle ID | Title | Rating | Target Milestone | Strategic Value & Architectural Impact |
+|:---:|---|---|:---:|---|---|
+| 🥇 | **DEV-029** | PR Blast Radius & Breaking Schema Review Bot | **91 / 100** | Milestone 12 (v0.6.0) | **Team & PR Governance**: Automatic GitHub Action PR bot that inspects incoming git diffs against the knowledge graph, generating rich comments with interactive blast radius tables, affected HTTP routes, breaking event schemas, and production traffic risk scores. |
+| 🥈 | **DEV-030** | Distributed OpenTelemetry Trace Ingestion & Dynamic Topology | **87 / 100** | Milestone 12 (v0.6.0) | **True Dynamic Runtime Topology**: Ingests OTLP spans (Jaeger, Zipkin, OpenTelemetry Collector) into the graph to map true network-level RPC/gRPC/HTTP calls between decoupled services alongside static AST callgraphs. |
+| 🥉 | **DEV-028** | Automated C4 Architecture-as-Code & Live Diagram Sync | **82 / 100** | Milestone 12 (v0.6.0) | **Living Documentation**: Automatically synthesizes and syncs C4 architecture diagrams (PlantUML, Mermaid, Structurizr DSL) directly from the knowledge graph and commits updated diagrams to repository docs on build. |
+
 
