@@ -203,6 +203,18 @@ class MCPServer:
                         "service": {"type": "string", "description": "Optional service name to filter dependencies"}
                     }
                 }
+            },
+            {
+                "name": "agtoosa_get_c4_diagram",
+                "description": "Generate hierarchical C4 Architecture-as-Code diagrams (Level 1: System Context, Level 2: Container, Level 3: Component) in Mermaid, PlantUML, or Structurizr DSL directly from the knowledge graph.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "level": {"type": "string", "description": "C4 level: context, container, or component", "default": "container"},
+                        "format": {"type": "string", "description": "Diagram format: mermaid, plantuml, or structurizr", "default": "mermaid"},
+                        "title": {"type": "string", "description": "Optional custom diagram title"}
+                    }
+                }
             }
         ]
 
@@ -326,6 +338,19 @@ class MCPServer:
             svc_filter = args.get("service")
             topo_res = query_topology(self.store, service=svc_filter)
             return json.dumps(topo_res, indent=2)
+
+        elif name == "agtoosa_get_c4_diagram":
+            from agtoosa.c4.generator import C4DiagramGenerator
+            generator = C4DiagramGenerator(self.store, self.workspace_root)
+            lvl = args.get("level", "container")
+            fmt = args.get("format", "mermaid")
+            title = args.get("title")
+            diagram = generator.generate(level=lvl, format_type=fmt, title=title)
+            return json.dumps({
+                "level": lvl,
+                "format": fmt,
+                "diagram": diagram
+            }, indent=2)
 
         return json.dumps({"error": f"Unknown tool: {name}"})
 
