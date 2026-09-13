@@ -9,9 +9,9 @@
 |---|---|
 | Product | `Agtoosa2` |
 | Repository | `https://github.com/sky2464/Agtoosa2` |
-| Version | `0.4.0` (GA Released) |
+| Version | `0.4.1` (GA Released) |
 | Core Engine | Python 3.11+ (Tree-sitter, SQLite FTS5, NetworkX) |
-| Active Cycle | `DEV-021` (Stage 21: Modular Native Studio Architecture) |
+| Active Cycle | `DEV-024` (Stage 24: Pre-Push Architectural Daemon & Drift Linter) |
 | Current Milestone | `v0.4.1` (Milestone 9: Autonomous Code Actions & 2-Way Studio Sync) |
 
 ---
@@ -20,7 +20,7 @@
 
 | ID | Title | Type | Status | Primary Deliverable |
 |---|---|---|---|---|
-| **DEV-021** | Modular Native Studio Architecture (Zero Build Tools) | Refactor | 📋 In Progress | Decouple monolithic `visualizer.py` into modular HTML, CSS, and ES module assets under `agtoosa/graph/web/` (< 250 lines each) with zero external build tools |
+| **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | Feature | 📋 In Progress | Pre-commit/pre-push guard daemon enforcing zero circular dependencies and blast radius thresholds |
 
 ---
 
@@ -28,10 +28,7 @@
 
 | ID | Title | Type | Status | Primary Deliverable |
 |---|---|---|---|---|
-| **DEV-021** | Modular Native Studio Architecture (Zero Build Tools) | Refactor | 📋 In Progress | Decouple `visualizer.py` into modular static HTML, CSS, and ES modules (< 250 lines each) under `agtoosa/graph/web/` with dual-mode server and offline packager |
-| **DEV-022** | Autonomous AST Patch Engine | Feature | 📋 Planned | AST rewriting engine applying safe dead-code deletions and dependency inversion interfaces to source files |
-| **DEV-023** | Two-Way Interactive Studio Actions | Feature | 📋 Planned | Web Studio action backend: 1-click "Safe Prune" & "Decouple Cycle" executing git branch and commit diffs |
-| **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | Feature | 📋 Planned | Pre-commit/pre-push guard daemon enforcing zero circular dependencies and blast radius thresholds |
+| **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | Feature | 📋 In Progress | Pre-commit/pre-push guard daemon enforcing zero circular dependencies and blast radius thresholds |
 | **DEV-025** | Framework Dependency Injection & Dynamic Routes | Feature | 📋 Planned | AST extractors for FastAPI, Flask, Express, NestJS DI containers and ORM relation mapping |
 | **DEV-026** | Async Message Queue & Event Bus Lineage | Feature | 📋 Planned | Event-driven graph lineage for Kafka, RabbitMQ, Redis Pub/Sub, and Celery background task graphs |
 
@@ -61,6 +58,9 @@
 | **DEV-018** | Production Blast Radius | Feature | ✅ Done | Runtime telemetry traffic weighting, live error rates, caller risk multipliers, and dormant dependency detection |
 | **DEV-019** | Autonomous Cycle Decoupling Engine | Feature | ✅ Done | Automated dependency inversion, shared kernel, and event-driven decoupling blueprints with executable code stubs |
 | **DEV-020** | Dead Code & Zombie Symbol Pruning | Feature | ✅ Done | Unreachable AST node detection, confidence scoring, entrypoint exclusion, safe deletion refactoring blueprints |
+| **DEV-021** | Modular Native Studio Architecture (Zero Build Tools) | Refactor | ✅ Done | Monolithic visualizer.py decomposed from 2,979 lines to ~380 lines into clean, dedicated static assets under `agtoosa/graph/web/` (< 250 lines each) |
+| **DEV-022** | Autonomous AST Patch Engine | Feature | ✅ Done | AST rewriting engine applying safe dead-code deletions and dependency inversion interface abstractions with unified diff previews, atomic backups, and rollback capabilities |
+| **DEV-023** | Two-Way Interactive Studio Actions | Feature | ✅ Done | Live Studio HTTP server with REST endpoints (`/api/refactor/prune`, `/api/refactor/decouple`, `/api/refactor/rollback`) and 1-click web UI buttons |
 
 ---
 
@@ -87,9 +87,9 @@ flowchart LR
     S17 --> S18[Stage 18: Production Blast Radius ✅]
     S10 --> S19[Stage 19: Cycle Decoupler ✅]
     S19 --> S20[Stage 20: Dead Code Pruning ✅]
-    S5 --> S21[Stage 21: Modular Studio Web 📋]
-    S20 --> S22[Stage 22: Auto-Fix Patch Engine 📋]
-    S21 --> S23[Stage 23: Two-Way Studio Actions 📋]
+    S5 --> S21[Stage 21: Modular Studio Web ✅]
+    S20 --> S22[Stage 22: Auto-Fix Patch Engine ✅]
+    S21 --> S23[Stage 23: Two-Way Studio Actions ✅]
     S22 --> S23
     S22 --> S24[Stage 24: Pre-Push Arch Daemon 📋]
     S15 --> S25[Stage 25: Framework DI & Routes 📋]
@@ -182,8 +182,8 @@ flowchart LR
   - Confidence scoring (low/medium/high), entrypoint exclusion, CLI `agtoosa refactor dead-code`, MCP `agtoosa_detect_dead_code`.
 
 ### Milestone 9: Autonomous Code Actions & 2-Way Studio Sync (v0.4.1)
-- **DEV-021 (Stage 21) — Modular Native Studio Architecture (Zero Build Tools)** [📋 In Progress]
-  - **Goal**: Decouple monolithic `visualizer.py` (2,979 lines) into clean, modular, maintainable assets under `agtoosa/graph/web/`:
+- **DEV-021 (Stage 21) — Modular Native Studio Architecture (Zero Build Tools)** [✅ Done]
+  - **Goal**: Decoupled monolithic `visualizer.py` from 2,979 lines down to 386 lines by extracting clean, syntax-highlighted modular assets under `agtoosa/graph/web/`:
     - `index.html`: Clean semantic layout skeleton (< 150 lines).
     - `css/theme.css`: Design tokens, dark mode palette, typography, glassmorphism (< 100 lines).
     - `css/layout.css`: Header navigation, responsive omni-search, KPI ribbon, docked drawer (< 120 lines).
@@ -195,25 +195,28 @@ flowchart LR
     - `js/radar_view.js`: Centrality rankings, Stage 19 Cycle Decoupler blueprints, and Stage 20 Dead Code pruning table (< 180 lines).
     - `js/drawer.js`: Slide-over inspection drawer and 1-click AI Context Pack (Markdown/JSON) export (< 100 lines).
     - `js/app.js`: Tab routing, global search (`⌘K`), Guide modal, and export handlers (< 120 lines).
-  - **Zero Build Tools**: 100% pure standard ES modules and native CSS. Requires zero Node.js, Bun, or npm tooling at runtime or install, staying completely faithful to the Python 3.11+ zero-service foundation in `draft.md`.
-  - **Eliminate f-string Escaping Collisions**: Completely removes brittle Python double-braced syntax (`{{}}` and `${{}}`), enabling native IDE formatting, syntax highlighting, and linting.
-  - **Python Visualizer Refactor**: Reduces `visualizer.py` from ~3,000 lines down to ~150 lines. Handles data extraction and asset bundling.
-  - **Dual-Mode Serving**:
-    - *Dev/Serve Mode*: Serves modular static assets directly from `agtoosa/graph/web/`.
-    - *Offline/Export Mode*: Packs modular assets into a single standalone `.html` file for portable sharing (`agtoosa graph view -o <path>`).
-  - **Verification**: Retains 100% backward compatibility with all CLI flags and passes all repository tests.
+  - **Zero Build Tools**: 100% pure standard ES modules and native CSS. Zero Node.js, Bun, or npm tooling required at runtime or install, staying completely faithful to the Python 3.11+ zero-service foundation in `draft.md`.
+  - **Eliminated f-string Escaping Collisions**: Completely removed brittle Python double-braced syntax (`{{}}` and `${{}}`), enabling native IDE formatting, syntax highlighting, and linting.
+  - **Python Visualizer Refactor**: Dropped `visualizer.py` from ~3,000 lines down to 386 lines.
+  - **Dual-Mode Serving**: Supports live serving of modular assets + single-file offline packager for portable `.html` exports.
 
-- **DEV-022 (Stage 22) — Autonomous AST Patch Engine** [📋 Planned]
-  - AST rewriting engine applying safe dead-code deletions and dependency inversion interface abstractions to source files.
-  - Generates atomic Git diff patches with rollbacks.
-  - CLI: `agtoosa refactor apply --plan <plan-id> [--dry-run]`.
+- **DEV-022 (Stage 22) — Autonomous AST Patch Engine** [✅ Done]
+  - AST rewriting engine (`agtoosa/refactor/engine.py`) applying safe dead-code deletions and dependency inversion interface abstractions to source files.
+  - Generates unified diffs for `--dry-run` previews without modifying files.
+  - Automatic atomic backup creation under `.agtoosa/refactor_backups/<plan_id>/` with rollback support.
+  - CLI: `agtoosa refactor dead-code [--apply] [--dry-run]`, `agtoosa refactor decouple [--apply] [--dry-run]`, `agtoosa refactor rollback <backup_id>`, `agtoosa refactor backups`.
 
-- **DEV-023 (Stage 23) — Two-Way Interactive Studio Actions** [📋 Planned]
-  - Embedded HTTP mutation endpoints inside Agtoosa Studio web interface.
-  - Direct 1-click **"Safe Prune"** button in Dead Code table and **"Decouple Loop"** in Cycle Decoupler.
-  - Creates dedicated git branches and commits directly from the browser UI.
+- **DEV-023 (Stage 23) — Two-Way Interactive Studio Actions** [✅ Done]
+  - Embedded HTTP server (`agtoosa/graph/server.py`) exposing REST endpoints:
+    - `POST /api/refactor/prune`: Direct 1-click symbol pruning from the browser.
+    - `POST /api/refactor/decouple`: Automated interface abstraction generation.
+    - `POST /api/refactor/rollback`: Instant snapshot restoration.
+    - `GET /api/refactor/backups`: Snapshot history.
+    - `GET /api/graph`: Dynamic graph data polling.
+  - Actionable **"✂️ Safe Prune"** buttons integrated directly into the Agtoosa Studio Dead Code table.
+  - CLI: `agtoosa graph view --serve [--port 8080]`.
 
-- **DEV-024 (Stage 24) — Pre-Push Architectural Daemon & Drift Linter** [📋 Planned]
+- **DEV-024 (Stage 24) — Pre-Push Architectural Daemon & Drift Linter** [📋 In Progress]
   - Background daemon and pre-push Git hook preventing commits with cyclic dependencies or layer boundary breaches.
   - CLI: `agtoosa guard [--install-hooks] [--daemon]`.
 

@@ -159,6 +159,8 @@ def main(argv=None) -> int:
     view_p.add_argument("-o", "--output", type=str, help="Path to write HTML file (default: .agtoosa/graph_view.html)")
     view_p.add_argument("--filter", type=str, help="Filter by node type (e.g. class, function, story)")
     view_p.add_argument("--open", action="store_true", help="Automatically open generated visualizer in web browser")
+    view_p.add_argument("--serve", action="store_true", help="Start interactive Agtoosa Studio HTTP server with 2-way refactoring actions")
+    view_p.add_argument("--port", type=int, default=8080, help="Port for Agtoosa Studio server (default: 8080)")
 
     # agtoosa graph report
     report_p = graph_sub.add_parser("report", help="Generate architecture health, cycle detection, and centrality report")
@@ -277,10 +279,19 @@ def main(argv=None) -> int:
 
     decouple_p = refactor_sub.add_parser("decouple", help="Generate dependency injection and decoupling blueprints for cyclic dependencies")
     decouple_p.add_argument("--json", action="store_true", help="Output blueprints as JSON")
+    decouple_p.add_argument("--apply", action="store_true", help="Apply decoupling interface generation to workspace")
+    decouple_p.add_argument("--dry-run", action="store_true", help="Preview unified diff without modifying files")
 
     dead_code_p = refactor_sub.add_parser("dead-code", help="Identify dead code / zombie symbols and generate safe deletion blueprints")
     dead_code_p.add_argument("--json", action="store_true", help="Output dead code report as JSON")
     dead_code_p.add_argument("--min-confidence", type=str, default="low", choices=["low", "medium", "high"], help="Minimum confidence threshold (default: low)")
+    dead_code_p.add_argument("--apply", action="store_true", help="Apply safe dead-code pruning to workspace")
+    dead_code_p.add_argument("--dry-run", action="store_true", help="Preview unified diff without modifying files")
+
+    rollback_p = refactor_sub.add_parser("rollback", help="Roll back an applied refactoring using backup snapshot ID")
+    rollback_p.add_argument("backup_id", type=str, help="Backup snapshot ID to restore")
+
+    refactor_sub.add_parser("backups", help="List available refactoring rollback backups")
 
     # agtoosa mcp
     subparsers.add_parser("mcp", help="Launch native Model Context Protocol (MCP) server on stdio")
@@ -367,6 +378,12 @@ def main(argv=None) -> int:
         elif args.refactor_action == "dead-code":
             from agtoosa.cli.refactor_cmd import cmd_refactor_dead_code
             return cmd_refactor_dead_code(args, workspace_root)
+        elif args.refactor_action == "rollback":
+            from agtoosa.cli.refactor_cmd import cmd_refactor_rollback
+            return cmd_refactor_rollback(args, workspace_root)
+        elif args.refactor_action == "backups":
+            from agtoosa.cli.refactor_cmd import cmd_refactor_backups
+            return cmd_refactor_backups(args, workspace_root)
     elif args.command == "version":
         return cmd_version(args, workspace_root)
     elif args.command == "mcp":

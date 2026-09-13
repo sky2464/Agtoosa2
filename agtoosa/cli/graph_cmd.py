@@ -161,6 +161,25 @@ def cmd_graph_view(args: Any, workspace_root: Path) -> int:
     filter_type = getattr(args, "filter", None)
     open_browser = getattr(args, "open", False)
 
+    if getattr(args, "serve", False):
+        from agtoosa.graph.server import run_studio_server
+        port = getattr(args, "port", 8080) or 8080
+        host = getattr(args, "host", "127.0.0.1") or "127.0.0.1"
+        server = run_studio_server(store, workspace_root, port=port, host=host)
+        url = f"http://{host}:{port}/"
+        print(f"🚀 Agtoosa Studio Command Center live at: {url}")
+        print(f"   Two-way interactive refactoring API enabled.")
+        print(f"   Press Ctrl+C to stop.")
+        if open_browser:
+            import webbrowser
+            webbrowser.open(url)
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            print("\n👋 Agtoosa Studio stopped.")
+            server.server_close()
+        return 0
+
     visualizer.save_html(out_file, filter_type=filter_type, open_browser=open_browser)
     print(f"🎨 Graph visualizer generated at: {out_file} ({out_file.stat().st_size / 1024:.1f} KB)")
     print(f"   Open in browser: file://{out_file.resolve()}")

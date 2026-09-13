@@ -90,16 +90,20 @@
 
     if (deadCodeData.zombies && deadCodeData.zombies.length > 0) {
       deadCodeBody.innerHTML = deadCodeData.zombies.map(z => `
-        <tr style="cursor: pointer;" onclick="inspectEntity('${escapeHtml(z.node_id)}')">
+        <tr id="dead-row-${escapeHtml(z.node_id)}" style="cursor: pointer;" onclick="inspectEntity('${escapeHtml(z.node_id)}')">
           <td><span class="confidence-pill ${escapeHtml(z.confidence)}">${escapeHtml(z.confidence)}</span></td>
           <td><span style="color: #38bdf8; font-weight: 700; font-family: monospace;">${escapeHtml(z.name)}</span></td>
           <td><span style="color: var(--text-muted); font-family: monospace; font-size: 0.74rem;">${escapeHtml(z.path)}:L${z.start_line}-${z.end_line}</span></td>
           <td><span style="font-size: 0.76rem; color: #cbd5e1;">${escapeHtml(z.reason)}</span></td>
           <td><strong>${z.estimated_lines}</strong></td>
           <td>
-            <span class="badge" style="background: ${z.safe_to_delete ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${z.safe_to_delete ? '#34d399' : '#fbbf24'};">
-              ${z.safe_to_delete ? 'Safe to Prune' : 'Needs Review'}
-            </span>
+            ${z.safe_to_delete ? `
+              <button class="prune-btn" title="Execute safe dead-code pruning" onclick="event.stopPropagation(); triggerStudioPrune('${escapeHtml(z.node_id)}', '${escapeHtml(z.path)}', '${escapeHtml(z.name)}', ${z.start_line}, ${z.end_line})">
+                ✂️ Safe Prune
+              </button>
+            ` : `
+              <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">Needs Review</span>
+            `}
           </td>
         </tr>
       `).join('');
@@ -112,4 +116,48 @@
         </tr>
       `;
     }
+
+    // Two-Way Interactive Studio Actions (Stage 23)
+    window.triggerStudioPrune = async function(nodeId, path, name, startLine, endLine) {
+      if (!confirm(`Execute safe dead-code pruning for '${name}' in ${path}:L${startLine}-${endLine}?`)) return;
+      try {
+        const res = await fetch('/api/refactor/prune', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ node_id: nodeId, path: path, name: name, start_line: startLine, end_line: endLine })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          showToast(`✂️ Successfully pruned '${name}'! Backup saved: ${data.backup_id}`);
+          const row = document.getElementById(`dead-row-${nodeId}`);
+          if (row) {
+            row.style.opacity = '0.35';
+            row.style.textDecoration = 'line-through';
+          }
+        } else {
+          showToast(`Run: agtoosa refactor dead-code --apply`);
+        }
+      } catch (err) {
+        showToast(`Offline mode: run 'agtoosa refactor dead-code --apply' in terminal.`);
+      }
+    };
+
+    window.triggerStudioDecouple = async function(interfaceName, codeStubEncoded) {
+      const codeStub = decodeURIComponent(codeStubEncoded);
+      try {
+        const res = await fetch('/api/refactor/decouple', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ proposed_interface_name: interfaceName, generated_code_stub: codeStub })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          showToast(`💡 Generated interface '${interfaceName}'! Backup: ${data.backup_id}`);
+        } else {
+          showToast(`Run: agtoosa refactor decouple --apply`);
+        }
+      } catch (err) {
+        showToast(`Offline mode: run 'agtoosa refactor decouple --apply' in terminal.`);
+      }
+    };
 

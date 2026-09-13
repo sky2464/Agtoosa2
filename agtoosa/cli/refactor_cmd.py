@@ -1,4 +1,4 @@
-"""CLI commands for autonomous architecture refactoring (DEV-019 & DEV-020)."""
+"""CLI commands for autonomous architecture refactoring (DEV-019, DEV-020, DEV-022)."""
 
 import json
 from pathlib import Path
@@ -8,6 +8,7 @@ from agtoosa.graph.store import GraphStore
 from agtoosa.cli.graph_cmd import get_default_db_path
 from agtoosa.refactor.decoupler import CycleDecouplerEngine
 from agtoosa.refactor.dead_code import DeadCodePruner, format_dead_code_text
+from agtoosa.refactor.engine import RefactorEngine
 
 
 def cmd_refactor_decouple(args: Any, workspace_root: Path) -> int:
@@ -45,6 +46,21 @@ def cmd_refactor_decouple(args: Any, workspace_root: Path) -> int:
         for line in strat.generated_code_stub.splitlines():
             print(f"         {line}")
 
+    if getattr(args, "apply", False) or getattr(args, "dry_run", False):
+        dry_run = getattr(args, "dry_run", False)
+        refactor_engine = RefactorEngine(workspace_root)
+        plan = refactor_engine.create_decouple_plan(report.strategies[0])
+        res = refactor_engine.apply_plan(plan, dry_run=dry_run)
+
+        if dry_run:
+            print("\n🔍 Dry Run Unified Diffs:")
+            for path, diff in res.get("diffs", {}).items():
+                print(f"--- {path} ---")
+                print(diff)
+        else:
+            print(f"\n🚀 Applied decoupling plan ({res['files_affected']} file(s) created/modified)")
+            print(f"   📦 Backup ID: {res['backup_id']} (use 'agtoosa refactor rollback {res['backup_id']}' to revert)")
+
     return 0
 
 
@@ -65,4 +81,55 @@ def cmd_refactor_dead_code(args: Any, workspace_root: Path) -> int:
         return 0
 
     print(format_dead_code_text(report))
+
+    if getattr(args, "apply", False) or getattr(args, "dry_run", False):
+        dry_run = getattr(args, "dry_run", False)
+        target_confidence = min_confidence if min_confidence != "low" else "high"
+        refactor_engine = RefactorEngine(workspace_root)
+        plan = refactor_engine.create_dead_code_plan(report.zombies, min_confidence=target_confidence)
+
+        if not plan.actions:
+            print(f"\nℹ️  No safe symbols meeting confidence threshold '{target_confidence}' to prune.")
+            return 0
+
+        res = refactor_engine.apply_plan(plan, dry_run=dry_run)
+
+        if dry_run:
+            print(f"\n🔍 Dry Run Unified Diffs ({len(plan.actions)} symbols in {res['files_affected']} files):")
+            for path, diff in res.get("diffs", {}).items():
+                print(f"\n--- {path} ---")
+                print(diff)
+        else:
+            print(f"\n🚀 Pruned {len(plan.actions)} dead symbol(s) across {res['files_affected']} file(s)")
+            print(f"   📦 Backup ID: {res['backup_id']}")
+            print(f"   🔄 To rollback, run: agtoosa refactor rollback {res['backup_id']}")
+
+    return 0
+
+
+def cmd_refactor_rollback(args: Any, workspace_root: Path) -> int:
+    """Roll back an applied refactoring using backup ID."""
+    refactor_engine = RefactorEngine(workspace_root)
+    success = refactor_engine.rollback(args.backup_id)
+    if success:
+        print(f"✅ Successfully rolled back refactoring snapshot '{args.backup_id}'. Original files restored.")
+        return 0
+    else:
+        print(f"❌ Rollback failed: Backup snapshot '{args.backup_id}' not found.")
+        return 1
+
+
+def cmd_refactor_backups(args: Any, workspace_root: Path) -> int:
+    """List available refactoring backups."""
+    refactor_engine = RefactorEngine(workspace_root)
+    backups = refactor_engine.list_backups()
+    if not backups:
+        print("ℹ️  No refactoring backup snapshots found.")
+        return 0
+
+    print(f"📦 Available Refactoring Backups ({len(backups)}):")
+    for b in backups:
+        print(f"   • {b['plan_id']} ({b.get('created_at', 'unknown date')})")
+        print(f"     Description: {b.get('description', '')}")
+        print(f"     Files ({len(b.get('files', []))}): {', '.join(f['path'] for f in b.get('files', []))}")
     return 0
