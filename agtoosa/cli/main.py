@@ -264,6 +264,15 @@ def main(argv=None) -> int:
     ci_check_p.add_argument("--base-ref", type=str, default="origin/main", help="Base git ref for diff")
     ci_check_p.add_argument("--strict", action="store_true", help="Treat warnings as failures")
 
+    ci_pr_bot_p = ci_sub.add_parser("pr-bot", help="Run PR Blast Radius & Breaking Schema Review Bot")
+    ci_pr_bot_p.add_argument("--base", type=str, default="origin/main", help="Base git ref for PR diff (default: origin/main)")
+    ci_pr_bot_p.add_argument("--pr", type=int, help="Pull Request number (defaults to $PR_NUMBER or CI detection)")
+    ci_pr_bot_p.add_argument("--post-comment", action="store_true", help="Post or update sticky PR comment via GitHub REST API")
+    ci_pr_bot_p.add_argument("-o", "--output", type=str, help="Path to write GitHub PR Markdown comment")
+    ci_pr_bot_p.add_argument("--json", action="store_true", help="Output analysis data as JSON")
+    ci_pr_bot_p.add_argument("--fail-on-p0", action="store_true", help="Fail if P0_CRITICAL production traffic is impacted")
+    ci_pr_bot_p.add_argument("--strict", action="store_true", help="Fail if any warnings or errors are present")
+
     # agtoosa version
     version_parser = subparsers.add_parser("version", help="Display version and runtime diagnostic information")
     version_parser.add_argument("--json", action="store_true", help="Output diagnostic information as JSON")
@@ -405,6 +414,9 @@ def main(argv=None) -> int:
         elif args.ci_action == "check":
             from agtoosa.cli.lifecycle_cmd import cmd_ci_check
             return cmd_ci_check(args, workspace_root)
+        elif args.ci_action == "pr-bot":
+            from agtoosa.cli.lifecycle_cmd import cmd_ci_pr_bot
+            return cmd_ci_pr_bot(args, workspace_root)
     elif args.command == "ship":
         from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_ship
         return cmd_lifecycle_ship(args, workspace_root)

@@ -98,6 +98,9 @@ flowchart LR
     S26 --> S27[Stage 27: In-Editor Gutter Lens (89) ✅]
     S13 --> S27
     S23 --> S27
+    S24 --> S29[Stage 29: PR Blast Radius Bot (91) ✅]
+    S25 --> S29
+    S26 --> S29
 ```
 
 ### Milestone 1: Knowledge Engine Core (v0.2.0-alpha)
@@ -280,14 +283,31 @@ flowchart LR
     - Automated GitHub Actions release pipeline (`.github/workflows/marketplace-release.yml`) publishing to **VS Code Marketplace** and **Open VSX Registry**.
     - Full version synchronization across repository to `0.5.0`.
 
+### Milestone 12: CI/CD Pull Request Governance & Deep Lineage (v0.6.0)
+- **DEV-029 (Stage 29) — PR Blast Radius & Breaking Schema Review Bot** [✅ Done — Rating: 91/100]
+  - **Objective**: Automate PR review governance by calculating multi-dimensional blast radius directly from git diffs, posting rich sticky Markdown reports on pull requests.
+  - **Multi-Dimensional Diff Analysis**:
+    - Scans modified file line ranges using native `git diff -U0` parser.
+    - Identifies modified symbols, upstream callers, impacted API routes (DEV-025), and affected message queues / event topics (DEV-026).
+    - Correlates with OpenTelemetry runtime telemetry to compute production risk tiers (P0_CRITICAL to P4_DORMANT) and traffic at risk.
+    - Checks for architectural violations, layer boundary breaches, and cyclic regressions (DEV-010).
+  - **Sticky PR Markdown Comment Generator**:
+    - Generates GitHub Flavored Markdown summary card, modified symbol table, impacted API routes, message broker lineage, and architectural drift alarms.
+    - Uses deterministic HTML marker `<!-- agtoosa-pr-bot-comment -->` for sticky updates.
+  - **Zero-Dependency GitHub REST API Client**:
+    - Pure standard library (`urllib.request`) implementation supporting token authentication and comment creation/upsertion without third-party packages.
+  - **CLI & GitHub Action Pipeline**:
+    - CLI: `agtoosa ci pr-bot [--base <ref>] [--pr <num>] [--repo <owner/repo>] [--post-comment] [--output <path>] [--json] [--fail-on-p0] [--strict]`.
+    - Workflow: `.github/workflows/agtoosa-pr-bot.yml` providing out-of-the-box CI integration.
+
 ---
 
-## Future Frontiers: Milestone 12 (v0.6.0 Proposal)
+## Future Frontiers: Milestone 12 & 13 Proposal
 
 | Rank | Cycle ID | Title | Rating | Target Milestone | Strategic Value & Architectural Impact |
 |:---:|---|---|:---:|---|---|
-| 🥇 | **DEV-029** | PR Blast Radius & Breaking Schema Review Bot | **91 / 100** | Milestone 12 (v0.6.0) | **Team & PR Governance**: Automatic GitHub Action PR bot that inspects incoming git diffs against the knowledge graph, generating rich comments with interactive blast radius tables, affected HTTP routes, breaking event schemas, and production traffic risk scores. |
-| 🥈 | **DEV-030** | Distributed OpenTelemetry Trace Ingestion & Dynamic Topology | **87 / 100** | Milestone 12 (v0.6.0) | **True Dynamic Runtime Topology**: Ingests OTLP spans (Jaeger, Zipkin, OpenTelemetry Collector) into the graph to map true network-level RPC/gRPC/HTTP calls between decoupled services alongside static AST callgraphs. |
-| 🥉 | **DEV-028** | Automated C4 Architecture-as-Code & Live Diagram Sync | **82 / 100** | Milestone 12 (v0.6.0) | **Living Documentation**: Automatically synthesizes and syncs C4 architecture diagrams (PlantUML, Mermaid, Structurizr DSL) directly from the knowledge graph and commits updated diagrams to repository docs on build. |
+| 🥇 | **DEV-030** | Distributed OpenTelemetry Trace Ingestion & Dynamic Topology | **87 / 100** | Milestone 12 (v0.6.0) | **True Dynamic Runtime Topology**: Ingests OTLP spans (Jaeger, Zipkin, OpenTelemetry Collector) into the graph to map true network-level RPC/gRPC/HTTP calls between decoupled services alongside static AST callgraphs. |
+| 🥈 | **DEV-028** | Automated C4 Architecture-as-Code & Live Diagram Sync | **82 / 100** | Milestone 12 (v0.6.0) | **Living Documentation**: Automatically synthesizes and syncs C4 architecture diagrams (PlantUML, Mermaid, Structurizr DSL) directly from the knowledge graph and commits updated diagrams to repository docs on build. |
+| 🥉 | **DEV-031** | AI Automated PR Repair & Code Review Agent | **79 / 100** | Milestone 13 (v0.7.0) | **Autonomous Code Healing**: Generates automated PR branch commits with refactor fixes directly resolving detected architectural drift and breaking schema changes. |
 
 

@@ -288,3 +288,66 @@ def cmd_review_boundaries(args: Any, workspace_root: Path) -> int:
     print(f"\nVerdict: {verdict_icon}")
     return 0 if report.passed else 1
 
+
+def cmd_ci_pr_bot(args: Any, workspace_root: Path) -> int:
+    """Run PR Blast Radius & Breaking Schema Review Bot."""
+    from agtoosa.review.pr_bot import PRReviewEngine, PRBotCommentFormatter, post_or_update_pr_comment
+
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    store = GraphStore(db_path)
+    base_ref = getattr(args, "base", "origin/main") or "origin/main"
+    engine = PRReviewEngine(store, workspace_root)
+    analysis = engine.analyze(base_ref=base_ref)
+
+    formatter = PRBotCommentFormatter(analysis)
+    markdown_comment = formatter.format_markdown(pr_number=getattr(args, "pr", None))
+
+    output_path = getattr(args, "output", None)
+    if output_path:
+        out_p = Path(output_path)
+        out_p.parent.mkdir(parents=True, exist_ok=True)
+        out_p.write_text(markdown_comment, encoding="utf-8")
+
+    if getattr(args, "json", False):
+        print(json.dumps(analysis, indent=2))
+    elif not output_path:
+        print(markdown_comment)
+
+    # Post comment if requested
+    if getattr(args, "post_comment", False):
+        token = os.environ.get("GITHUB_TOKEN")
+        repo = os.environ.get("GITHUB_REPOSITORY")
+        pr_number = getattr(args, "pr", None)
+
+        if not pr_number and os.environ.get("GITHUB_REF"):
+            m = re.match(r"refs/pull/(\d+)/", os.environ["GITHUB_REF"])
+            if m:
+                pr_number = int(m.group(1))
+
+        if token and repo and pr_number:
+            try:
+                post_or_update_pr_comment(repo, int(pr_number), markdown_comment, token)
+                print(f"✅ Sticky PR comment posted/updated on {repo}#{pr_number}")
+            except Exception as e:
+                print(f"⚠️ Failed to post PR comment: {e}")
+        else:
+            print("⚠️ Skipping comment posting: Missing GITHUB_TOKEN, GITHUB_REPOSITORY, or PR number.")
+
+    verdict = analysis.get("verdict", "APPROVED")
+    tier = analysis.get("production_risk_tier", "P4_DORMANT")
+
+    if getattr(args, "fail_on_p0", False) and tier == "P0_CRITICAL":
+        print(f"\n🚫 CI Gate Failed: P0_CRITICAL production traffic impacted under --fail-on-p0.")
+        return 1
+
+    if getattr(args, "strict", False) and verdict in ("BLOCKED", "WARNING"):
+        print(f"\n🚫 CI Gate Failed: {verdict} status under --strict mode.")
+        return 1
+
+    return 1 if verdict == "BLOCKED" else 0
+
+
