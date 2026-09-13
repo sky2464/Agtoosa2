@@ -342,6 +342,21 @@ def main(argv=None) -> int:
     guard_parser.add_argument("-C", "--workspace", type=str, default=".", help="Target workspace root")
     guard_parser.add_argument("--json", action="store_true", help="Output guard report as JSON")
 
+    # agtoosa c4 ...
+    c4_parser = subparsers.add_parser("c4", help="C4 Architecture-as-Code export, live diagram sync, and CI drift linting")
+    c4_sub = c4_parser.add_subparsers(dest="c4_action", required=True)
+
+    c4_export_p = c4_sub.add_parser("export", help="Export C4 diagram (Mermaid, PlantUML, Structurizr DSL)")
+    c4_export_p.add_argument("-l", "--level", type=str, default="container", choices=["context", "container", "component", "1", "2", "3"], help="C4 Level (default: container)")
+    c4_export_p.add_argument("-f", "--format", type=str, default="mermaid", choices=["mermaid", "plantuml", "structurizr"], help="Diagram format (default: mermaid)")
+    c4_export_p.add_argument("-o", "--output", type=str, help="Output file path")
+
+    c4_sync_p = c4_sub.add_parser("sync", help="Synchronize C4 diagrams into markdown docs and verify drift in CI")
+    c4_sync_p.add_argument("-d", "--dir", type=str, default="docs/architecture", help="Target architecture directory (default: docs/architecture)")
+    c4_sync_p.add_argument("-f", "--format", type=str, default="mermaid", choices=["mermaid", "plantuml", "structurizr"], help="Diagram format (default: mermaid)")
+    c4_sync_p.add_argument("--check", action="store_true", help="CI validation mode: fail if diagrams are out-of-sync")
+    c4_sync_p.add_argument("--json", action="store_true", help="Output sync result as JSON")
+
     # agtoosa mcp
     subparsers.add_parser("mcp", help="Launch native Model Context Protocol (MCP) server on stdio")
 
@@ -453,6 +468,9 @@ def main(argv=None) -> int:
     elif args.command == "guard":
         from agtoosa.cli.guard_cmd import cmd_guard
         return cmd_guard(args, workspace_root)
+    elif args.command == "c4":
+        from agtoosa.cli.c4_cmd import cmd_c4
+        return cmd_c4(args, workspace_root)
     elif args.command == "version":
         return cmd_version(args, workspace_root)
     elif args.command == "mcp":

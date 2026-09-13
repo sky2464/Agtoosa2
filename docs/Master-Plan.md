@@ -103,6 +103,8 @@ flowchart LR
     S26 --> S29
     S17 --> S30[Stage 30: Distributed OTel Topology (87) ✅]
     S25 --> S30
+    S5 --> S28[Stage 28: C4 Architecture-as-Code (82) ✅]
+    S30 --> S28
 ```
 
 ### Milestone 1: Knowledge Engine Core (v0.2.0-alpha)
@@ -321,15 +323,35 @@ flowchart LR
     - MCP Tool: `agtoosa_get_service_topology`.
     - Studio Visualizer: "Distributed Services & Runtimes" domain tier (`🌐`) and network edge styling.
 
+- **DEV-028 (Stage 28) — Automated C4 Architecture-as-Code & Live Diagram Sync** [✅ Done — Rating: 82/100]
+  - **Objective**: Synthesize hierarchical C4 Architecture diagrams in Mermaid, PlantUML, and Structurizr DSL directly from the knowledge graph and synchronize diagrams into repository docs on build.
+  - **Hierarchical C4 Synthesis**:
+    - Level 1: System Context (Developers, AI agents, core system boundary, external repos, third-party APIs).
+    - Level 2: Container (CLI, MCP server, SQLite store, Web Studio, discovered microservices, event queues).
+    - Level 3: Component (Parser subsystem, Lifecycle engine, Context compiler, Refactor engine, Observability ingester, HTTP endpoints).
+  - **Multi-Syntax Renderers**:
+    - Pure GitHub-compatible Mermaid C4 (`C4Context`, `C4Container`, `C4Component`).
+    - PlantUML C4 macros (`!include <C4/C4_Context>`).
+    - Structurizr DSL (`workspace { model { ... } views { ... } }`).
+  - **Live Documentation Sync & CI Linter**:
+    - In-markdown marker replacement: Automatically updates `<!-- agtoosa-c4-start:<level> -->` blocks in docs/README files.
+    - Standalone diagram sync: Generates `.mmd`, `.puml`, or `.dsl` files in target documentation folders.
+    - CI Drift Linter: `agtoosa c4 sync --check` exits with non-zero status if architecture documentation is out-of-sync.
+  - **CLI & MCP Tooling**:
+    - `agtoosa c4 export [--level context|container|component] [--format mermaid|plantuml|structurizr] [--output <path>]`.
+    - `agtoosa c4 sync [--dir docs/architecture] [--check] [--format mermaid|plantuml|structurizr] [--json]`.
+    - MCP Tool: `agtoosa_get_c4_diagram`.
+
 ---
 
-## Future Frontiers: Milestone 12 & 13 Proposal
+## Future Frontiers: Milestone 13 (v0.7.0 Proposal)
 
 | Rank | Cycle ID | Title | Rating | Target Milestone | Strategic Value & Architectural Impact |
 |:---:|---|---|:---:|---|---|
-| 🥇 | **DEV-028** | Automated C4 Architecture-as-Code & Live Diagram Sync | **82 / 100** | Milestone 12 (v0.6.0) | **Living Documentation**: Automatically synthesizes and syncs C4 architecture diagrams (PlantUML, Mermaid, Structurizr DSL) directly from the knowledge graph and commits updated diagrams to repository docs on build. |
-| 🥈 | **DEV-031** | AI Automated PR Repair & Code Review Agent | **79 / 100** | Milestone 13 (v0.7.0) | **Autonomous Code Healing**: Generates automated PR branch commits with refactor fixes directly resolving detected architectural drift and breaking schema changes. |
-| 🥉 | **DEV-032** | Continuous Performance Regression Benchmarking CI | **74 / 100** | Milestone 13 (v0.7.0) | **Zero-Regression CI**: Automated AST benchmark harness comparing pull request runtime latency against baseline telemetry. |
+| 🥇 | **DEV-031** | AI Automated PR Repair & Code Review Agent | **79 / 100** | Milestone 13 (v0.7.0) | **Autonomous Code Healing**: Generates automated PR branch commits with refactor fixes directly resolving detected architectural drift and breaking schema changes. |
+| 🥈 | **DEV-032** | Continuous Performance Regression Benchmarking CI | **74 / 100** | Milestone 13 (v0.7.0) | **Zero-Regression CI**: Automated AST benchmark harness comparing pull request runtime latency against baseline telemetry. |
+| 🥉 | **DEV-033** | Zero-Knowledge Architecture Cryptographic Attestation | **70 / 100** | Milestone 13 (v0.7.0) | **Cryptographic Security Proofs**: Produces cryptographically signed architectural attestations verifying compliance with layer boundary invariants without exposing proprietary source code. |
+
 
 
 
