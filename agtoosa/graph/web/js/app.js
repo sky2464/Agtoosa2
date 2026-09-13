@@ -107,4 +107,3 @@
     welcomeModal.addEventListener("click", e => {
       if (e.target === welcomeModal) welcomeModal.classList.remove("show");
     });
-  </script>

@@ -193,6 +193,16 @@ class MCPServer:
                         "topic": {"type": "string", "description": "Optional topic name, channel name, or task queue filter"}
                     }
                 }
+            },
+            {
+                "name": "agtoosa_get_service_topology",
+                "description": "Retrieve distributed runtime service topology, cross-service RPC/HTTP call paths, latency percentiles, and network bottlenecks.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "service": {"type": "string", "description": "Optional service name to filter dependencies"}
+                    }
+                }
             }
         ]
 
@@ -310,6 +320,12 @@ class MCPServer:
             topic_filter = args.get("topic")
             ev_res = query_events(self.store, topic=topic_filter)
             return json.dumps(ev_res, indent=2)
+
+        elif name == "agtoosa_get_service_topology":
+            from agtoosa.graph.query import query_topology
+            svc_filter = args.get("service")
+            topo_res = query_topology(self.store, service=svc_filter)
+            return json.dumps(topo_res, indent=2)
 
         return json.dumps({"error": f"Unknown tool: {name}"})
 

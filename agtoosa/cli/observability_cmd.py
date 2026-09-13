@@ -37,6 +37,37 @@ def cmd_telemetry(args: Any, workspace_root: Path) -> int:
             print(f"❌ Failed to ingest telemetry: {e}")
             return 1
 
+    elif action == "traces":
+        target_file = Path(args.file)
+        if not target_file.is_absolute():
+            target_file = (workspace_root / target_file).resolve()
+
+        from agtoosa.observability.traces import TraceTopologyEngine
+        trace_engine = TraceTopologyEngine(store, workspace_root)
+        stitch_ast = not getattr(args, "no_stitch", False)
+
+        try:
+            res = trace_engine.ingest_file(
+                target_file,
+                format_hint=getattr(args, "format", None),
+                stitch_ast=stitch_ast
+            )
+            if getattr(args, "json", False):
+                print(json.dumps(res, indent=2))
+                return 0
+
+            print("🌐 Distributed Trace & Service Topology Ingestion Complete:")
+            print(f"   • Trace File: {target_file.name}")
+            print(f"   • Detected Format: {res['format'].upper()}")
+            print(f"   • Total Spans Parsed: {res['total_spans']}")
+            print(f"   • Services Discovered: {res['services_discovered']}")
+            print(f"   • Network Edges Reconstructed: {res['network_edges_created']}")
+            print(f"   • AST Endpoints Stitched: {res['stitched_ast_endpoints']}")
+            return 0
+        except Exception as e:
+            print(f"❌ Failed to ingest distributed traces: {e}")
+            return 1
+
     elif action == "status":
         all_t = store.get_all_telemetry()
         total_calls = sum(t["call_count"] for t in all_t.values())

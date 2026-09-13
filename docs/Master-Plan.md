@@ -101,6 +101,8 @@ flowchart LR
     S24 --> S29[Stage 29: PR Blast Radius Bot (91) ✅]
     S25 --> S29
     S26 --> S29
+    S17 --> S30[Stage 30: Distributed OTel Topology (87) ✅]
+    S25 --> S30
 ```
 
 ### Milestone 1: Knowledge Engine Core (v0.2.0-alpha)
@@ -300,14 +302,34 @@ flowchart LR
     - CLI: `agtoosa ci pr-bot [--base <ref>] [--pr <num>] [--repo <owner/repo>] [--post-comment] [--output <path>] [--json] [--fail-on-p0] [--strict]`.
     - Workflow: `.github/workflows/agtoosa-pr-bot.yml` providing out-of-the-box CI integration.
 
+- **DEV-030 (Stage 30) — Distributed OpenTelemetry Trace Ingestion & Dynamic Topology** [✅ Done — Rating: 87/100]
+  - **Objective**: Ingest distributed traces across decoupled microservices to map network-level RPC/gRPC/HTTP calls directly alongside static AST callgraphs.
+  - **Multi-Format Trace Parser**:
+    - Supports OpenTelemetry OTLP JSON (v1 `ExportTraceServiceRequest`), Jaeger JSON export format, and Zipkin JSON array format.
+    - Zero external runtime dependencies: Built purely on Python 3.11+ standard library.
+  - **Dynamic Service Topology Engine**:
+    - Reconstructs cross-service parent-child span hierarchies, extracting `NodeType.SERVICE` (`service:<name>`) nodes and directed `EdgeType.NETWORK_CALLS` edges.
+    - Computes link-level metrics: call volume, latency percentiles ($p50, p95, p99$), error rates, and protocols (`http`, `grpc`, `db`, `network`).
+  - **AST Endpoint Stitching**:
+    - Cross-references server spans with local AST `Endpoint` (DEV-025) and `Function` nodes.
+    - Connects remote caller services directly to codebase handlers and records `runtime_telemetry`.
+  - **Topology Query & Diagnostics**:
+    - `query_topology(store, service=...)` computes service dependency graphs, latency bottlenecks ($p95 \ge 300\text{ms}$), error hotspots, and circular service dependencies ($A \leftrightarrow B$).
+  - **Developer & Agent Surfaces**:
+    - CLI: `agtoosa telemetry traces <file> [--format otel|jaeger|zipkin] [--no-stitch] [--json]`.
+    - CLI: `agtoosa graph topology [--service <name>] [--json]`.
+    - MCP Tool: `agtoosa_get_service_topology`.
+    - Studio Visualizer: "Distributed Services & Runtimes" domain tier (`🌐`) and network edge styling.
+
 ---
 
 ## Future Frontiers: Milestone 12 & 13 Proposal
 
 | Rank | Cycle ID | Title | Rating | Target Milestone | Strategic Value & Architectural Impact |
 |:---:|---|---|:---:|---|---|
-| 🥇 | **DEV-030** | Distributed OpenTelemetry Trace Ingestion & Dynamic Topology | **87 / 100** | Milestone 12 (v0.6.0) | **True Dynamic Runtime Topology**: Ingests OTLP spans (Jaeger, Zipkin, OpenTelemetry Collector) into the graph to map true network-level RPC/gRPC/HTTP calls between decoupled services alongside static AST callgraphs. |
-| 🥈 | **DEV-028** | Automated C4 Architecture-as-Code & Live Diagram Sync | **82 / 100** | Milestone 12 (v0.6.0) | **Living Documentation**: Automatically synthesizes and syncs C4 architecture diagrams (PlantUML, Mermaid, Structurizr DSL) directly from the knowledge graph and commits updated diagrams to repository docs on build. |
-| 🥉 | **DEV-031** | AI Automated PR Repair & Code Review Agent | **79 / 100** | Milestone 13 (v0.7.0) | **Autonomous Code Healing**: Generates automated PR branch commits with refactor fixes directly resolving detected architectural drift and breaking schema changes. |
+| 🥇 | **DEV-028** | Automated C4 Architecture-as-Code & Live Diagram Sync | **82 / 100** | Milestone 12 (v0.6.0) | **Living Documentation**: Automatically synthesizes and syncs C4 architecture diagrams (PlantUML, Mermaid, Structurizr DSL) directly from the knowledge graph and commits updated diagrams to repository docs on build. |
+| 🥈 | **DEV-031** | AI Automated PR Repair & Code Review Agent | **79 / 100** | Milestone 13 (v0.7.0) | **Autonomous Code Healing**: Generates automated PR branch commits with refactor fixes directly resolving detected architectural drift and breaking schema changes. |
+| 🥉 | **DEV-032** | Continuous Performance Regression Benchmarking CI | **74 / 100** | Milestone 13 (v0.7.0) | **Zero-Regression CI**: Automated AST benchmark harness comparing pull request runtime latency against baseline telemetry. |
+
 
 

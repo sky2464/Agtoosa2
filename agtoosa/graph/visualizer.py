@@ -29,10 +29,23 @@ class VisualizerEngine:
         "evidence": "#34d399",
         "adr": "#f59e0b",
         "doc": "#fbbf24",
-        "concept": "#fb923c"
+        "concept": "#fb923c",
+        "service": "#3b82f6",
+        "endpoint": "#06b6d4",
+        "topic": "#ec4899",
+        "table": "#8b5cf6"
     }
 
     DOMAIN_CONFIG = {
+        "Distributed Services & Runtimes": {
+            "tier": "Tier 1: Entrypoints & Dispatch",
+            "tier_num": 1,
+            "color": "#3b82f6",
+            "icon": "🌐",
+            "cx": -300,
+            "cy": -380,
+            "desc": "Distributed microservices, external RPC/HTTP runtimes, and client ingress."
+        },
         "CLI Layer": {
             "tier": "Tier 1: Entrypoints & Dispatch",
             "tier_num": 1,
@@ -117,6 +130,8 @@ class VisualizerEngine:
 
         if ntype in ("story", "epic", "criterion", "task"):
             return "Specifications & Delivery"
+        if ntype in ("service",) or path.startswith("runtime://"):
+            return "Distributed Services & Runtimes"
         if ntype in ("test", "evidence") or "test" in path:
             return "Verification & Quality"
         if ntype in ("adr", "doc", "concept") or path.startswith("docs"):

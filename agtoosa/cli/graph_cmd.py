@@ -759,3 +759,77 @@ def cmd_graph_events(args: Any, workspace_root: Path) -> int:
     return 0
 
 
+def cmd_graph_topology(args: Any, workspace_root: Path) -> int:
+    """Inspect distributed runtime service topology, cross-service RPC/HTTP links, and latency bottlenecks."""
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    store = GraphStore(db_path)
+    from agtoosa.graph.query import query_topology
+
+    service_filter = getattr(args, "service", None)
+    topology = query_topology(store, service=service_filter)
+
+    if getattr(args, "json", False):
+        print(json.dumps(topology, indent=2))
+        return 0
+
+    services = topology["services"]
+    edges = topology["network_edges"]
+    bottlenecks = topology["bottlenecks"]
+    error_hotspots = topology["error_hotspots"]
+    circular_deps = topology["circular_dependencies"]
+
+    print("🌐 Distributed Runtime Service Topology (DEV-030)\n")
+    if not services:
+        print("   No distributed services or network traces ingested yet.")
+        print("   Ingest OpenTelemetry, Jaeger, or Zipkin traces with:")
+        print("     agtoosa telemetry traces <trace_file.json>\n")
+        return 0
+
+    print(f"   Discovered Services: {len(services)} | Network Links: {len(edges)} | Total Calls: {topology['total_calls']:,}\n")
+
+    print("   SERVICES & INGRESS/EGRESS:")
+    for s in services:
+        meta = s.get("metadata", {})
+        ingress = s.get("total_ingress_calls", 0)
+        egress = s.get("total_egress_calls", 0)
+        print(f"   • 🌐 {s['name']:<24} (Ingress: {ingress:>6} calls | Egress: {egress:>6} calls)")
+
+    if edges:
+        print("\n   NETWORK CALL PATHS & LATENCY:")
+        print(f"   {'Source':<20} -> {'Target':<28} {'Calls':<8} {'p50 (ms)':<10} {'p95 (ms)':<10} {'Errors'}")
+        print("   " + "-" * 85)
+        for e in edges:
+            src = e["source_id"].replace("service:", "").replace("endpoint:", "")
+            tgt = e["target_id"].replace("service:", "").replace("endpoint:", "")
+            err_str = f"{e['error_count']} ({e['error_rate']*100:.1f}%)" if e['error_count'] > 0 else "0"
+            proto = f"[{e['protocols'][0]}]" if e.get("protocols") else ""
+            print(f"   {src:<20} -> {tgt:<28} {e['call_count']:<8} {e['p50_duration_ms']:<10.2f} {e['p95_duration_ms']:<10.2f} {err_str}")
+
+    if bottlenecks:
+        print("\n   ⚠️  LATENCY BOTTLENECKS (p95 >= 300ms):")
+        for b in bottlenecks:
+            src = b["source_id"].replace("service:", "")
+            tgt = b["target_id"].replace("service:", "")
+            print(f"   • ⏱️  {src} -> {tgt}: p95 = {b['p95_duration_ms']:.1f}ms (avg {b['avg_duration_ms']:.1f}ms across {b['call_count']} calls)")
+
+    if error_hotspots:
+        print("\n   ⚠️  ERROR HOTSPOTS (Errors detected):")
+        for eh in error_hotspots:
+            src = eh["source_id"].replace("service:", "")
+            tgt = eh["target_id"].replace("service:", "")
+            print(f"   • 💥 {src} -> {tgt}: {eh['error_count']} errors ({eh['error_rate']*100:.2f}% error rate)")
+
+    if circular_deps:
+        print("\n   🚨 CIRCULAR SERVICE DEPENDENCIES:")
+        for cd in circular_deps:
+            print(f"   • 🔄 {cd['service_a']} <-> {cd['service_b']} ({cd['description']})")
+
+    print()
+    return 0
+
+
+

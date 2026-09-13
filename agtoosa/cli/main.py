@@ -217,6 +217,11 @@ def main(argv=None) -> int:
     events_p.add_argument("-t", "--topic", type=str, help="Filter by topic or queue name")
     events_p.add_argument("--json", action="store_true", help="Output event lineage as JSON")
 
+    # agtoosa graph topology
+    topo_p = graph_sub.add_parser("topology", help="Inspect distributed runtime service topology, RPC links, and latency bottlenecks")
+    topo_p.add_argument("-s", "--service", type=str, help="Filter topology to specific service name or ID")
+    topo_p.add_argument("--json", action="store_true", help="Output service topology as JSON")
+
 
     # agtoosa context compile <target>
     context_parser = subparsers.add_parser("context", help="Context Compilation v2 (Graph RAG for AI Agents)")
@@ -288,6 +293,12 @@ def main(argv=None) -> int:
     ingest_p = telem_sub.add_parser("ingest", help="Ingest OpenTelemetry trace spans or profiler data")
     ingest_p.add_argument("file", type=str, help="Path to OpenTelemetry JSON, Py-Spy, or metrics JSON")
     ingest_p.add_argument("--format", type=str, choices=["otel", "pyspy", "generic"], help="Format hint")
+
+    traces_p = telem_sub.add_parser("traces", help="Ingest distributed traces (OTLP, Jaeger, Zipkin) and reconstruct dynamic service topology")
+    traces_p.add_argument("file", type=str, help="Path to OTLP JSON, Jaeger JSON, or Zipkin JSON trace file")
+    traces_p.add_argument("--format", type=str, choices=["otel", "jaeger", "zipkin"], help="Format hint")
+    traces_p.add_argument("--no-stitch", action="store_true", help="Disable automatic stitching to local AST HTTP endpoints")
+    traces_p.add_argument("--json", action="store_true", help="Output parsed topology as JSON")
 
     status_p = telem_sub.add_parser("status", help="Display runtime telemetry tracking stats")
     status_p.add_argument("--json", action="store_true", help="Output status as JSON")
@@ -390,6 +401,9 @@ def main(argv=None) -> int:
         elif args.graph_action == "events":
             from agtoosa.cli.graph_cmd import cmd_graph_events
             return cmd_graph_events(args, workspace_root)
+        elif args.graph_action == "topology":
+            from agtoosa.cli.graph_cmd import cmd_graph_topology
+            return cmd_graph_topology(args, workspace_root)
     elif args.command == "context":
 
         from agtoosa.cli.lifecycle_cmd import cmd_context_compile

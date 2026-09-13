@@ -526,3 +526,123 @@ def query_events(store: GraphStore, topic: Optional[str] = None) -> Dict[str, An
         }
 
 
+def query_topology(store: GraphStore, service: Optional[str] = None) -> Dict[str, Any]:
+    """Query runtime distributed service topology, cross-service RPC/HTTP links, and latency bottlenecks."""
+    import json
+    with store._get_connection() as conn:
+        svc_rows = conn.execute(
+            "SELECT id, name, node_type, path, metadata_json FROM nodes WHERE node_type = 'service';"
+        ).fetchall()
+
+        edge_rows = conn.execute(
+            "SELECT source_id, target_id, edge_type, provenance, metadata_json FROM edges WHERE edge_type = 'network_calls';"
+        ).fetchall()
+
+    services_map: Dict[str, Dict[str, Any]] = {}
+    for r in svc_rows:
+        meta = json.loads(r["metadata_json"]) if r["metadata_json"] else {}
+        services_map[r["id"]] = {
+            "id": r["id"],
+            "name": r["name"],
+            "path": r["path"],
+            "metadata": meta,
+            "incoming": [],
+            "outgoing": [],
+            "total_ingress_calls": 0,
+            "total_egress_calls": 0
+        }
+
+    edges_list: List[Dict[str, Any]] = []
+    for er in edge_rows:
+        meta = json.loads(er["metadata_json"]) if er["metadata_json"] else {}
+        calls = meta.get("call_count", 0)
+        avg_lat = meta.get("avg_duration_ms", 0.0)
+        p95_lat = meta.get("p95_duration_ms", avg_lat)
+        err_rate = meta.get("error_rate", 0.0)
+
+        edge_info = {
+            "source_id": er["source_id"],
+            "target_id": er["target_id"],
+            "call_count": calls,
+            "total_duration_ms": meta.get("total_duration_ms", 0.0),
+            "avg_duration_ms": avg_lat,
+            "p50_duration_ms": meta.get("p50_duration_ms", avg_lat),
+            "p95_duration_ms": p95_lat,
+            "p99_duration_ms": meta.get("p99_duration_ms", p95_lat),
+            "error_count": meta.get("error_count", 0),
+            "error_rate": err_rate,
+            "protocols": meta.get("protocols", []),
+            "operations": meta.get("operations", [])
+        }
+        edges_list.append(edge_info)
+
+        if er["source_id"] in services_map:
+            services_map[er["source_id"]]["outgoing"].append(edge_info)
+            services_map[er["source_id"]]["total_egress_calls"] += calls
+
+        if er["target_id"] in services_map:
+            services_map[er["target_id"]]["incoming"].append(edge_info)
+            services_map[er["target_id"]]["total_ingress_calls"] += calls
+
+    # Filter by specific service if requested
+    target_service_id = None
+    if service:
+        clean_name = service.lower().replace("service:", "")
+        for sid, sdata in services_map.items():
+            if sdata["name"].lower() == clean_name or sid.lower() == f"service:{clean_name}":
+                target_service_id = sid
+                break
+
+    if target_service_id:
+        connected_ids = {target_service_id}
+        for e in edges_list:
+            if e["source_id"] == target_service_id:
+                connected_ids.add(e["target_id"])
+            if e["target_id"] == target_service_id:
+                connected_ids.add(e["source_id"])
+
+        services_map = {sid: sdata for sid, sdata in services_map.items() if sid in connected_ids}
+        edges_list = [
+            e for e in edges_list
+            if e["source_id"] in connected_ids and e["target_id"] in connected_ids
+        ]
+
+    # Detect Latency Bottlenecks (p95 >= 300ms or high average latency)
+    bottlenecks = [
+        e for e in edges_list
+        if e["p95_duration_ms"] >= 300.0 or e["avg_duration_ms"] >= 200.0
+    ]
+    bottlenecks.sort(key=lambda x: x["p95_duration_ms"], reverse=True)
+
+    # Detect Error Hotspots (error_rate >= 0.05 or error_count > 0)
+    error_hotspots = [
+        e for e in edges_list
+        if e["error_rate"] >= 0.05 or e["error_count"] > 0
+    ]
+    error_hotspots.sort(key=lambda x: x["error_rate"], reverse=True)
+
+    # Detect Circular Service Dependencies (A -> B -> A)
+    circular_deps = []
+    edge_pairs = set((e["source_id"], e["target_id"]) for e in edges_list)
+    for (src, tgt) in edge_pairs:
+        if src.startswith("service:") and tgt.startswith("service:") and src < tgt:
+            if (tgt, src) in edge_pairs:
+                circular_deps.append({
+                    "service_a": src,
+                    "service_b": tgt,
+                    "description": f"Bidirectional network call dependency between {src} and {tgt}"
+                })
+
+    return {
+        "services": list(services_map.values()),
+        "network_edges": edges_list,
+        "bottlenecks": bottlenecks,
+        "error_hotspots": error_hotspots,
+        "circular_dependencies": circular_deps,
+        "total_services": len(services_map),
+        "total_network_edges": len(edges_list),
+        "total_calls": sum(e["call_count"] for e in edges_list)
+    }
+
+
+

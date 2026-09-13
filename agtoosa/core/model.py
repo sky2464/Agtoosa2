@@ -20,6 +20,7 @@ class NodeType(str, Enum):
     ENDPOINT = "endpoint"
     TABLE = "table"
     TOPIC = "topic"
+    SERVICE = "service"
 
     # Specification & Delivery Layer
     EPIC = "epic"
@@ -55,6 +56,7 @@ class EdgeType(str, Enum):
     MAPS_TO = "maps_to"
     PUBLISHES = "publishes"
     SUBSCRIBES = "subscribes"
+    NETWORK_CALLS = "network_calls"
 
 
 
