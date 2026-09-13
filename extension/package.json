@@ -2,7 +2,7 @@
   "name": "agtoosa-vscode",
   "displayName": "Agtoosa — Architecture Command Center & Graph Navigator",
   "description": "Zero-dependency architecture intelligence, real-time caller blast radius, drift alarms, and C4 visualizer for VS Code & Cursor.",
-  "version": "0.2.1",
+  "version": "0.5.0",
   "publisher": "agtoosa",
   "license": "MIT",
   "repository": {
@@ -23,7 +23,8 @@
     "blast-radius",
     "callers",
     "clean-architecture",
-    "cursor"
+    "cursor",
+    "refactoring"
   ],
   "main": "./extension.js",
   "activationEvents": [
@@ -38,8 +39,6 @@
     "onLanguage:cpp",
     "onLanguage:csharp",
     "onLanguage:shellscript"
-    
-    
   ],
   "contributes": {
     "viewsContainers": {
@@ -96,6 +95,24 @@
         "title": "Agtoosa: Remember Architectural Rule",
         "category": "Agtoosa",
         "icon": "$(lightbulb)"
+      },
+      {
+        "command": "agtoosa.pruneDeadSymbol",
+        "title": "Agtoosa: Safe Prune Dead Symbol",
+        "category": "Agtoosa",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "agtoosa.decoupleCycle",
+        "title": "Agtoosa: Decouple Cyclic Dependency",
+        "category": "Agtoosa",
+        "icon": "$(split-horizontal)"
+      },
+      {
+        "command": "agtoosa.toggleHotspots",
+        "title": "Agtoosa: Toggle Runtime Telemetry Hotspots",
+        "category": "Agtoosa",
+        "icon": "$(flame)"
       }
     ],
     "menus": {
@@ -134,6 +151,16 @@
           "type": "boolean",
           "default": true,
           "description": "Report architectural drift alarms and layer boundary violations in editor problems panel."
+        },
+        "agtoosa.enableGutterHotspots": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show runtime telemetry execution heatmaps (hot paths, error rates) in editor gutters."
+        },
+        "agtoosa.enableQuickFixRefactoring": {
+          "type": "boolean",
+          "default": true,
+          "description": "Offer 1-click QuickFix refactoring actions (prune dead code, decouple cycles) directly on symbols."
         },
         "agtoosa.maxBlastRadiusDepth": {
           "type": "integer",

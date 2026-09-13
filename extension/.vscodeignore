@@ -1,0 +1,14 @@
+.vscode/**
+.vscode-test/**
+out/**
+node_modules/**
+src/**
+**/*.map
+.gitignore
+.git/**
+*.log
+*.vsix
+tests/**
+coverage/**
+.venv/**
+.agtoosa/**

@@ -49,6 +49,16 @@ class TestExtensionManifest(unittest.TestCase):
         self.assertIn("agtoosa.runReview", cmd_ids)
         self.assertIn("agtoosa.inspectBlastRadius", cmd_ids)
         self.assertIn("agtoosa.rememberRule", cmd_ids)
+        self.assertIn("agtoosa.pruneDeadSymbol", cmd_ids)
+        self.assertIn("agtoosa.decoupleCycle", cmd_ids)
+        self.assertIn("agtoosa.toggleHotspots", cmd_ids)
+
+    def test_extension_configuration(self):
+        props = self.pkg.get("contributes", {}).get("configuration", {}).get("properties", {})
+        self.assertIn("agtoosa.enableCodeLens", props)
+        self.assertIn("agtoosa.enableDiagnostics", props)
+        self.assertIn("agtoosa.enableGutterHotspots", props)
+        self.assertIn("agtoosa.enableQuickFixRefactoring", props)
 
     def test_extension_script_syntax(self):
         ext_js = REPO_ROOT / "extension" / "extension.js"
@@ -60,12 +70,39 @@ class TestExtensionManifest(unittest.TestCase):
         self.assertIn("class AgtoosaCodeLensProvider", content)
         self.assertIn("class AgtoosaArchitectureTreeProvider", content)
         self.assertIn("class AgtoosaBlastRadiusProvider", content)
+        self.assertIn("class AgtoosaGutterDecorator", content)
+        self.assertIn("class AgtoosaCodeActionProvider", content)
 
         # If node executable is available, verify syntax
         node_bin = shutil.which("node")
         if node_bin:
             res = subprocess.run([node_bin, "-c", str(ext_js)], capture_output=True, text=True)
             self.assertEqual(res.returncode, 0, f"extension.js syntax error: {res.stderr}")
+
+    def test_vsix_packaging_script(self):
+        """Verify build_vsix generates a valid OPC/VSIX archive with manifests."""
+        import zipfile
+        from scripts.build_extension import build_vsix
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            out_dir = Path(tmp_dir)
+            vsix_file = build_vsix(REPO_ROOT, output_dir=out_dir)
+            self.assertTrue(vsix_file.exists())
+            self.assertTrue(vsix_file.name.startswith("agtoosa-vscode-0.5.0.vsix"))
+
+            with zipfile.ZipFile(vsix_file, "r") as z:
+                names = z.namelist()
+                self.assertIn("extension.vsixmanifest", names)
+                self.assertIn("[Content_Types].xml", names)
+                self.assertIn("extension/package.json", names)
+                self.assertIn("extension/extension.js", names)
+                self.assertIn("extension/resources/hot.svg", names)
+                self.assertIn("extension/resources/error.svg", names)
+                self.assertIn("extension/resources/cold.svg", names)
+
+                manifest_xml = z.read("extension.vsixmanifest").decode("utf-8")
+                self.assertIn('Version="0.5.0"', manifest_xml)
+                self.assertIn('Id="agtoosa-vscode"', manifest_xml)
 
 
 class TestCLISymbolsAndJSONAPI(unittest.TestCase):

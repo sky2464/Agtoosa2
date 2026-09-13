@@ -1,0 +1,52 @@
+name: Extension Marketplace Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-extension:
+    name: Package & Publish VS Code / Cursor Extension
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build VSIX Package
+        run: |
+          python scripts/build_extension.py
+
+      - name: Upload VSIX Asset
+        uses: actions/upload-artifact@v4
+        with:
+          name: agtoosa-vscode-vsix
+          path: dist/*.vsix
+
+      - name: Publish to VS Code Marketplace
+        if: env.VSCE_PAT != ''
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          npx -y @vscode/vsce publish --packagePath dist/*.vsix -p "$VSCE_PAT" || echo "VSCE publish skipped or token not configured"
+
+      - name: Publish to Open VSX Registry
+        if: env.OVSX_PAT != ''
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          npx -y ovsx publish dist/*.vsix -p "$OVSX_PAT" || echo "Open VSX publish skipped or token not configured"

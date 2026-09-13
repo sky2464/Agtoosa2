@@ -111,7 +111,7 @@ flowchart LR
     S22 --> S24[Stage 24: Pre-Push Arch Daemon (72) ✅]
     S15 --> S25[Stage 25: Framework DI & Routes (96) ✅]
     S25 --> S26[Stage 26: Async Event Bus Lineage (85) ✅]
-    S26 --> S27[Stage 27: In-Editor Gutter Lens (89) 📋]
+    S26 --> S27[Stage 27: In-Editor Gutter Lens (89) ✅]
     S13 --> S27
     S23 --> S27
 ```
@@ -280,16 +280,19 @@ flowchart LR
     - MCP Tool: `agtoosa_get_event_lineage` providing AI coding agents with instant cross-boundary event lineage.
 
 ### Milestone 11: Real-Time Developer Surface & In-Editor CodeLens (v0.5.0)
-- **DEV-027 (Stage 27) — VS Code & Cursor In-Editor Gutter Lens & Marketplace** [📋 Planned — Rating: 89/100]
+- **DEV-027 (Stage 27) — VS Code & Cursor In-Editor Gutter Lens & Marketplace** [✅ Done — Rating: 89/100]
   - **Objective**: Embed Agtoosa's architectural intelligence and autonomous refactoring directly into developer flow in VS Code and Cursor editors.
   - **Real-Time CodeLens & Gutter Overlays**:
-    - Live upstream caller badges (e.g. `⎇ 14 callers | 💥 blast radius: 6`) floating above function/class declarations.
-    - Gutter color coding for runtime heatmap hotspots (hot/cold call frequencies from OpenTelemetry).
-  - **In-Editor 1-Click Refactoring Actions**:
-    - Quick Fix code actions in the editor:
-      - **"✂️ Agtoosa: Safe Prune Dead Symbol"**: Invokes RefactorEngine with automatic atomic backup.
-      - **"🔄 Agtoosa: Decouple Cyclic Dependency"**: Generates interface protocol and updates call signatures.
+    - Live upstream caller badges (`⎇ N callers | 💥 blast radius: <RISK>`) floating above function/class declarations.
+    - Gutter color coding and icons (`hot.svg`, `error.svg`, `cold.svg`) for runtime telemetry hotspots from OpenTelemetry heatmaps.
+  - **In-Editor 1-Click Refactoring Actions (QuickFix)**:
+    - **"✂️ Agtoosa: Safe Prune Dead Symbol"**: Invokes RefactorEngine with automatic atomic backup.
+    - **"🔄 Agtoosa: Decouple Cyclic Dependency"**: Generates interface protocol and updates call signatures.
+    - **"🛡️ Agtoosa: Inspect Blast Radius"**: Inspects active symbol blast radius.
+  - **Pre-Push Guard Status Bar**:
+    - Real-time status bar badge (`$(shield) Agtoosa: Invariants Clean` vs `$(alert) Agtoosa: N Drift Alarms`).
   - **Packaging & Ecosystem Distribution**:
-    - Production packaging of `extension/` into standard `.vsix`.
-    - Automated GitHub Actions release pipeline publishing to **VS Code Marketplace** and **Open VSX Registry**.
+    - Zero-dependency Python VSIX builder: `scripts/build_extension.py` generating Open VSIX OPC packages (`agtoosa-vscode-0.5.0.vsix`).
+    - Automated GitHub Actions release pipeline (`.github/workflows/marketplace-release.yml`) publishing to **VS Code Marketplace** and **Open VSX Registry**.
+    - Full version synchronization across repository to `0.5.0`.
 
