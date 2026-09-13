@@ -4,6 +4,20 @@
 
 Agtoosa2 unifies code comprehension, project planning, and delivery assurance into a single, queryable local knowledge graph. Built from the ground up to replace legacy template generators, Agtoosa2 provides zero-bloat, cross-platform engineering intelligence.
 
+## Why Agtoosa2?
+
+Grep and "find references" show you where a symbol appears. Agtoosa2 gives your codebase — and your AI agent — an actual model of it, so these stop being manual work:
+
+- **Know the blast radius before you touch code.** `agtoosa graph impact <symbol>` traces the real call/import graph across code, specs, and tests — not just text matches.
+- **Prove a change is done, not just merged.** Delivery gates (`Spec → Build → Review → Ship`) are backed by graph edges (`IMPLEMENTS`, `VERIFIES`, `EVIDENCED_BY`), so `agtoosa ship verify` checks a story has passing tests and evidence behind it — no manual checklist.
+- **Stop paying for context your agent doesn't need.** Context Compilation v2 hands AI agents a bounded, precision subgraph instead of whole files, targeting >70% token reduction.
+- **One MCP server, any agent.** `agtoosa mcp` exposes graph search, impact analysis, and task context as MCP tools that Claude Code, Cursor, Windsurf, Copilot, and Gemini CLI can all call directly, instead of scraping terminal output.
+- **Cross-repo impact in microservice setups.** `agtoosa graph federate` links repos via OpenAPI/gRPC/GraphQL contracts so impact analysis crosses service boundaries.
+- **Catches drift in CI, not in prod.** The bundled GitHub Action posts impact comments and can block merges on graph-verified architectural drift.
+- **Zero infrastructure.** Everything lives in one local SQLite file (`.agtoosa/graph.db`) — no vector DB, no daemon, no cloud dependency to stand up.
+
+**The short version:** your AI agent stops guessing about your codebase because it now has a queryable, provable model of it.
+
 ## Core Capabilities
 
 - 🧠 **Unified Knowledge Graph**: Connects code AST symbols, specifications (Stories & Criteria), tasks, and test evidence in a transactional SQLite store.
