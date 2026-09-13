@@ -75,6 +75,16 @@ class TestStudioServer(unittest.TestCase):
             self.assertEqual(resp.status, 200)
             self.assertIn("application/json", resp.headers.get("Content-Type", ""))
 
+    def test_favicon_request(self):
+        url_favicon = f"http://127.0.0.1:{self.port}/favicon.ico"
+        req_get = urllib.request.Request(url_favicon, method="GET")
+        with urllib.request.urlopen(req_get) as resp:
+            self.assertEqual(resp.status, 204)
+
+        req_head = urllib.request.Request(url_favicon, method="HEAD")
+        with urllib.request.urlopen(req_head) as resp:
+            self.assertEqual(resp.status, 204)
+
     def test_api_refactor_prune_and_rollback(self):
         # 1. Prune
         payload = {

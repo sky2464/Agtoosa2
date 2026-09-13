@@ -12,7 +12,7 @@ from agtoosa.c4.sync import C4SyncManager
 
 
 def _parse_level(level_str: str) -> C4Level:
-    clean = str(level_str).lower().strip()
+    clean = level_str.lower().strip()
     if clean in ("1", "context"):
         return C4Level.CONTEXT
     if clean in ("2", "container"):

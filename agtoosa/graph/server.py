@@ -60,6 +60,10 @@ class StudioHTTPHandler(BaseHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
             return
+        elif parsed.path == "/favicon.ico":
+            self.send_response(204)
+            self.end_headers()
+            return
         self.send_error(404, "Not Found")
 
     def do_GET(self) -> None:
@@ -77,6 +81,11 @@ class StudioHTTPHandler(BaseHTTPRequestHandler):
                 self.wfile.write(payload)
             except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
                 pass
+            return
+
+        elif parsed.path == "/favicon.ico":
+            self.send_response(204)
+            self.end_headers()
             return
 
         elif parsed.path == "/api/graph":
