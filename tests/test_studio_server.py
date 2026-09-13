@@ -7,6 +7,7 @@ import threading
 import time
 import unittest
 import urllib.request
+from typing import Any, Dict, Optional
 
 from agtoosa.core.model import Node, Edge, NodeType, EdgeType
 from agtoosa.graph.store import GraphStore
@@ -41,7 +42,7 @@ class TestStudioServer(unittest.TestCase):
         self.server.server_close()
         self.temp_dir.cleanup()
 
-    def _request(self, path: str, method: str = "GET", data: dict = None):
+    def _request(self, path: str, method: str = "GET", data: Optional[Dict[str, Any]] = None):
         url = f"http://127.0.0.1:{self.port}{path}"
         req_data = json.dumps(data).encode("utf-8") if data is not None else None
         req = urllib.request.Request(url, data=req_data, method=method)
@@ -60,6 +61,19 @@ class TestStudioServer(unittest.TestCase):
         status, graph_json = self._request("/api/graph")
         self.assertEqual(status, 200)
         self.assertIn("graphData", graph_json)
+
+    def test_head_request(self):
+        url = f"http://127.0.0.1:{self.port}/"
+        req = urllib.request.Request(url, method="HEAD")
+        with urllib.request.urlopen(req) as resp:
+            self.assertEqual(resp.status, 200)
+            self.assertIn("text/html", resp.headers.get("Content-Type", ""))
+
+        url_api = f"http://127.0.0.1:{self.port}/api/graph"
+        req_api = urllib.request.Request(url_api, method="HEAD")
+        with urllib.request.urlopen(req_api) as resp:
+            self.assertEqual(resp.status, 200)
+            self.assertIn("application/json", resp.headers.get("Content-Type", ""))
 
     def test_api_refactor_prune_and_rollback(self):
         # 1. Prune

@@ -50,9 +50,9 @@ def _percentile(values: List[float], p: float) -> float:
     f = math.floor(k)
     c = math.ceil(k)
     if f == c:
-        return values[int(k)]
-    d0 = values[int(f)] * (c - k)
-    d1 = values[int(c)] * (k - f)
+        return values[f]
+    d0 = values[f] * (c - k)
+    d1 = values[c] * (k - f)
     return d0 + d1
 
 
@@ -173,11 +173,18 @@ class TraceTopologyEngine:
         for rs in raw_resource_spans:
             # Extract service name from resource attributes
             service_name = "unknown-service"
-            resource = rs.get("resource", {})
-            for attr in resource.get("attributes", []):
-                key = attr.get("key")
-                if key in ("service.name", "service_name"):
-                    service_name = str(self._extract_attr_val(attr.get("value", "")))
+            resource = rs.get("resource", {}) if isinstance(rs, dict) else {}
+            resource_attrs: List[Any] = []
+            if isinstance(resource, dict):
+                resource_attrs = resource.get("attributes", [])
+            elif isinstance(resource, list):
+                resource_attrs = resource
+
+            for attr in resource_attrs:
+                if isinstance(attr, dict):
+                    key = attr.get("key")
+                    if key in ("service.name", "service_name"):
+                        service_name = str(self._extract_attr_val(attr.get("value", "")))
 
             for ss in rs.get("scopeSpans", []):
                 for s in ss.get("spans", []):

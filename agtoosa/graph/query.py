@@ -165,7 +165,7 @@ def compute_impact(
 
     with store._get_connection() as conn:
         rows = conn.execute(query_sql, (target_id, safe_depth, target_id)).fetchall()
-        impacted_nodes = []
+        impacted_nodes: List[Dict[str, Any]] = []
         for r in rows:
             meta = {}
             try:
@@ -178,17 +178,17 @@ def compute_impact(
                 continue
 
             impacted_nodes.append({
-                "id": r["id"],
-                "name": r["name"],
-                "node_type": r["node_type"],
-                "path": r["path"],
-                "depth": r["depth"],
-                "relationship": r["rel_type"],
-                "via": r["via_id"],
-                "repo": repo
+                "id": str(r["id"]),
+                "name": str(r["name"]),
+                "node_type": str(r["node_type"]),
+                "path": str(r["path"]) if r["path"] is not None else None,
+                "depth": int(r["depth"]) if r["depth"] is not None else 1,
+                "relationship": str(r["rel_type"]) if r["rel_type"] is not None else None,
+                "via": str(r["via_id"]) if r["via_id"] is not None else None,
+                "repo": str(repo)
             })
 
-    repos_impacted = sorted(list(set(imp["repo"] for imp in impacted_nodes if imp["repo"] != "local")))
+    repos_impacted = sorted(list(set(str(imp["repo"]) for imp in impacted_nodes if imp["repo"] != "local")))
 
     prod_summary = None
     if production:
@@ -202,7 +202,7 @@ def compute_impact(
         dormant_callers = 0
 
         for imp in impacted_nodes:
-            t = all_telem.get(imp["id"], {})
+            t = all_telem.get(str(imp["id"]), {})
             calls = t.get("call_count", 0)
             avg_ms = t.get("avg_duration_ms", 0.0)
             err_rate = t.get("error_rate", 0.0)
@@ -234,7 +234,7 @@ def compute_impact(
             risk_tier = "P4_DORMANT"
 
         # Sort impacted nodes by traffic volume descending
-        impacted_nodes.sort(key=lambda x: (x.get("call_count", 0), -x["depth"]), reverse=True)
+        impacted_nodes.sort(key=lambda x: (int(x.get("call_count", 0)), -int(x.get("depth", 1))), reverse=True)
 
         prod_summary = {
             "risk_tier": risk_tier,
