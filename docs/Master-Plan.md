@@ -342,14 +342,34 @@ flowchart LR
     - `agtoosa c4 sync [--dir docs/architecture] [--check] [--format mermaid|plantuml|structurizr] [--json]`.
     - MCP Tool: `agtoosa_get_c4_diagram`.
 
+- **DEV-031 (Stage 31) — AI Automated PR Repair & Code Review Agent** [✅ Done — Rating: 79/100]
+  - **Objective**: Autonomous AI repair agent that inspects PR diffs, identifies architectural violations (cycles, dead code, layer boundary leaks), synthesizes verified AST refactor patches, and creates git commits with atomic rollback safety.
+  - **Autonomous Diagnostics**:
+    - Scans graph invariants and Tarjan cycle detection to uncover circular dependencies.
+    - Queries unreachable zero-caller symbols with confidence scoring for dead code pruning.
+    - Detects layer boundary violations and monorepo encapsulation leaks.
+  - **Verified Patch Synthesis & Decoupling**:
+    - Automated Dependency Inversion (DIP) interface protocol extraction via `CycleDecouplerEngine`.
+    - AST-level safe dead code removal via `DeadCodePruner` and `RefactorEngine`.
+    - Computes unified diffs for `--dry-run` inspection without mutating the workspace.
+  - **Post-Repair Verification & Atomic Rollback Gate**:
+    - Automatically audits invariants following patch application.
+    - Instantly triggers transactional rollback (`RefactorEngine.rollback`) if cycle violations persist.
+  - **Git Branch & Commit Automation**:
+    - Stages modified files and crafts commit messages: `refactor(arch): auto-repair <issue_type> (<plan_id>)`.
+    - Optional branch targeting with `--branch <name>`.
+  - **CLI & MCP Tooling**:
+    - CLI: `agtoosa ci repair [--base <ref>] [--apply] [--dry-run] [--branch <name>] [--json]`.
+    - MCP Tool: `agtoosa_auto_repair_pr`.
+
 ---
 
-## Future Frontiers: Milestone 13 (v0.7.0 Proposal)
+## Future Frontiers: Milestone 13 (v0.7.0)
 
 | Rank | Cycle ID | Title | Rating | Target Milestone | Strategic Value & Architectural Impact |
 |:---:|---|---|:---:|---|---|
-| 🥇 | **DEV-031** | AI Automated PR Repair & Code Review Agent | **79 / 100** | Milestone 13 (v0.7.0) | **Autonomous Code Healing**: Generates automated PR branch commits with refactor fixes directly resolving detected architectural drift and breaking schema changes. |
-| 🥈 | **DEV-032** | Continuous Performance Regression Benchmarking CI | **74 / 100** | Milestone 13 (v0.7.0) | **Zero-Regression CI**: Automated AST benchmark harness comparing pull request runtime latency against baseline telemetry. |
+| 🥇 | **DEV-031** | AI Automated PR Repair & Code Review Agent | **79 / 100** | Milestone 13 (v0.7.0) [✅ Done] | **Autonomous Code Healing**: Generates automated PR branch commits with refactor fixes directly resolving detected architectural drift and breaking schema changes. |
+| 🥈 | **DEV-032** | Continuous Performance Regression Benchmarking CI | **74 / 100** | Milestone 13 (v0.7.0) [In Progress] | **Zero-Regression CI**: Automated AST benchmark harness comparing pull request runtime latency against baseline telemetry. |
 | 🥉 | **DEV-033** | Zero-Knowledge Architecture Cryptographic Attestation | **70 / 100** | Milestone 13 (v0.7.0) | **Cryptographic Security Proofs**: Produces cryptographically signed architectural attestations verifying compliance with layer boundary invariants without exposing proprietary source code. |
 
 

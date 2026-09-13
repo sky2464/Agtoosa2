@@ -215,6 +215,17 @@ class MCPServer:
                         "title": {"type": "string", "description": "Optional custom diagram title"}
                     }
                 }
+            },
+            {
+                "name": "agtoosa_auto_repair_pr",
+                "description": "Autonomous AI repair agent diagnosing and synthesizing verified AST refactoring patches for circular dependencies, dead code, and architectural drift.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "dry_run": {"type": "boolean", "description": "Preview refactoring patch diff without modifying files", "default": True},
+                        "base_ref": {"type": "string", "description": "Optional base git ref for diff evaluation"}
+                    }
+                }
             }
         ]
 
@@ -350,6 +361,28 @@ class MCPServer:
                 "level": lvl,
                 "format": fmt,
                 "diagram": diagram
+            }, indent=2)
+
+        elif name == "agtoosa_auto_repair_pr":
+            from agtoosa.repair.agent import PRAgentRepairEngine
+            engine = PRAgentRepairEngine(self.store, self.workspace_root)
+            dry_run = args.get("dry_run", True)
+            base_ref = args.get("base_ref")
+            issues = engine.diagnose(base_ref=base_ref)
+            repairs = []
+            for issue in issues:
+                plan = engine.synthesize_repair(issue)
+                if plan:
+                    res = engine.apply_and_verify(plan, dry_run=dry_run)
+                    repairs.append({
+                        "issue": issue.to_dict(),
+                        "plan": plan.to_dict(),
+                        "result": res
+                    })
+            return json.dumps({
+                "status": "clean" if not issues else ("dry_run" if dry_run else "repaired"),
+                "total_issues": len(issues),
+                "repairs": repairs
             }, indent=2)
 
         return json.dumps({"error": f"Unknown tool: {name}"})

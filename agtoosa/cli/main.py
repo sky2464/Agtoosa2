@@ -278,6 +278,13 @@ def main(argv=None) -> int:
     ci_pr_bot_p.add_argument("--fail-on-p0", action="store_true", help="Fail if P0_CRITICAL production traffic is impacted")
     ci_pr_bot_p.add_argument("--strict", action="store_true", help="Fail if any warnings or errors are present")
 
+    ci_repair_p = ci_sub.add_parser("repair", help="Autonomous AI repair agent diagnosing and healing architectural violations")
+    ci_repair_p.add_argument("--apply", action="store_true", help="Apply refactor patch and verify invariants")
+    ci_repair_p.add_argument("--dry-run", action="store_true", help="Preview unified repair diff without modifying files")
+    ci_repair_p.add_argument("--base", type=str, help="Base git ref for diff evaluation")
+    ci_repair_p.add_argument("--branch", type=str, help="Create and commit to a new git branch (e.g. fix/arch-repair)")
+    ci_repair_p.add_argument("--json", action="store_true", help="Output repair plan as JSON")
+
     # agtoosa version
     version_parser = subparsers.add_parser("version", help="Display version and runtime diagnostic information")
     version_parser.add_argument("--json", action="store_true", help="Output diagnostic information as JSON")
@@ -446,6 +453,9 @@ def main(argv=None) -> int:
         elif args.ci_action == "pr-bot":
             from agtoosa.cli.lifecycle_cmd import cmd_ci_pr_bot
             return cmd_ci_pr_bot(args, workspace_root)
+        elif args.ci_action == "repair":
+            from agtoosa.cli.lifecycle_cmd import cmd_ci_repair
+            return cmd_ci_repair(args, workspace_root)
     elif args.command == "ship":
         from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_ship
         return cmd_lifecycle_ship(args, workspace_root)

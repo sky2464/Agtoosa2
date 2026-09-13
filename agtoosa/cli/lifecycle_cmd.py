@@ -351,3 +351,89 @@ def cmd_ci_pr_bot(args: Any, workspace_root: Path) -> int:
     return 1 if verdict == "BLOCKED" else 0
 
 
+def cmd_ci_repair(args: Any, workspace_root: Path) -> int:
+    """Autonomous AI repair agent diagnosing and healing architectural violations in CI."""
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print("⚠️ Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    store = GraphStore(db_path)
+    from agtoosa.repair.agent import PRAgentRepairEngine
+
+    engine = PRAgentRepairEngine(store, workspace_root)
+    base_ref = getattr(args, "base", None)
+    apply_mode = getattr(args, "apply", False)
+    dry_run = getattr(args, "dry_run", not apply_mode)
+    branch_name = getattr(args, "branch", None)
+
+    issues = engine.diagnose(base_ref=base_ref)
+
+    if not issues:
+        if getattr(args, "json", False):
+            print(json.dumps({"status": "clean", "issues_count": 0, "repairs": []}, indent=2))
+            return 0
+        print("✅ No architectural violations or drift detected. Workspace is clean.")
+        return 0
+
+    results = []
+    print(f"🩺 Diagnosed {len(issues)} Architectural Violation(s):\n")
+
+    for idx, issue in enumerate(issues, 1):
+        print(f"   [{idx}/{len(issues)}] {issue.severity}: {issue.description}")
+        print(f"       Suggested Strategy: {issue.suggested_action}")
+
+        plan = engine.synthesize_repair(issue)
+        if not plan:
+            print("       ⚠️ Autonomous patch synthesis not supported for this issue type.\n")
+            results.append({"issue": issue.to_dict(), "synthesized": False})
+            continue
+
+        print(f"       Plan ID: {plan.plan_id}")
+        print(f"       Files to modify: {', '.join(plan.files_modified)}")
+
+        if dry_run:
+            print("       Mode: DRY-RUN (Preview Diff):\n")
+            for line in plan.diff.splitlines()[:15]:
+                print(f"         {line}")
+            if len(plan.diff.splitlines()) > 15:
+                print(f"         ... ({len(plan.diff.splitlines()) - 15} more diff lines)")
+            print()
+            results.append({
+                "issue": issue.to_dict(),
+                "plan": plan.to_dict(),
+                "applied": False,
+                "dry_run": True
+            })
+        else:
+            print("       Applying patch and verifying architectural invariants...")
+            apply_res = engine.apply_and_verify(plan, dry_run=False)
+            if apply_res["success"]:
+                print(f"       ✅ Patch applied & verified! (Backup ID: {apply_res['backup_id']})")
+                if branch_name:
+                    commit_res = engine.create_git_commit(plan, branch_name=branch_name)
+                    if commit_res["success"]:
+                        print(f"       🌿 Committed to branch '{commit_res['branch']}': {commit_res['commit_hash']}")
+                    else:
+                        print(f"       ⚠️ Git commit failed: {commit_res.get('error')}")
+                print()
+            else:
+                print(f"       ❌ Verification failed! Atomic rollback executed: {apply_res.get('reason')}\n")
+
+            results.append({
+                "issue": issue.to_dict(),
+                "plan": plan.to_dict(),
+                "result": apply_res
+            })
+
+    if getattr(args, "json", False):
+        print(json.dumps({
+            "status": "repaired" if apply_mode else "dry_run",
+            "total_issues": len(issues),
+            "results": results
+        }, indent=2))
+
+    return 0
+
+
+

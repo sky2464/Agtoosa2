@@ -260,3 +260,6 @@ class ArchitecturalGuard:
                 if on_tick:
                     on_tick(report)
             ticks += 1
+
+
+ArchGuard = ArchitecturalGuard
