@@ -436,4 +436,144 @@ def cmd_ci_repair(args: Any, workspace_root: Path) -> int:
     return 0
 
 
+def cmd_ci_benchmark(args: Any, workspace_root: Path) -> int:
+    """Run automated CI continuous performance regression benchmark against baseline."""
+    from agtoosa.benchmark.harness import BenchmarkHarness
+    from agtoosa.benchmark.analyzer import RegressionAnalyzer
+    from agtoosa.benchmark.baseline import BenchmarkBaselineStore
+
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print("⚠️ Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    store = GraphStore(db_path)
+    base_ref = getattr(args, "base", None)
+    threshold_pct = float(getattr(args, "threshold", 10.0))
+    strict = getattr(args, "strict", False)
+    save_baseline = getattr(args, "save_baseline", False)
+    output_path = getattr(args, "output", None)
+    json_mode = getattr(args, "json", False)
+
+    harness = BenchmarkHarness(store, workspace_root)
+    baseline_store = BenchmarkBaselineStore(workspace_root)
+    analyzer = RegressionAnalyzer(store, workspace_root, baseline_store)
+
+    targets = harness.discover_targets(base_ref=base_ref)
+    if not json_mode:
+        print(f"⚡ Discovered {len(targets)} benchmarkable symbol(s)")
+
+    results = []
+    for t in targets:
+        res = harness.run_benchmark(t, iterations=50, warmup=5)
+        results.append(res)
+
+    report = analyzer.analyze(results, threshold_pct=threshold_pct)
+
+    if save_baseline and results:
+        baseline_store.save_baseline(results, tag="ci")
+        if not json_mode:
+            print("💾 Performance baseline saved to .agtoosa/benchmarks/baseline.json")
+
+    if output_path:
+        Path(output_path).write_text(report.to_markdown(), encoding="utf-8")
+        if not json_mode:
+            print(f"📝 Benchmark report written to {output_path}")
+
+    if json_mode:
+        print(json.dumps(report.to_dict(), indent=2))
+    else:
+        print("\n" + report.to_markdown())
+
+    if report.verdict == "REGRESSION_DETECTED" and strict:
+        return 1
+    return 0
+
+
+def cmd_benchmark_run(args: Any, workspace_root: Path) -> int:
+    """Run micro-benchmarks on specified target symbol or path."""
+    from agtoosa.benchmark.harness import BenchmarkHarness
+    from agtoosa.benchmark.analyzer import RegressionAnalyzer
+    from agtoosa.benchmark.baseline import BenchmarkBaselineStore
+
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print("⚠️ Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    store = GraphStore(db_path)
+    target = getattr(args, "target", None)
+    iterations = int(getattr(args, "iterations", 100))
+    threshold_pct = float(getattr(args, "threshold", 10.0))
+    save_baseline = getattr(args, "save_baseline", False)
+    json_mode = getattr(args, "json", False)
+
+    harness = BenchmarkHarness(store, workspace_root)
+    baseline_store = BenchmarkBaselineStore(workspace_root)
+    analyzer = RegressionAnalyzer(store, workspace_root, baseline_store)
+
+    targets = harness.discover_targets(target_path_or_symbol=target)
+    if not targets:
+        print(f"⚠️ No benchmark targets matching '{target or 'all'}' found.")
+        return 1
+
+    results = []
+    for t in targets:
+        res = harness.run_benchmark(t, iterations=iterations, warmup=10)
+        results.append(res)
+
+    report = analyzer.analyze(results, threshold_pct=threshold_pct)
+
+    if save_baseline and results:
+        baseline_store.save_baseline(results)
+        if not json_mode:
+            print("💾 Performance baseline snapshot updated.")
+
+    if json_mode:
+        print(json.dumps(report.to_dict(), indent=2))
+    else:
+        print("\n" + report.to_markdown())
+
+    return 0
+
+
+def cmd_benchmark_snapshot(args: Any, workspace_root: Path) -> int:
+    """Capture and persist current performance baseline snapshot."""
+    from agtoosa.benchmark.harness import BenchmarkHarness
+    from agtoosa.benchmark.baseline import BenchmarkBaselineStore
+
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print("⚠️ Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    store = GraphStore(db_path)
+    name = getattr(args, "name", "latest")
+    json_mode = getattr(args, "json", False)
+
+    harness = BenchmarkHarness(store, workspace_root)
+    baseline_store = BenchmarkBaselineStore(workspace_root)
+
+    targets = harness.discover_targets()
+    results = []
+    for t in targets:
+        res = harness.run_benchmark(t, iterations=50, warmup=5)
+        results.append(res)
+
+    path = baseline_store.save_baseline(results, tag=name)
+
+    if json_mode:
+        print(json.dumps({
+            "status": "snapshot_created",
+            "tag": name,
+            "symbols_count": len(results),
+            "file": str(path)
+        }, indent=2))
+    else:
+        print(f"📸 Baseline snapshot '{name}' created with {len(results)} symbols at {path}")
+
+    return 0
+
+
+
 

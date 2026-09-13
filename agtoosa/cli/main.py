@@ -285,6 +285,29 @@ def main(argv=None) -> int:
     ci_repair_p.add_argument("--branch", type=str, help="Create and commit to a new git branch (e.g. fix/arch-repair)")
     ci_repair_p.add_argument("--json", action="store_true", help="Output repair plan as JSON")
 
+    ci_benchmark_p = ci_sub.add_parser("benchmark", help="Run automated CI continuous performance regression benchmark against baseline")
+    ci_benchmark_p.add_argument("--base", type=str, default="origin/main", help="Base git ref for diff evaluation")
+    ci_benchmark_p.add_argument("--threshold", type=float, default=10.0, help="Regression threshold percentage (default: 10.0%)")
+    ci_benchmark_p.add_argument("--strict", action="store_true", help="Fail with non-zero exit code if performance regressions are detected")
+    ci_benchmark_p.add_argument("--save-baseline", action="store_true", help="Save current measurements as the new baseline")
+    ci_benchmark_p.add_argument("-o", "--output", type=str, help="Path to write GitHub PR Markdown comment")
+    ci_benchmark_p.add_argument("--json", action="store_true", help="Output benchmark results as JSON")
+
+    # agtoosa benchmark ...
+    bench_parser = subparsers.add_parser("benchmark", help="Continuous performance benchmarking & regression detection")
+    bench_sub = bench_parser.add_subparsers(dest="benchmark_action", required=True)
+
+    bench_run_p = bench_sub.add_parser("run", help="Run micro-benchmarks on specified target symbol or path")
+    bench_run_p.add_argument("--target", type=str, help="Target symbol name, node ID, or file path to benchmark")
+    bench_run_p.add_argument("--iterations", type=int, default=100, help="Number of benchmark iterations (default: 100)")
+    bench_run_p.add_argument("--threshold", type=float, default=10.0, help="Regression threshold percentage (default: 10.0%)")
+    bench_run_p.add_argument("--save-baseline", action="store_true", help="Save current measurements to baseline")
+    bench_run_p.add_argument("--json", action="store_true", help="Output benchmark results as JSON")
+
+    bench_snapshot_p = bench_sub.add_parser("snapshot", help="Capture and persist current performance baseline snapshot")
+    bench_snapshot_p.add_argument("--name", type=str, default="latest", help="Baseline snapshot tag/name (default: latest)")
+    bench_snapshot_p.add_argument("--json", action="store_true", help="Output snapshot status as JSON")
+
     # agtoosa version
     version_parser = subparsers.add_parser("version", help="Display version and runtime diagnostic information")
     version_parser.add_argument("--json", action="store_true", help="Output diagnostic information as JSON")
@@ -456,6 +479,16 @@ def main(argv=None) -> int:
         elif args.ci_action == "repair":
             from agtoosa.cli.lifecycle_cmd import cmd_ci_repair
             return cmd_ci_repair(args, workspace_root)
+        elif args.ci_action == "benchmark":
+            from agtoosa.cli.lifecycle_cmd import cmd_ci_benchmark
+            return cmd_ci_benchmark(args, workspace_root)
+    elif args.command == "benchmark":
+        if args.benchmark_action == "run":
+            from agtoosa.cli.lifecycle_cmd import cmd_benchmark_run
+            return cmd_benchmark_run(args, workspace_root)
+        elif args.benchmark_action == "snapshot":
+            from agtoosa.cli.lifecycle_cmd import cmd_benchmark_snapshot
+            return cmd_benchmark_snapshot(args, workspace_root)
     elif args.command == "ship":
         from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_ship
         return cmd_lifecycle_ship(args, workspace_root)

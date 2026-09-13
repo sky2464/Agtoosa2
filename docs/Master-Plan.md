@@ -362,6 +362,26 @@ flowchart LR
     - CLI: `agtoosa ci repair [--base <ref>] [--apply] [--dry-run] [--branch <name>] [--json]`.
     - MCP Tool: `agtoosa_auto_repair_pr`.
 
+- **DEV-032 (Stage 32) — Continuous Performance Regression Benchmarking CI** [✅ Done — Rating: 74/100]
+  - **Objective**: Automated AST benchmark harness that discovers modified symbols from PR diffs, executes calibrated nanosecond latency and memory micro-benchmarks, and compares outcomes against historical telemetry or baseline snapshots to block performance regressions.
+  - **AST-Targeted Benchmark Discovery (`BenchmarkHarness`)**:
+    - Discovers benchmarkable functions, methods, and HTTP endpoints touched in PR diffs or uncommitted trees.
+    - Executes calibrated iterations (50–100 runs) with warmup passes to eliminate JIT/cold-start noise.
+    - Employs `time.perf_counter_ns` and `tracemalloc` to compute p50, p95, p99, min, max, average latencies, throughput (ops/sec), and peak memory delta.
+  - **Dual Baseline Strategy (`BenchmarkBaselineStore`)**:
+    - Persistent golden baselines stored in `.agtoosa/benchmarks/baseline.json` with snapshot tagging support.
+    - Automatic fallback and live seeding from OpenTelemetry / profiler traces stored in `GraphStore.runtime_telemetry` (DEV-017 / DEV-030).
+  - **Statistical Regression Analyzer (`RegressionAnalyzer`)**:
+    - Calculates latency percent shift: $\Delta\% = \frac{\text{Current } p95 - \text{Baseline } p95}{\text{Baseline } p95} \times 100\%$.
+    - Circuit breaker SLA enforcement: Flags regressions exceeding `--threshold` (default: $+10.0\%$).
+    - Formats GitHub PR markdown summary tables and JSON reports.
+  - **Developer, CLI & MCP Surfaces**:
+    - CLI: `agtoosa ci benchmark [--base <ref>] [--threshold <pct>] [--strict] [--save-baseline] [--output <path>] [--json]`.
+    - CLI: `agtoosa benchmark run [--target <name_or_path>] [--iterations <N>] [--threshold <pct>] [--save-baseline] [--json]`.
+    - CLI: `agtoosa benchmark snapshot [--name <tag>] [--json]`.
+    - MCP Tool: `agtoosa_run_performance_benchmark`.
+    - CI Workflow: `.github/workflows/agtoosa-benchmark.yml`.
+
 ---
 
 ## Future Frontiers: Milestone 13 (v0.7.0)
@@ -369,7 +389,7 @@ flowchart LR
 | Rank | Cycle ID | Title | Rating | Target Milestone | Strategic Value & Architectural Impact |
 |:---:|---|---|:---:|---|---|
 | 🥇 | **DEV-031** | AI Automated PR Repair & Code Review Agent | **79 / 100** | Milestone 13 (v0.7.0) [✅ Done] | **Autonomous Code Healing**: Generates automated PR branch commits with refactor fixes directly resolving detected architectural drift and breaking schema changes. |
-| 🥈 | **DEV-032** | Continuous Performance Regression Benchmarking CI | **74 / 100** | Milestone 13 (v0.7.0) [In Progress] | **Zero-Regression CI**: Automated AST benchmark harness comparing pull request runtime latency against baseline telemetry. |
+| 🥈 | **DEV-032** | Continuous Performance Regression Benchmarking CI | **74 / 100** | Milestone 13 (v0.7.0) [✅ Done] | **Zero-Regression CI**: Automated AST benchmark harness comparing pull request runtime latency against baseline telemetry. |
 | 🥉 | **DEV-033** | Zero-Knowledge Architecture Cryptographic Attestation | **70 / 100** | Milestone 13 (v0.7.0) | **Cryptographic Security Proofs**: Produces cryptographically signed architectural attestations verifying compliance with layer boundary invariants without exposing proprietary source code. |
 
 

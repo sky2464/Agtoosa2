@@ -226,6 +226,20 @@ class MCPServer:
                         "base_ref": {"type": "string", "description": "Optional base git ref for diff evaluation"}
                     }
                 }
+            },
+            {
+                "name": "agtoosa_run_performance_benchmark",
+                "description": "Execute continuous performance regression benchmarks on modified PR symbols or specific functions, comparing p95/p50 latency against baseline telemetry.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "target": {"type": "string", "description": "Optional symbol name, node ID, or path to benchmark"},
+                        "base_ref": {"type": "string", "description": "Optional base git ref to benchmark modified symbols"},
+                        "threshold_pct": {"type": "number", "description": "Regression threshold percentage (default: 10.0)", "default": 10.0},
+                        "iterations": {"type": "integer", "description": "Benchmark iterations per symbol (default: 50)", "default": 50},
+                        "save_baseline": {"type": "boolean", "description": "Whether to persist current measurements as new baseline", "default": False}
+                    }
+                }
             }
         ]
 
@@ -383,6 +397,40 @@ class MCPServer:
                 "status": "clean" if not issues else ("dry_run" if dry_run else "repaired"),
                 "total_issues": len(issues),
                 "repairs": repairs
+            }, indent=2)
+
+        elif name == "agtoosa_run_performance_benchmark":
+            from agtoosa.benchmark.harness import BenchmarkHarness
+            from agtoosa.benchmark.analyzer import RegressionAnalyzer
+            from agtoosa.benchmark.baseline import BenchmarkBaselineStore
+
+            harness = BenchmarkHarness(self.store, self.workspace_root)
+            baseline_store = BenchmarkBaselineStore(self.workspace_root)
+            analyzer = RegressionAnalyzer(self.store, self.workspace_root, baseline_store)
+
+            target = args.get("target")
+            base_ref = args.get("base_ref")
+            threshold_pct = float(args.get("threshold_pct", 10.0))
+            iterations = int(args.get("iterations", 50))
+            save_baseline = bool(args.get("save_baseline", False))
+
+            targets = harness.discover_targets(base_ref=base_ref, target_path_or_symbol=target)
+            results = []
+            for t in targets:
+                res = harness.run_benchmark(t, iterations=iterations, warmup=5)
+                results.append(res)
+
+            report = analyzer.analyze(results, threshold_pct=threshold_pct)
+            if save_baseline and results:
+                baseline_store.save_baseline(results)
+
+            return json.dumps({
+                "verdict": report.verdict,
+                "total_benchmarked": report.total_benchmarked,
+                "regressions_count": report.regressions_count,
+                "threshold_pct": report.threshold_pct,
+                "markdown": report.to_markdown(),
+                "report": report.to_dict()
             }, indent=2)
 
         return json.dumps({"error": f"Unknown tool: {name}"})
