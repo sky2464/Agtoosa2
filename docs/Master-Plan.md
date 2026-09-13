@@ -16,21 +16,36 @@
 
 ---
 
+## Strategic Priority & Impact Scoring Matrix (1–100 Scale)
+
+Evaluated across architectural impact, AI agent context amplification, enterprise readiness, and developer workflow leverage:
+
+| Rank | Cycle ID | Title | Rating | Target Milestone | Strategic Value & Architectural Impact |
+|:---:|---|---|:---:|---|---|
+| 🥇 | **DEV-025** | Framework Dependency Injection & Dynamic Routes | **96 / 100** | Milestone 10 (v0.4.2) | **Highest Architectural Leverage**: Transforms Agtoosa from a syntax AST parser into a true runtime architecture graph by extracting FastAPI/Flask/NestJS/Express DI containers, decorators (`@app.get`), and ORM schema bindings (SQLAlchemy, Prisma). AI agents gain real execution context. |
+| 🥈 | **DEV-027** | VS Code & Cursor In-Editor Gutter Lens & Marketplace | **89 / 100** | Milestone 11 (v0.5.0) | **Maximum Developer Adoption**: Brings real-time CodeLens blast radius, caller count, and 1-click Studio refactor actions ("✂️ Prune", "🔄 Decouple") directly into IDE editor gutters. Published to VS Code Marketplace & Open VSX. |
+| 🥉 | **DEV-026** | Async Message Queue & Event Bus Lineage | **85 / 100** | Milestone 10 (v0.4.2) | **Distributed System Visibility**: Maps asynchronous event-driven topologies across microservices (Kafka topics, RabbitMQ exchanges, Redis Pub/Sub, and Celery task queues) to complete cross-service blast radius graphs. |
+| 4th | **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | **72 / 100** | Milestone 9 (v0.4.1) | **Shift-Left Local Protection**: Hardens local developer workflows by preventing commits/pushes that introduce circular dependencies or exceed blast radius thresholds, backed by a sub-millisecond status cache (`.agtoosa/guard_status.json`). |
+
+---
+
 ## Active Cycle
 
-| ID | Title | Type | Status | Primary Deliverable |
-|---|---|---|---|---|
-| **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | Feature | 📋 In Progress | Pre-commit/pre-push guard daemon enforcing zero circular dependencies and blast radius thresholds |
+| ID | Title | Type | Status | Rating | Primary Deliverable |
+|---|---|---|---|:---:|---|
+| **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | Feature | 📋 In Progress | **72 / 100** | Pre-commit/pre-push guard daemon enforcing zero circular dependencies and blast radius thresholds |
 
 ---
 
 ## Planned Cycles
 
-| ID | Title | Type | Status | Primary Deliverable |
-|---|---|---|---|---|
-| **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | Feature | 📋 In Progress | Pre-commit/pre-push guard daemon enforcing zero circular dependencies and blast radius thresholds |
-| **DEV-025** | Framework Dependency Injection & Dynamic Routes | Feature | 📋 Planned | AST extractors for FastAPI, Flask, Express, NestJS DI containers and ORM relation mapping |
-| **DEV-026** | Async Message Queue & Event Bus Lineage | Feature | 📋 Planned | Event-driven graph lineage for Kafka, RabbitMQ, Redis Pub/Sub, and Celery background task graphs |
+| ID | Title | Type | Status | Rating | Primary Deliverable |
+|---|---|---|---|:---:|---|
+| **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | Feature | 📋 In Progress | **72 / 100** | Pre-commit/pre-push guard daemon enforcing zero circular dependencies and blast radius thresholds |
+| **DEV-025** | Framework Dependency Injection & Dynamic Routes | Feature | 📋 Planned | **96 / 100** | AST extractors for FastAPI, Flask, Express, NestJS DI containers and ORM relation mapping |
+| **DEV-026** | Async Message Queue & Event Bus Lineage | Feature | 📋 Planned | **85 / 100** | Event-driven graph lineage for Kafka, RabbitMQ, Redis Pub/Sub, and Celery background task graphs |
+| **DEV-027** | VS Code & Cursor In-Editor Gutter Lens & Marketplace | Extension | 📋 Planned | **89 / 100** | Real-time gutter blast radius, in-editor 1-click refactoring actions, and VS Code / Open VSX packaging |
+
 
 ---
 
@@ -91,9 +106,11 @@ flowchart LR
     S20 --> S22[Stage 22: Auto-Fix Patch Engine ✅]
     S21 --> S23[Stage 23: Two-Way Studio Actions ✅]
     S22 --> S23
-    S22 --> S24[Stage 24: Pre-Push Arch Daemon 📋]
-    S15 --> S25[Stage 25: Framework DI & Routes 📋]
-    S25 --> S26[Stage 26: Async Event Bus Lineage 📋]
+    S22 --> S24[Stage 24: Pre-Push Arch Daemon (72) 📋]
+    S15 --> S25[Stage 25: Framework DI & Routes (96) 📋]
+    S25 --> S26[Stage 26: Async Event Bus Lineage (85) 📋]
+    S13 --> S27[Stage 27: In-Editor Gutter Lens (89) 📋]
+    S23 --> S27
 ```
 
 ### Milestone 1: Knowledge Engine Core (v0.2.0-alpha)
@@ -216,12 +233,57 @@ flowchart LR
   - Actionable **"✂️ Safe Prune"** buttons integrated directly into the Agtoosa Studio Dead Code table.
   - CLI: `agtoosa graph view --serve [--port 8080]`.
 
-- **DEV-024 (Stage 24) — Pre-Push Architectural Daemon & Drift Linter** [📋 In Progress]
-  - Background daemon and pre-push Git hook preventing commits with cyclic dependencies or layer boundary breaches.
-  - CLI: `agtoosa guard [--install-hooks] [--daemon]`.
+- **DEV-024 (Stage 24) — Pre-Push Architectural Daemon & Drift Linter** [📋 In Progress — Rating: 72/100]
+  - **Objective**: Shift architectural enforcement left into the local development loop, blocking pushes that introduce circular dependencies or blast radius regressions before CI triggers.
+  - **Background Daemon**: `agtoosa guard --daemon` runs a background watcher that monitors working tree changes, computes incremental drift, and writes a sub-millisecond status cache to `.agtoosa/guard_status.json`.
+  - **Git Hook Integration**: Pre-push and pre-commit hooks invoke `agtoosa guard --strict`, checking the cached or live graph invariants in < 15ms.
+  - **Blast Radius Circuit Breaker**: Configurable threshold (`--max-blast-radius <N>`, default: 5) alerting or rejecting changes that touch foundational symbols with cascading caller dependencies.
+  - **CLI Surface**:
+    - `agtoosa guard [--install-hooks] [--uninstall-hooks]`: Manage repository Git hooks.
+    - `agtoosa guard [--daemon] [--interval <sec>]`: Run in continuous background monitoring mode.
+    - `agtoosa guard [--strict] [--max-blast-radius <int>] [--base-ref <ref>] [--json] [--status]`: Direct audit or cache status inspection.
 
 ### Milestone 10: Deep Polyglot Framework Semantics & Distributed Event Lineage (v0.4.2)
-- **DEV-025 (Stage 25) — Framework Dependency Injection & Dynamic Routes** [📋 Planned]
-  - AST extractors for FastAPI, Flask, Express, NestJS DI containers, route decorators, and ORM relation mapping (SQLAlchemy, Prisma, Django).
-- **DEV-026 (Stage 26) — Async Message Queue & Event Bus Lineage** [📋 Planned]
-  - Event-driven graph lineage for Kafka topics, RabbitMQ queues, Redis Pub/Sub channels, and Celery background task call trees.
+- **DEV-025 (Stage 25) — Framework Dependency Injection & Dynamic Routes** [📋 Planned — Rating: 96/100]
+  - **Objective**: Elevate the knowledge engine from syntactic AST parsing to true runtime architecture graphs by extracting framework Dependency Injection containers, dynamic route decorators, and ORM schema relationships.
+  - **Dependency Injection Resolvers**:
+    - **Python**: Parse FastAPI `Depends(...)`, Dishka, Injector, and Django service providers to link caller routes directly to underlying service implementations.
+    - **TypeScript/Node**: Extract NestJS `@Injectable()`, `@Inject()`, `InversifyJS`, and TSyringe container bindings.
+  - **Dynamic Route & Endpoint Binding**:
+    - **FastAPI / Flask**: Extract `@app.get(...)`, `@app.post(...)`, `@router.api_route(...)`, and Flask blueprints into distinct `Endpoint` nodes with HTTP verb, path, path parameters, and target handler function edges.
+    - **Express / NestJS**: Extract `app.use('/api', router)`, `router.get(...)`, NestJS `@Controller('/users')` and `@Get(':id')` into unified route hierarchy nodes.
+  - **ORM Model & Schema Relational Mapping**:
+    - **SQLAlchemy**: Extract `relationship(...)`, `ForeignKey(...)`, and declarative table classes, creating graph edges between database tables, models, and querying functions.
+    - **Prisma**: Parse `schema.prisma` files to map Prisma models, field attributes (`@relation`), and foreign keys directly into the knowledge graph.
+    - **Django ORM**: Map `models.ForeignKey`, `models.ManyToManyField`, and model querysets.
+  - **CLI & MCP Tooling**:
+    - `agtoosa graph routes [--json]`: List all detected HTTP API endpoints and their bound handler functions.
+    - `agtoosa graph di <symbol>`: Trace injected providers, dependencies, and resolution chains.
+    - MCP Tool: `agtoosa_get_route_context` providing AI coding agents with instant mappings from API route to service and database layer.
+
+- **DEV-026 (Stage 26) — Async Message Queue & Event Bus Lineage** [📋 Planned — Rating: 85/100]
+  - **Objective**: Extend graph lineage across decoupled asynchronous message brokers, pub/sub channels, and background job task trees.
+  - **Message Broker & Queue Extractors**:
+    - **Apache Kafka**: Extract producer `send(topic=...)` calls, consumer `@KafkaListener(topics=...)` decorators, and confluent-kafka consumer loops.
+    - **RabbitMQ / AMQP**: Map exchange bindings, routing keys, and queue consumer callbacks (`pika`, `amqplib`).
+    - **Redis Pub/Sub & Streams**: Extract `PUBLISH <channel>` and `XADD <stream>` producers, alongside `SUBSCRIBE` / `XREADGROUP` consumer loops.
+    - **Celery / Distributed Tasks**: Parse `@app.task` definitions, `.delay(...)` invocations, `.apply_async(...)` calls, and workflow signatures (`chain`, `group`, `chord`).
+  - **Cross-Service Blast Radius**: Modifying an event schema or message payload computes upstream and downstream blast radius across all loosely-coupled producer and consumer services.
+  - **CLI & Studio Perspectives**:
+    - `agtoosa graph events [--topic <name>] [--json]`: Trace publishers and consumers of message topics.
+    - Visualizer Perspective: Dedicated **Event Bus Topology** view in Agtoosa Studio.
+
+### Milestone 11: Real-Time Developer Surface & In-Editor CodeLens (v0.5.0)
+- **DEV-027 (Stage 27) — VS Code & Cursor In-Editor Gutter Lens & Marketplace** [📋 Planned — Rating: 89/100]
+  - **Objective**: Embed Agtoosa's architectural intelligence and autonomous refactoring directly into developer flow in VS Code and Cursor editors.
+  - **Real-Time CodeLens & Gutter Overlays**:
+    - Live upstream caller badges (e.g. `⎇ 14 callers | 💥 blast radius: 6`) floating above function/class declarations.
+    - Gutter color coding for runtime heatmap hotspots (hot/cold call frequencies from OpenTelemetry).
+  - **In-Editor 1-Click Refactoring Actions**:
+    - Quick Fix code actions in the editor:
+      - **"✂️ Agtoosa: Safe Prune Dead Symbol"**: Invokes RefactorEngine with automatic atomic backup.
+      - **"🔄 Agtoosa: Decouple Cyclic Dependency"**: Generates interface protocol and updates call signatures.
+  - **Packaging & Ecosystem Distribution**:
+    - Production packaging of `extension/` into standard `.vsix`.
+    - Automated GitHub Actions release pipeline publishing to **VS Code Marketplace** and **Open VSX Registry**.
+
