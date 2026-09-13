@@ -11,6 +11,7 @@ from agtoosa.parser.shell_parser import ShellScriptParser
 from agtoosa.parser.js_ts_parser import JavaScriptTypeScriptParser
 from agtoosa.parser.doc_parser import MarkdownDocParser
 from agtoosa.parser.polyglot_parser import PolyglotParser
+from agtoosa.parser.frameworks import PrismaParser
 from agtoosa.parser.scanner import scan_workspace
 
 
@@ -24,7 +25,9 @@ class ParserEngine:
             JavaScriptTypeScriptParser(),
             MarkdownDocParser(),
             PolyglotParser(),
+            PrismaParser(),
         ]
+
 
     def index_workspace(self, workspace_root: Path, store: GraphStore, clean: bool = False) -> GraphStats:
         """Scan workspace, extract AST nodes/edges, and persist into SQLite graph."""
@@ -145,4 +148,18 @@ class ParserEngine:
                         "UPDATE edges SET target_id = ?, provenance = 'resolved' WHERE rowid = ?;",
                         (real_target_id, rowid)
                     )
+
+            # Resolve symbol placeholders (e.g. injected dependencies) to actual symbol nodes
+            sym_edges = conn.execute(
+                "SELECT rowid, source_id, target_id FROM edges WHERE target_id LIKE 'symbol:%';"
+            ).fetchall()
+            for rowid, src_id, tgt_placeholder in sym_edges:
+                sym_name = tgt_placeholder.split(":", 1)[-1]
+                if sym_name in symbol_map:
+                    real_target_id = symbol_map[sym_name]
+                    conn.execute(
+                        "UPDATE edges SET target_id = ?, provenance = 'resolved' WHERE rowid = ?;",
+                        (real_target_id, rowid)
+                    )
+
 

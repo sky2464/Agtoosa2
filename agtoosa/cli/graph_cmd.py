@@ -611,3 +611,81 @@ def cmd_graph_federate(args: Any, workspace_root: Path) -> int:
             return 0
 
     return 0
+
+
+def cmd_graph_routes(args: Any, workspace_root: Path) -> int:
+    """List detected HTTP API endpoints and bound handler functions."""
+    from agtoosa.graph.query import query_routes
+
+    db_path = get_default_db_path(workspace_root)
+    store = GraphStore(db_path)
+    method = getattr(args, "method", None)
+    routes = query_routes(store, method=method)
+
+    if getattr(args, "json", False):
+        print(json.dumps({"routes_count": len(routes), "routes": routes}, indent=2))
+        return 0
+
+    print(f"🌐 Discovered HTTP API Routes ({len(routes)} endpoint(s)):\n")
+    if not routes:
+        print("   No routes detected. Supported frameworks: FastAPI, Flask, Express, NestJS.")
+        return 0
+
+    for r in routes:
+        m = r["http_method"]
+        p = r["path"]
+        fw = r["framework"]
+        fpath = r["file_path"]
+        lnum = f":{r['start_line']}" if r.get("start_line") else ""
+        handler_name = r["handler"]["name"] if r.get("handler") else "unknown"
+
+        m_tag = f"[{m}]"
+        print(f"   • {m_tag:<8} {p:<30} ➔  {handler_name} ({fpath}{lnum}) [{fw}]")
+        if r.get("injected_dependencies"):
+            deps_str = ", ".join(d["provider"] or d["target_id"] for d in r["injected_dependencies"])
+            print(f"       💉 Injected: {deps_str}")
+
+    return 0
+
+
+def cmd_graph_di(args: Any, workspace_root: Path) -> int:
+    """Trace dependency injection providers and consumers for a target symbol."""
+    from agtoosa.graph.query import query_di
+
+    db_path = get_default_db_path(workspace_root)
+    store = GraphStore(db_path)
+    symbol = args.symbol
+    di_info = query_di(store, symbol)
+
+    if getattr(args, "json", False):
+        print(json.dumps(di_info, indent=2))
+        return 0
+
+    target = di_info.get("target")
+    if not target:
+        print(f"⚠️ Symbol '{symbol}' not found in knowledge graph.")
+        return 1
+
+    print(f"💉 Dependency Injection Graph for '{target.get('name', symbol)}':\n")
+    injected = di_info.get("injected_into_target", [])
+    if injected:
+        print("   ⬇️  Injected Dependencies (Requires):")
+        for inj in injected:
+            p_name = inj.get("provider") or inj.get("target_id")
+            param = f" (param: {inj['param']})" if inj.get("param") else ""
+            print(f"      • {p_name}{param}")
+    else:
+        print("   ⬇️  Injected Dependencies: None")
+
+    consumers = di_info.get("consumers_injecting_target", [])
+    if consumers:
+        print("\n   ⬆️  Consumers (Injected Into):")
+        for cons in consumers:
+            c_name = cons["caller"]["name"] if cons.get("caller") else cons["source_id"]
+            param = f" (param: {cons['param']})" if cons.get("param") else ""
+            print(f"      • {c_name}{param}")
+    else:
+        print("\n   ⬆️  Consumers: None")
+
+    return 0
+

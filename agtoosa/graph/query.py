@@ -1,7 +1,9 @@
 """Graph investigation and traversal algorithms: explain, path, and impact."""
 
 from collections import deque
+import json
 from typing import Any, Dict, List, Optional, Set, Tuple
+
 
 from agtoosa.graph.store import GraphStore
 
@@ -321,3 +323,112 @@ def hybrid_search(
     # Sort descending by RRF score, tie-breaking by vector score
     fused.sort(key=lambda x: (x["rrf_score"], x["vector_score"]), reverse=True)
     return fused[:top_k]
+
+
+def query_routes(store: GraphStore, method: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Query all detected HTTP API endpoints and their bound handler functions."""
+    with store._get_connection() as conn:
+        query_sql = "SELECT id, name, path, start_line, metadata_json FROM nodes WHERE node_type = 'endpoint'"
+        params = []
+        if method:
+            query_sql += " AND id LIKE ?"
+            params.append(f"endpoint:{method.upper()}:%")
+        query_sql += " ORDER BY path, name;"
+
+        rows = conn.execute(query_sql, params).fetchall()
+        results = []
+        for r in rows:
+            meta = json.loads(r["metadata_json"]) if r["metadata_json"] else {}
+            ep_id = r["id"]
+
+            # Find bound handler via routes_to edge
+            handler_edge = conn.execute(
+                "SELECT target_id, metadata_json FROM edges WHERE source_id = ? AND edge_type = 'routes_to';",
+                (ep_id,)
+            ).fetchone()
+
+            handler_node = None
+            injected_deps = []
+            if handler_edge:
+                handler_node = store.get_node(handler_edge["target_id"])
+                # Find any injected dependencies for this handler
+                if handler_node:
+                    inj_edges = conn.execute(
+                        "SELECT target_id, metadata_json FROM edges WHERE source_id = ? AND edge_type = 'injects';",
+                        (handler_node["id"],)
+                    ).fetchall()
+                    for ie in inj_edges:
+                        dep_meta = json.loads(ie["metadata_json"]) if ie["metadata_json"] else {}
+                        injected_deps.append({
+                            "target_id": ie["target_id"],
+                            "param": dep_meta.get("param"),
+                            "provider": dep_meta.get("provider")
+                        })
+
+            results.append({
+                "id": ep_id,
+                "name": r["name"],
+                "http_method": meta.get("http_method", ep_id.split(":")[1] if ":" in ep_id else "UNKNOWN"),
+                "path": meta.get("path", ep_id.split(":", 2)[-1] if ":" in ep_id else ""),
+                "framework": meta.get("framework", "unknown"),
+                "file_path": r["path"],
+                "start_line": r["start_line"],
+                "handler": handler_node,
+                "injected_dependencies": injected_deps
+            })
+        return results
+
+
+def query_di(store: GraphStore, symbol: str) -> Dict[str, Any]:
+    """Query dependency injection dependencies and consumers for a symbol."""
+    target_node = resolve_node(store, symbol)
+    if not target_node:
+        # Fallback: check symbol placeholder (e.g. symbol:name)
+        with store._get_connection() as conn:
+            row = conn.execute("SELECT id, name, node_type, path FROM nodes WHERE name = ? LIMIT 1;", (symbol,)).fetchone()
+            if row:
+                target_node = dict(row)
+
+    if not target_node:
+        return {"target": None, "injected_into_target": [], "consumers_injecting_target": []}
+
+    target_id = target_node["id"]
+    target_name = target_node.get("name", symbol)
+    with store._get_connection() as conn:
+        # What does target_id inject?
+        outgoing_inj = conn.execute(
+            "SELECT target_id, metadata_json FROM edges WHERE source_id = ? AND edge_type = 'injects';",
+            (target_id,)
+        ).fetchall()
+        injected = []
+        for row in outgoing_inj:
+            meta = json.loads(row["metadata_json"]) if row["metadata_json"] else {}
+            provider_node = store.get_node(row["target_id"])
+            injected.append({
+                "target_id": row["target_id"],
+                "param": meta.get("param"),
+                "provider": meta.get("provider"),
+                "node": provider_node
+            })
+
+        # Who injects target_id or symbol placeholder?
+        incoming_inj = conn.execute(
+            "SELECT source_id, metadata_json FROM edges WHERE (target_id = ? OR target_id = ?) AND edge_type = 'injects';",
+            (target_id, f"symbol:{target_name}")
+        ).fetchall()
+        consumers = []
+        for row in incoming_inj:
+            meta = json.loads(row["metadata_json"]) if row["metadata_json"] else {}
+            caller_node = store.get_node(row["source_id"])
+            consumers.append({
+                "source_id": row["source_id"],
+                "param": meta.get("param"),
+                "caller": caller_node
+            })
+
+        return {
+            "target": target_node,
+            "injected_into_target": injected,
+            "consumers_injecting_target": consumers
+        }
+

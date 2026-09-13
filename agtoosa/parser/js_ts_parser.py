@@ -204,4 +204,11 @@ class JavaScriptTypeScriptParser(BaseParser):
                 )
             )
 
+        # Extract JS/TS Framework Semantics (Express routes, NestJS controllers & DI)
+        from agtoosa.parser.frameworks import TypeScriptFrameworkExtractor
+        fw_nodes, fw_edges = TypeScriptFrameworkExtractor.extract(content, rel_path, file_node_id)
+        nodes.extend(fw_nodes)
+        edges.extend(fw_edges)
+
         return nodes, edges
+

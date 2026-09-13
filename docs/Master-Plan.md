@@ -11,7 +11,7 @@
 | Repository | `https://github.com/sky2464/Agtoosa2` |
 | Version | `0.4.1` (GA Released) |
 | Core Engine | Python 3.11+ (Tree-sitter, SQLite FTS5, NetworkX) |
-| Active Cycle | `DEV-025` (Stage 25: Framework Dependency Injection & Dynamic Routes) |
+| Active Cycle | `DEV-026` (Stage 26: Async Message Queue & Event Bus Lineage) |
 | Current Milestone | `v0.4.2` (Milestone 10: Deep Polyglot Framework Semantics) |
 
 ---
@@ -33,7 +33,7 @@ Evaluated across architectural impact, AI agent context amplification, enterpris
 
 | ID | Title | Type | Status | Rating | Primary Deliverable |
 |---|---|---|---|:---:|---|
-| **DEV-025** | Framework Dependency Injection & Dynamic Routes | Feature | 📋 Ready | **96 / 100** | AST extractors for FastAPI, Flask, Express, NestJS DI containers and ORM relation mapping |
+| **DEV-026** | Async Message Queue & Event Bus Lineage | Feature | 📋 Ready | **85 / 100** | Event-driven graph lineage for Kafka, RabbitMQ, Redis Pub/Sub, and Celery background task graphs |
 
 ---
 
@@ -41,9 +41,9 @@ Evaluated across architectural impact, AI agent context amplification, enterpris
 
 | ID | Title | Type | Status | Rating | Primary Deliverable |
 |---|---|---|---|:---:|---|
-| **DEV-025** | Framework Dependency Injection & Dynamic Routes | Feature | 📋 Ready | **96 / 100** | AST extractors for FastAPI, Flask, Express, NestJS DI containers and ORM relation mapping |
-| **DEV-026** | Async Message Queue & Event Bus Lineage | Feature | 📋 Planned | **85 / 100** | Event-driven graph lineage for Kafka, RabbitMQ, Redis Pub/Sub, and Celery background task graphs |
+| **DEV-026** | Async Message Queue & Event Bus Lineage | Feature | 📋 Ready | **85 / 100** | Event-driven graph lineage for Kafka, RabbitMQ, Redis Pub/Sub, and Celery background task graphs |
 | **DEV-027** | VS Code & Cursor In-Editor Gutter Lens & Marketplace | Extension | 📋 Planned | **89 / 100** | Real-time gutter blast radius, in-editor 1-click refactoring actions, and VS Code / Open VSX packaging |
+
 
 
 
@@ -77,6 +77,7 @@ Evaluated across architectural impact, AI agent context amplification, enterpris
 | **DEV-022** | Autonomous AST Patch Engine | Feature | ✅ Done | AST rewriting engine applying safe dead-code deletions and dependency inversion interface abstractions with unified diff previews, atomic backups, and rollback capabilities |
 | **DEV-023** | Two-Way Interactive Studio Actions | Feature | ✅ Done | Live Studio HTTP server with REST endpoints (`/api/refactor/prune`, `/api/refactor/decouple`, `/api/refactor/rollback`) and 1-click web UI buttons |
 | **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | Feature | ✅ Done | Pre-commit/pre-push guard daemon enforcing zero circular dependencies and blast radius thresholds |
+| **DEV-025** | Framework Dependency Injection & Dynamic Routes | Feature | ✅ Done | AST extractors for FastAPI, Flask, Express, NestJS DI containers and ORM relation mapping |
 
 ---
 
@@ -108,7 +109,7 @@ flowchart LR
     S21 --> S23[Stage 23: Two-Way Studio Actions ✅]
     S22 --> S23
     S22 --> S24[Stage 24: Pre-Push Arch Daemon (72) ✅]
-    S15 --> S25[Stage 25: Framework DI & Routes (96) 📋]
+    S15 --> S25[Stage 25: Framework DI & Routes (96) ✅]
     S25 --> S26[Stage 26: Async Event Bus Lineage (85) 📋]
     S13 --> S27[Stage 27: In-Editor Gutter Lens (89) 📋]
     S23 --> S27
@@ -245,7 +246,7 @@ flowchart LR
     - `agtoosa guard [--strict] [--max-blast-radius <int>] [--base-ref <ref>] [--json] [--status]`: Direct audit or cache status inspection.
 
 ### Milestone 10: Deep Polyglot Framework Semantics & Distributed Event Lineage (v0.4.2)
-- **DEV-025 (Stage 25) — Framework Dependency Injection & Dynamic Routes** [📋 Planned — Rating: 96/100]
+- **DEV-025 (Stage 25) — Framework Dependency Injection & Dynamic Routes** [✅ Done — Rating: 96/100]
   - **Objective**: Elevate the knowledge engine from syntactic AST parsing to true runtime architecture graphs by extracting framework Dependency Injection containers, dynamic route decorators, and ORM schema relationships.
   - **Dependency Injection Resolvers**:
     - **Python**: Parse FastAPI `Depends(...)`, Dishka, Injector, and Django service providers to link caller routes directly to underlying service implementations.

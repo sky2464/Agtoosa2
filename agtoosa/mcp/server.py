@@ -160,8 +160,32 @@ class MCPServer:
                         "min_confidence": {"type": "string", "description": "Minimum confidence threshold: low, medium, or high", "default": "low"}
                     }
                 }
+            },
+            {
+                "name": "agtoosa_get_route_context",
+                "description": "Retrieve comprehensive endpoint architecture: HTTP route, bound handler, injected DI services, and ORM tables.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "path": {"type": "string", "description": "URL route path (e.g. /users or /orders/{id})"},
+                        "method": {"type": "string", "description": "Optional HTTP verb (e.g. GET, POST)"}
+                    },
+                    "required": ["path"]
+                }
+            },
+            {
+                "name": "agtoosa_get_di_graph",
+                "description": "Retrieve dependency injection providers and consumers for a function, class, or service.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "symbol": {"type": "string", "description": "Symbol or service name (e.g. get_db_session or UsersService)"}
+                    },
+                    "required": ["symbol"]
+                }
             }
         ]
+
 
     def handle_tool_call(self, name: str, args: Dict[str, Any]) -> str:
         if name == "agtoosa_search_graph":
@@ -257,7 +281,22 @@ class MCPServer:
                 "findings": review_res.get("findings", [])
             }, indent=2)
 
+        elif name == "agtoosa_get_route_context":
+            from agtoosa.graph.query import query_routes
+            req_path = args.get("path", "")
+            req_method = args.get("method")
+            all_routes = query_routes(self.store, method=req_method)
+            matches = [r for r in all_routes if r["path"] == req_path or req_path in r["path"]]
+            return json.dumps({"query_path": req_path, "matched_routes": matches}, indent=2)
+
+        elif name == "agtoosa_get_di_graph":
+            from agtoosa.graph.query import query_di
+            symbol = args.get("symbol", "")
+            di_res = query_di(self.store, symbol)
+            return json.dumps(di_res, indent=2)
+
         return json.dumps({"error": f"Unknown tool: {name}"})
+
 
     def notify_resource_updated(self, uri: str) -> None:
         """Send a JSON-RPC notification to clients when a subscribed resource updates."""

@@ -16,6 +16,10 @@ class NodeType(str, Enum):
     VARIABLE = "variable"
     IMPORT = "import"
 
+    # Runtime Framework & Data Layer
+    ENDPOINT = "endpoint"
+    TABLE = "table"
+
     # Specification & Delivery Layer
     EPIC = "epic"
     STORY = "story"
@@ -43,6 +47,12 @@ class EdgeType(str, Enum):
     EVIDENCED_BY = "evidenced_by"
     DEPENDS_ON = "depends_on"
     REFERENCES = "references"
+
+    # Runtime Framework & Semantic Edges
+    ROUTES_TO = "routes_to"
+    INJECTS = "injects"
+    MAPS_TO = "maps_to"
+
 
 
 @dataclass

@@ -196,4 +196,11 @@ class PythonASTParser(BaseParser):
         visitor = Visitor()
         visitor.visit(tree)
 
+        # Extract Framework Semantics (FastAPI routes, Depends DI, SQLAlchemy/Django ORM)
+        from agtoosa.parser.frameworks import PythonFrameworkExtractor
+        fw_nodes, fw_edges = PythonFrameworkExtractor.extract(source, rel_path, tree, file_node_id)
+        nodes.extend(fw_nodes)
+        edges.extend(fw_edges)
+
         return nodes, edges
+
