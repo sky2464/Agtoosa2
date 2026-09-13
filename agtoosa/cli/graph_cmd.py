@@ -689,3 +689,73 @@ def cmd_graph_di(args: Any, workspace_root: Path) -> int:
 
     return 0
 
+
+def cmd_graph_events(args: Any, workspace_root: Path) -> int:
+    """List message queue topics, pub/sub channels, task queues, and async lineage."""
+    from agtoosa.graph.query import query_events
+
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
+        return 1
+
+    store = GraphStore(db_path)
+    topic_filter = getattr(args, "topic", None)
+    events_data = query_events(store, topic=topic_filter)
+
+    if getattr(args, "json", False):
+        print(json.dumps(events_data, indent=2))
+        return 0
+
+    topics = events_data.get("topics", [])
+    total = events_data.get("total_topics", 0)
+    orphans = events_data.get("orphan_count", 0)
+
+    print(f"📡 Asynchronous Event & Queue Lineage ({total} topic(s), {orphans} orphan(s)):\n")
+    if not topics:
+        print("   No message queue topics or task queues detected.")
+        print("   Supported: Kafka, RabbitMQ, Redis Pub/Sub, Celery, BullMQ.")
+        return 0
+
+    for t in topics:
+        broker_tag = f"[{t['broker'].upper()}]"
+        orphan_badge = ""
+        if t["is_orphan"]:
+            if t["orphan_reason"] == "no_subscribers":
+                orphan_badge = " ⚠️  [NO CONSUMERS - UNHANDLED]"
+            elif t["orphan_reason"] == "no_publishers":
+                orphan_badge = " ⚠️  [NO PRODUCERS - DORMANT]"
+            else:
+                orphan_badge = " ⚠️  [ISOLATED TOPIC]"
+
+        print(f"   • {broker_tag:<10} {t['name']}{orphan_badge}")
+        if t.get("path"):
+            lnum = f":{t['start_line']}" if t.get("start_line") else ""
+            print(f"       📍 First seen: {t['path']}{lnum}")
+
+        pubs = t.get("publishers", [])
+        if pubs:
+            pub_names = []
+            for p in pubs:
+                node_name = p["node"]["name"] if p.get("node") else p["id"].split(":")[-1]
+                path = f" ({p['node']['path']})" if p.get("node") and p["node"].get("path") else ""
+                pub_names.append(f"{node_name}{path}")
+            print(f"       📤 Publishers ({len(pubs)}): {', '.join(pub_names)}")
+        else:
+            print("       📤 Publishers: None")
+
+        subs = t.get("subscribers", [])
+        if subs:
+            sub_names = []
+            for s in subs:
+                node_name = s["node"]["name"] if s.get("node") else s["id"].split(":")[-1]
+                path = f" ({s['node']['path']})" if s.get("node") and s["node"].get("path") else ""
+                sub_names.append(f"{node_name}{path}")
+            print(f"       📥 Subscribers ({len(subs)}): {', '.join(sub_names)}")
+        else:
+            print("       📥 Subscribers: None")
+        print()
+
+    return 0
+
+

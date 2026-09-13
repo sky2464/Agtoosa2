@@ -19,6 +19,7 @@ class NodeType(str, Enum):
     # Runtime Framework & Data Layer
     ENDPOINT = "endpoint"
     TABLE = "table"
+    TOPIC = "topic"
 
     # Specification & Delivery Layer
     EPIC = "epic"
@@ -52,6 +53,8 @@ class EdgeType(str, Enum):
     ROUTES_TO = "routes_to"
     INJECTS = "injects"
     MAPS_TO = "maps_to"
+    PUBLISHES = "publishes"
+    SUBSCRIBES = "subscribes"
 
 
 

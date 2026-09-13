@@ -432,3 +432,97 @@ def query_di(store: GraphStore, symbol: str) -> Dict[str, Any]:
             "consumers_injecting_target": consumers
         }
 
+
+def query_events(store: GraphStore, topic: Optional[str] = None) -> Dict[str, Any]:
+    """Query message queue topics, publishers, subscribers, and event lineage."""
+    with store._get_connection() as conn:
+        if topic:
+            # Query specific topic or matching pattern
+            rows = conn.execute(
+                "SELECT id, name, node_type, path, start_line, metadata_json FROM nodes "
+                "WHERE node_type = 'topic' AND (name = ? OR id = ? OR name LIKE ?) ORDER BY name ASC;",
+                (topic, f"topic:{topic}", f"%{topic}%")
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT id, name, node_type, path, start_line, metadata_json FROM nodes "
+                "WHERE node_type = 'topic' ORDER BY name ASC;"
+            ).fetchall()
+
+        topics_data = []
+        orphan_count = 0
+        total_publishers = 0
+        total_subscribers = 0
+
+        for r in rows:
+            top_id = r["id"]
+            meta = json.loads(r["metadata_json"]) if r["metadata_json"] else {}
+            broker = meta.get("broker", "unknown")
+
+            # Fetch publishers (edges with target_id = top_id and edge_type = 'publishes')
+            pub_edges = conn.execute(
+                "SELECT source_id, metadata_json FROM edges WHERE target_id = ? AND edge_type = 'publishes';",
+                (top_id,)
+            ).fetchall()
+
+            publishers = []
+            for pe in pub_edges:
+                p_meta = json.loads(pe["metadata_json"]) if pe["metadata_json"] else {}
+                p_node = store.get_node(pe["source_id"])
+                publishers.append({
+                    "id": pe["source_id"],
+                    "node": p_node,
+                    "metadata": p_meta
+                })
+                total_publishers += 1
+
+            # Fetch subscribers (edges with target_id = top_id and edge_type = 'subscribes')
+            sub_edges = conn.execute(
+                "SELECT source_id, metadata_json FROM edges WHERE target_id = ? AND edge_type = 'subscribes';",
+                (top_id,)
+            ).fetchall()
+
+            subscribers = []
+            for se in sub_edges:
+                s_meta = json.loads(se["metadata_json"]) if se["metadata_json"] else {}
+                s_node = store.get_node(se["source_id"])
+                subscribers.append({
+                    "id": se["source_id"],
+                    "node": s_node,
+                    "metadata": s_meta
+                })
+                total_subscribers += 1
+
+            is_orphan = len(publishers) == 0 or len(subscribers) == 0
+            orphan_reason = None
+            if len(publishers) == 0 and len(subscribers) == 0:
+                orphan_reason = "isolated"
+                orphan_count += 1
+            elif len(publishers) == 0:
+                orphan_reason = "no_publishers"
+                orphan_count += 1
+            elif len(subscribers) == 0:
+                orphan_reason = "no_subscribers"
+                orphan_count += 1
+
+            topics_data.append({
+                "id": top_id,
+                "name": r["name"],
+                "broker": broker,
+                "path": r["path"],
+                "start_line": r["start_line"],
+                "publishers": publishers,
+                "subscribers": subscribers,
+                "is_orphan": is_orphan,
+                "orphan_reason": orphan_reason
+            })
+
+        return {
+            "total_topics": len(topics_data),
+            "total_publishers": total_publishers,
+            "total_subscribers": total_subscribers,
+            "orphan_count": orphan_count,
+            "topics": topics_data
+        }
+
+

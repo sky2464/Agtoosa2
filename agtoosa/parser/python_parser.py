@@ -202,5 +202,11 @@ class PythonASTParser(BaseParser):
         nodes.extend(fw_nodes)
         edges.extend(fw_edges)
 
+        # Extract Event Lineage (Kafka, RabbitMQ, Redis, Celery)
+        from agtoosa.parser.event_lineage import PythonEventExtractor
+        ev_nodes, ev_edges = PythonEventExtractor.extract(tree, rel_path, file_node_id)
+        nodes.extend(ev_nodes)
+        edges.extend(ev_edges)
+
         return nodes, edges
 

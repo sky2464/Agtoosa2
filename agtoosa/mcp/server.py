@@ -183,6 +183,16 @@ class MCPServer:
                     },
                     "required": ["symbol"]
                 }
+            },
+            {
+                "name": "agtoosa_get_event_lineage",
+                "description": "Retrieve message queue topics, async publishers, subscribers, and event lineage across brokers (Kafka, RabbitMQ, Redis, Celery, BullMQ).",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "topic": {"type": "string", "description": "Optional topic name, channel name, or task queue filter"}
+                    }
+                }
             }
         ]
 
@@ -294,6 +304,12 @@ class MCPServer:
             symbol = args.get("symbol", "")
             di_res = query_di(self.store, symbol)
             return json.dumps(di_res, indent=2)
+
+        elif name == "agtoosa_get_event_lineage":
+            from agtoosa.graph.query import query_events
+            topic_filter = args.get("topic")
+            ev_res = query_events(self.store, topic=topic_filter)
+            return json.dumps(ev_res, indent=2)
 
         return json.dumps({"error": f"Unknown tool: {name}"})
 

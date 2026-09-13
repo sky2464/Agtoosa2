@@ -110,8 +110,9 @@ flowchart LR
     S22 --> S23
     S22 --> S24[Stage 24: Pre-Push Arch Daemon (72) ✅]
     S15 --> S25[Stage 25: Framework DI & Routes (96) ✅]
-    S25 --> S26[Stage 26: Async Event Bus Lineage (85) 📋]
-    S13 --> S27[Stage 27: In-Editor Gutter Lens (89) 📋]
+    S25 --> S26[Stage 26: Async Event Bus Lineage (85) ✅]
+    S26 --> S27[Stage 27: In-Editor Gutter Lens (89) 📋]
+    S13 --> S27
     S23 --> S27
 ```
 
@@ -263,17 +264,20 @@ flowchart LR
     - `agtoosa graph di <symbol>`: Trace injected providers, dependencies, and resolution chains.
     - MCP Tool: `agtoosa_get_route_context` providing AI coding agents with instant mappings from API route to service and database layer.
 
-- **DEV-026 (Stage 26) — Async Message Queue & Event Bus Lineage** [📋 Planned — Rating: 85/100]
+- **DEV-026 (Stage 26) — Async Message Queue & Event Bus Lineage** [✅ Done — Rating: 85/100]
   - **Objective**: Extend graph lineage across decoupled asynchronous message brokers, pub/sub channels, and background job task trees.
+  - **Domain Model Extension**: Added `NodeType.TOPIC = "topic"`, `EdgeType.PUBLISHES = "publishes"`, `EdgeType.SUBSCRIBES = "subscribes"`.
   - **Message Broker & Queue Extractors**:
-    - **Apache Kafka**: Extract producer `send(topic=...)` calls, consumer `@KafkaListener(topics=...)` decorators, and confluent-kafka consumer loops.
-    - **RabbitMQ / AMQP**: Map exchange bindings, routing keys, and queue consumer callbacks (`pika`, `amqplib`).
-    - **Redis Pub/Sub & Streams**: Extract `PUBLISH <channel>` and `XADD <stream>` producers, alongside `SUBSCRIBE` / `XREADGROUP` consumer loops.
-    - **Celery / Distributed Tasks**: Parse `@app.task` definitions, `.delay(...)` invocations, `.apply_async(...)` calls, and workflow signatures (`chain`, `group`, `chord`).
-  - **Cross-Service Blast Radius**: Modifying an event schema or message payload computes upstream and downstream blast radius across all loosely-coupled producer and consumer services.
-  - **CLI & Studio Perspectives**:
-    - `agtoosa graph events [--topic <name>] [--json]`: Trace publishers and consumers of message topics.
-    - Visualizer Perspective: Dedicated **Event Bus Topology** view in Agtoosa Studio.
+    - **Apache Kafka**: Extract producer `send(topic=...)` and `produce(...)` calls, consumer `KafkaConsumer` and `AIOKafkaConsumer` loops in Python; KafkaJS `send({ topic })` and `subscribe({ topic })` in TS/JS.
+    - **RabbitMQ / AMQP**: Map `channel.basic_publish(..., routing_key=...)` and `channel.basic_consume(queue=..., on_message_callback=...)` in Python; `channel.sendToQueue`, `channel.publish`, and `channel.consume` in TS/JS.
+    - **Redis Pub/Sub**: Extract `r.publish("channel", ...)` and `pubsub.subscribe("channel")` in Python; `redis.publish` and `redis.subscribe` in TS/JS.
+    - **Celery / Distributed Tasks**: Parse `@app.task` / `@shared_task` definitions (subscribers), `.delay(...)` invocations (publishers), `.apply_async(queue=...)` calls, and BullMQ `new Queue`, `queue.add`, `new Worker` in TS/JS.
+  - **Query Engine & Orphan Detection**:
+    - `query_events(store, topic=...)` traces publishers -> topics -> subscribers.
+    - Automated detection of dead topics: unhandled messages (`no_subscribers`), dormant consumers (`no_publishers`), and isolated topics.
+  - **CLI & MCP Tooling**:
+    - `agtoosa graph events [--topic <name>] [--json]`: Display formatted console tables and JSON payloads.
+    - MCP Tool: `agtoosa_get_event_lineage` providing AI coding agents with instant cross-boundary event lineage.
 
 ### Milestone 11: Real-Time Developer Surface & In-Editor CodeLens (v0.5.0)
 - **DEV-027 (Stage 27) — VS Code & Cursor In-Editor Gutter Lens & Marketplace** [📋 Planned — Rating: 89/100]

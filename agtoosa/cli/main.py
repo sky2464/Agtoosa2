@@ -212,6 +212,11 @@ def main(argv=None) -> int:
     di_p.add_argument("symbol", type=str, help="Target function, class, or service symbol")
     di_p.add_argument("--json", action="store_true", help="Output DI graph as JSON")
 
+    # agtoosa graph events
+    events_p = graph_sub.add_parser("events", help="List message queue topics, pub/sub channels, task queues, and async lineage")
+    events_p.add_argument("-t", "--topic", type=str, help="Filter by topic or queue name")
+    events_p.add_argument("--json", action="store_true", help="Output event lineage as JSON")
+
 
     # agtoosa context compile <target>
     context_parser = subparsers.add_parser("context", help="Context Compilation v2 (Graph RAG for AI Agents)")
@@ -373,6 +378,9 @@ def main(argv=None) -> int:
         elif args.graph_action == "di":
             from agtoosa.cli.graph_cmd import cmd_graph_di
             return cmd_graph_di(args, workspace_root)
+        elif args.graph_action == "events":
+            from agtoosa.cli.graph_cmd import cmd_graph_events
+            return cmd_graph_events(args, workspace_root)
     elif args.command == "context":
 
         from agtoosa.cli.lifecycle_cmd import cmd_context_compile
