@@ -1,7 +1,9 @@
 # Agtoosa2 — Capability Matrix & Parity Definition
 
 > **Reference Benchmark:** Graphify Open-Source Capabilities & Enterprise Graph OS.  
-> **Status:** 16 Stages Delivered & Verified (`v0.3.0-dev`) — 112/112 Automated Tests Passing (100% Pass Rate).
+> **Status:** 16 Stages Delivered & Verified (`v0.5.0`) — 183/183 Automated Tests Passing (100% Pass Rate), verified 2026-09-13.
+>
+> Note: the package has since progressed past Stage 16 (specs DEV-024–DEV-030 add a pre-push guard daemon, framework DI/route analysis, async event lineage, a gutter lens, a PR review bot, and distributed trace topology, each with its own passing test file). Those stages are not yet reflected as rows in the table below — treat this matrix as parity coverage through Stage 16 only.
 
 ---
 
