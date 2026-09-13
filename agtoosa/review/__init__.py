@@ -9,6 +9,8 @@ from agtoosa.review.monorepo import (
     MonorepoReport,
 )
 
+from agtoosa.review.guard import ArchitecturalGuard, GuardFinding, GuardReport
+
 __all__ = [
     "ReviewIntelligenceEngine",
     "DriftFinding",
@@ -18,4 +20,8 @@ __all__ = [
     "WorkspacePackage",
     "BoundaryViolation",
     "MonorepoReport",
+    "ArchitecturalGuard",
+    "GuardFinding",
+    "GuardReport",
 ]
+

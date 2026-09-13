@@ -13,6 +13,11 @@ HOOK_SCRIPTS = {
 # Enforce graph invariants and catch architectural drift before commit
 agtoosa review --strict
 """,
+    "pre-push": f"""#!/bin/sh
+{HOOK_SIGNATURE}: pre-push
+# Enforce zero circular dependencies and blast radius thresholds before push
+agtoosa guard --strict
+""",
     "post-merge": f"""#!/bin/sh
 {HOOK_SIGNATURE}: post-merge
 # Incrementally sync knowledge graph after branch merge or pull
@@ -31,7 +36,7 @@ def _get_hooks_dir(workspace_root: Path) -> Path:
 
 
 def install_git_hooks(workspace_root: Path) -> Dict[str, bool]:
-    """Install pre-commit, post-merge, and post-checkout hooks into repository .git/hooks/."""
+    """Install pre-commit, pre-push, post-merge, and post-checkout hooks into repository .git/hooks/."""
     hooks_dir = _get_hooks_dir(workspace_root)
     if not (workspace_root / ".git").is_dir():
         return {}

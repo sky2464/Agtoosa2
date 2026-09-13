@@ -11,8 +11,8 @@
 | Repository | `https://github.com/sky2464/Agtoosa2` |
 | Version | `0.4.1` (GA Released) |
 | Core Engine | Python 3.11+ (Tree-sitter, SQLite FTS5, NetworkX) |
-| Active Cycle | `DEV-024` (Stage 24: Pre-Push Architectural Daemon & Drift Linter) |
-| Current Milestone | `v0.4.1` (Milestone 9: Autonomous Code Actions & 2-Way Studio Sync) |
+| Active Cycle | `DEV-025` (Stage 25: Framework Dependency Injection & Dynamic Routes) |
+| Current Milestone | `v0.4.2` (Milestone 10: Deep Polyglot Framework Semantics) |
 
 ---
 
@@ -33,7 +33,7 @@ Evaluated across architectural impact, AI agent context amplification, enterpris
 
 | ID | Title | Type | Status | Rating | Primary Deliverable |
 |---|---|---|---|:---:|---|
-| **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | Feature | 📋 In Progress | **72 / 100** | Pre-commit/pre-push guard daemon enforcing zero circular dependencies and blast radius thresholds |
+| **DEV-025** | Framework Dependency Injection & Dynamic Routes | Feature | 📋 Ready | **96 / 100** | AST extractors for FastAPI, Flask, Express, NestJS DI containers and ORM relation mapping |
 
 ---
 
@@ -41,10 +41,10 @@ Evaluated across architectural impact, AI agent context amplification, enterpris
 
 | ID | Title | Type | Status | Rating | Primary Deliverable |
 |---|---|---|---|:---:|---|
-| **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | Feature | 📋 In Progress | **72 / 100** | Pre-commit/pre-push guard daemon enforcing zero circular dependencies and blast radius thresholds |
-| **DEV-025** | Framework Dependency Injection & Dynamic Routes | Feature | 📋 Planned | **96 / 100** | AST extractors for FastAPI, Flask, Express, NestJS DI containers and ORM relation mapping |
+| **DEV-025** | Framework Dependency Injection & Dynamic Routes | Feature | 📋 Ready | **96 / 100** | AST extractors for FastAPI, Flask, Express, NestJS DI containers and ORM relation mapping |
 | **DEV-026** | Async Message Queue & Event Bus Lineage | Feature | 📋 Planned | **85 / 100** | Event-driven graph lineage for Kafka, RabbitMQ, Redis Pub/Sub, and Celery background task graphs |
 | **DEV-027** | VS Code & Cursor In-Editor Gutter Lens & Marketplace | Extension | 📋 Planned | **89 / 100** | Real-time gutter blast radius, in-editor 1-click refactoring actions, and VS Code / Open VSX packaging |
+
 
 
 ---
@@ -76,6 +76,7 @@ Evaluated across architectural impact, AI agent context amplification, enterpris
 | **DEV-021** | Modular Native Studio Architecture (Zero Build Tools) | Refactor | ✅ Done | Monolithic visualizer.py decomposed from 2,979 lines to ~380 lines into clean, dedicated static assets under `agtoosa/graph/web/` (< 250 lines each) |
 | **DEV-022** | Autonomous AST Patch Engine | Feature | ✅ Done | AST rewriting engine applying safe dead-code deletions and dependency inversion interface abstractions with unified diff previews, atomic backups, and rollback capabilities |
 | **DEV-023** | Two-Way Interactive Studio Actions | Feature | ✅ Done | Live Studio HTTP server with REST endpoints (`/api/refactor/prune`, `/api/refactor/decouple`, `/api/refactor/rollback`) and 1-click web UI buttons |
+| **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | Feature | ✅ Done | Pre-commit/pre-push guard daemon enforcing zero circular dependencies and blast radius thresholds |
 
 ---
 
@@ -106,7 +107,7 @@ flowchart LR
     S20 --> S22[Stage 22: Auto-Fix Patch Engine ✅]
     S21 --> S23[Stage 23: Two-Way Studio Actions ✅]
     S22 --> S23
-    S22 --> S24[Stage 24: Pre-Push Arch Daemon (72) 📋]
+    S22 --> S24[Stage 24: Pre-Push Arch Daemon (72) ✅]
     S15 --> S25[Stage 25: Framework DI & Routes (96) 📋]
     S25 --> S26[Stage 26: Async Event Bus Lineage (85) 📋]
     S13 --> S27[Stage 27: In-Editor Gutter Lens (89) 📋]
@@ -233,7 +234,7 @@ flowchart LR
   - Actionable **"✂️ Safe Prune"** buttons integrated directly into the Agtoosa Studio Dead Code table.
   - CLI: `agtoosa graph view --serve [--port 8080]`.
 
-- **DEV-024 (Stage 24) — Pre-Push Architectural Daemon & Drift Linter** [📋 In Progress — Rating: 72/100]
+- **DEV-024 (Stage 24) — Pre-Push Architectural Daemon & Drift Linter** [✅ Done — Rating: 72/100]
   - **Objective**: Shift architectural enforcement left into the local development loop, blocking pushes that introduce circular dependencies or blast radius regressions before CI triggers.
   - **Background Daemon**: `agtoosa guard --daemon` runs a background watcher that monitors working tree changes, computes incremental drift, and writes a sub-millisecond status cache to `.agtoosa/guard_status.json`.
   - **Git Hook Integration**: Pre-push and pre-commit hooks invoke `agtoosa guard --strict`, checking the cached or live graph invariants in < 15ms.

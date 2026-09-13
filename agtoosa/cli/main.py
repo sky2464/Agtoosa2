@@ -293,10 +293,24 @@ def main(argv=None) -> int:
 
     refactor_sub.add_parser("backups", help="List available refactoring rollback backups")
 
+    # agtoosa guard ...
+    guard_parser = subparsers.add_parser("guard", help="Pre-push architectural guard, drift linter & background daemon")
+    guard_parser.add_argument("--strict", action="store_true", help="Fail with exit code 1 on any warning or threshold breach")
+    guard_parser.add_argument("--max-blast-radius", type=int, default=5, help="Maximum allowed upstream dependents before alert (default: 5)")
+    guard_parser.add_argument("--base-ref", type=str, help="Base Git ref for diff evaluation (e.g. origin/main)")
+    guard_parser.add_argument("--daemon", action="store_true", help="Run in continuous background monitoring daemon mode")
+    guard_parser.add_argument("--interval", type=float, default=3.0, help="Daemon polling interval in seconds (default: 3.0)")
+    guard_parser.add_argument("--install-hooks", action="store_true", help="Install pre-push and pre-commit Git hooks")
+    guard_parser.add_argument("--uninstall-hooks", action="store_true", help="Remove Agtoosa Git hooks")
+    guard_parser.add_argument("--status", action="store_true", help="Query existing cached guard status (.agtoosa/guard_status.json)")
+    guard_parser.add_argument("-C", "--workspace", type=str, default=".", help="Target workspace root")
+    guard_parser.add_argument("--json", action="store_true", help="Output guard report as JSON")
+
     # agtoosa mcp
     subparsers.add_parser("mcp", help="Launch native Model Context Protocol (MCP) server on stdio")
 
     args = parser.parse_args(argv)
+
     workspace_root = Path(args.workspace).resolve()
 
     if args.command == "graph":
@@ -384,6 +398,9 @@ def main(argv=None) -> int:
         elif args.refactor_action == "backups":
             from agtoosa.cli.refactor_cmd import cmd_refactor_backups
             return cmd_refactor_backups(args, workspace_root)
+    elif args.command == "guard":
+        from agtoosa.cli.guard_cmd import cmd_guard
+        return cmd_guard(args, workspace_root)
     elif args.command == "version":
         return cmd_version(args, workspace_root)
     elif args.command == "mcp":
