@@ -275,3 +275,68 @@ def test_report_to_dict_serialization(tmp_path: Path):
     assert deserialized["total_symbols_analyzed"] == report.total_symbols_analyzed
     assert deserialized["total_dead_candidates"] == report.total_dead_candidates
     assert len(deserialized["zombies"]) == len(report.zombies)
+
+
+def test_format_dead_code_compact_vs_verbose(tmp_path: Path):
+    """DEV-051: Default output displays compact table; verbose mode includes deletion steps."""
+    db_path = tmp_path / ".agtoosa/graph.db"
+    store = GraphStore(db_path)
+    orphan = _make_node("func:_orphan", "_orphan_fn", "function", "lib.py", 5, 20)
+    store.insert_batch([orphan], [])
+
+    pruner = DeadCodePruner(store, tmp_path)
+    report = pruner.analyze()
+
+    compact_text = format_dead_code_text(report, verbose=False)
+    assert "CONFIDENCE" in compact_text
+    assert "SYMBOL" in compact_text
+    assert "Safe to Delete" in compact_text
+    assert "Deletion Steps:" not in compact_text
+
+    verbose_text = format_dead_code_text(report, verbose=True)
+    assert "Detailed Deletion Guidelines" in verbose_text
+    assert "Deletion Steps:" in verbose_text
+
+
+def test_format_diffstat():
+    """DEV-051: format_diffstat should generate git-style diff bars and summary totals."""
+    from agtoosa.refactor.dead_code import format_diffstat
+
+    diffs = {
+        "src/utils.py": "--- a/src/utils.py\n+++ b/src/utils.py\n@@ -1,5 +1,1 @@\n-line1\n-line2\n-line3\n+new_line",
+        "src/core.py": "--- a/src/core.py\n+++ b/src/core.py\n@@ -10,5 +10,1 @@\n-dead1\n-dead2",
+    }
+    stat = format_diffstat(diffs)
+    assert "src/utils.py" in stat
+    assert "src/core.py" in stat
+    assert "Total: 2 file(s) affected" in stat
+    assert "━" in stat
+
+
+def test_cli_dry_run_diff_gating(tmp_path: Path, capsys):
+    """DEV-051: CLI dry-run shows diffstat by default, and only outputs full diff when --diff is set."""
+    db_path = tmp_path / ".agtoosa/graph.db"
+    store = GraphStore(db_path)
+    file_path = tmp_path / "mod.py"
+    file_path.write_text("def _helper():\n    pass\n\ndef main():\n    pass\n")
+
+    orphan = _make_node("func:_helper", "_helper", "function", "mod.py", 1, 2)
+    store.insert_batch([orphan], [])
+
+    # Dry run without --diff
+    args_dry = argparse.Namespace(json=False, min_confidence="high", dry_run=True, diff=False, apply=False, verbose=False)
+    exit_code = cmd_refactor_dead_code(args_dry, tmp_path)
+    assert exit_code == 0
+    captured = capsys.readouterr().out
+    assert "Dry Run Preview" in captured
+    assert "💡 Tip: Pass --diff" in captured
+    assert "@@" not in captured
+
+    # Dry run with --diff
+    args_diff = argparse.Namespace(json=False, min_confidence="high", dry_run=True, diff=True, apply=False, verbose=False)
+    exit_code = cmd_refactor_dead_code(args_diff, tmp_path)
+    assert exit_code == 0
+    captured_diff = capsys.readouterr().out
+    assert "Full Unified Diffs:" in captured_diff
+    assert "--- mod.py ---" in captured_diff
+

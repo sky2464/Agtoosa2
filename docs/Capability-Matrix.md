@@ -80,6 +80,7 @@ These stories establish that indexed relationships are accurate before the matri
 | Community detection correctness across install profiles | **DEV-048** [✅] | R-13 | `tests/test_communities.py`, `agtoosa/graph/community.py` |
 | Semantic provider gateway & egress boundary | **DEV-049** [✅] | R-14 | `tests/test_semantic_gateway.py`, `agtoosa/semantic/gateway.py` |
 | **Actionable Architecture Hints & Guided Workflows** | **DEV-050** [✅] | DX-01 | `tests/test_metrics.py`, `docs/specs/spec-DEV-050-actionable-hints-and-guided-workflows.md`, `agtoosa/graph/metrics.py` |
+| **Human-Centric Dead-Code CLI & Dry-Run Preview** | **DEV-051** [📋] | DX-02 | `tests/test_dead_code.py`, `docs/specs/spec-DEV-051-dead-code-cli-ux.md`, `agtoosa/refactor/dead_code.py` |
 
 ### Verified record status
 

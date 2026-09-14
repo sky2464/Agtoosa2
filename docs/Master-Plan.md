@@ -84,6 +84,7 @@ All previous milestones and foundation gates have been delivered, verified, and 
 | **Foundation Gate (EPIC-001)** | DEV-040–DEV-049 | Trusted Knowledge Intelligence, Scoped Identity, Parity Ledger, Semantic Gateway | `test_parser_capabilities.py`, `test_symbol_resolution.py`, `test_semantic_gateway.py` | [View Archive](archive/Master-Plan-Archive.md#foundation-gate-epic-001--trusted-knowledge-intelligence-dev-040049) |
 | **Milestone 14 (v0.7.0)** | DEV-033–DEV-037 | Multimodal Ingestion, Living C4 Wiki, Zero-Trust Extraction, Socratic Audit, Universal Skill | `test_multimodal_drift.py`, `test_living_wiki.py`, `test_semantic_extraction.py`, `test_socratic_audit.py`, `test_universal_skill.py` | [View Archive](archive/Master-Plan-Archive.md#milestone-14-multimodal-ingestion-living-c4-architecture-wiki--verified-knowledge-intelligence-v070--v080) |
 | **Milestone 17 (DX-01)** | DEV-050 | Actionable Architecture Hints & Guided Next-Steps Engine | `test_metrics.py`, `spec-DEV-050-actionable-hints-and-guided-workflows.md` | [View Archive](archive/Master-Plan-Archive.md#developer-experience--guidance-milestone-17-dev-050) |
+| **Milestone 17 (DX-02)** | DEV-051 | Human-Centric Dead-Code CLI Formatting & Progressive Dry-Run Preview | `test_dead_code.py`, `spec-DEV-051-dead-code-cli-ux.md` | [Spec](specs/spec-DEV-051-dead-code-cli-ux.md) |
 
 ---
 
@@ -94,8 +95,9 @@ flowchart LR
     M1[M1-M12: Core, Federation, CI & Studio ✅] --> M14[M14: Multimodal, Living Wiki, Socratic Audit ✅]
     M1 --> EPIC1[EPIC-001: Trusted Knowledge Intelligence ✅]
     EPIC1 --> M14
-    M14 --> M17[M17: Guided Workflows DEV-050 ✅]
+    M14 --> M17[M17: Guided Workflows & CLI UX DEV-050, DEV-051 ✅]
     M14 --> M15[Milestone 15: v0.9.0 ✅]
     M15 --> S38[DEV-038: Zero-Knowledge Attestation ✅]
     M15 --> S39[DEV-039: Microservice Synthesis ✅]
 ```
+

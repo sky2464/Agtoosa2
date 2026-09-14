@@ -272,15 +272,15 @@ class DeadCodePruner:
         return steps
 
 
-def format_dead_code_text(report: DeadCodeReport) -> str:
-    """Format dead code report for terminal output."""
+def format_dead_code_text(report: DeadCodeReport, verbose: bool = False) -> str:
+    """Format dead code report for terminal output with scannable candidate table (DEV-051)."""
     lines: List[str] = []
     lines.append("=" * 60)
     lines.append("🧹 Dead Code & Zombie Symbol Pruning Report")
     lines.append("=" * 60)
     lines.append(f"\n📊 Analysis Summary:")
-    lines.append(f"   • Total Symbols Analyzed: {report.total_symbols_analyzed}")
-    lines.append(f"   • Dead Code Candidates: {report.total_dead_candidates}")
+    lines.append(f"   • Total Symbols Analyzed:   {report.total_symbols_analyzed}")
+    lines.append(f"   • Dead Code Candidates:     {report.total_dead_candidates}")
     lines.append(f"   • Estimated Pruneable Lines: {report.total_estimated_dead_lines}")
 
     if report.confidence_breakdown:
@@ -295,19 +295,92 @@ def format_dead_code_text(report: DeadCodeReport) -> str:
         lines.append("\n   ✨ No dead code detected! Codebase is clean.")
         return "\n".join(lines)
 
-    lines.append(f"\n{'─' * 60}")
-    lines.append(f"🧟 Zombie Symbols ({len(report.zombies)}):")
+    lines.append(f"\n{'─' * 80}")
+    lines.append(f"🧟 Zombie Symbols ({len(report.zombies)} candidates):")
+    lines.append(
+        f"   {'CONFIDENCE':<11} {'TYPE':<10} {'SYMBOL':<24} {'FILE:LINE':<28} {'LINES':>5}  {'STATUS'}"
+    )
+    lines.append(f"  {'─' * 95}")
 
-    for idx, z in enumerate(report.zombies, start=1):
-        conf_emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(z.confidence, "⚪")
-        safe_label = "✅ Safe to Delete" if z.safe_to_delete else "⚠️  Manual Review"
-        lines.append(f"\n   [{idx}] {conf_emoji} {z.node_type.upper()}: {z.name}")
-        lines.append(f"       📍 {z.path}:{z.start_line}-{z.end_line} ({z.estimated_lines} lines)")
-        lines.append(f"       Confidence: {z.confidence.upper()} | {safe_label}")
-        lines.append(f"       Reason: {z.reason}")
-        lines.append(f"       Deletion Steps:")
-        for step in z.deletion_steps:
-            lines.append(f"         {step}")
+    for z in report.zombies:
+        badge = {"high": "🔴 HIGH  ", "medium": "🟡 MEDIUM", "low": "🟢 LOW   "}.get(z.confidence, "⚪ UNKNOWN")
+        type_str = f"{z.node_type:<10}"[:10]
+        name_str = f"{z.name:<24}"[:24]
+        loc_str = f"{z.path}:{z.start_line}"
+        if len(loc_str) > 28:
+            loc_str = "..." + loc_str[-25:]
+        loc_str = f"{loc_str:<28}"
+        lines_str = f"{z.estimated_lines:>5}"
+        status_str = "✅ Safe to Delete" if z.safe_to_delete else "⚠️  Review Export"
+        lines.append(f"   {badge} {type_str} {name_str} {loc_str} {lines_str}  {status_str}")
+
+    if verbose:
+        lines.append(f"\n{'─' * 80}")
+        lines.append("📋 Detailed Deletion Guidelines & Rationales:")
+        for idx, z in enumerate(report.zombies, start=1):
+            conf_emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(z.confidence, "⚪")
+            safe_label = "✅ Safe to Delete" if z.safe_to_delete else "⚠️  Manual Review"
+            lines.append(f"\n   [{idx}] {conf_emoji} {z.node_type.upper()}: {z.name}")
+            lines.append(f"       📍 {z.path}:{z.start_line}-{z.end_line} ({z.estimated_lines} lines)")
+            lines.append(f"       Confidence: {z.confidence.upper()} | {safe_label}")
+            lines.append(f"       Reason: {z.reason}")
+            lines.append(f"       Deletion Steps:")
+            for step in z.deletion_steps:
+                lines.append(f"         {step}")
+    else:
+        lines.append(f"\n💡 Tip: Pass -v / --verbose to view per-symbol deletion rationale and step-by-step guides.")
 
     lines.append(f"\n{'=' * 60}")
     return "\n".join(lines)
+
+
+def format_diffstat(diffs: Dict[str, str], max_files: int = 15) -> str:
+    """Format a Git-style diffstat summary for unified diffs (DEV-051)."""
+    if not diffs:
+        return "   (No files modified)"
+
+    file_stats = []
+    total_added = 0
+    total_deleted = 0
+
+    for path, diff in diffs.items():
+        added = 0
+        deleted = 0
+        for line in diff.splitlines():
+            if line.startswith("+") and not line.startswith("+++"):
+                added += 1
+            elif line.startswith("-") and not line.startswith("---"):
+                deleted += 1
+        total_added += added
+        total_deleted += deleted
+        file_stats.append((path, added, deleted))
+
+    file_stats.sort(key=lambda x: (x[1] + x[2]), reverse=True)
+
+    max_change = max((a + d for _, a, d in file_stats), default=1)
+    bar_max_width = 20
+
+    out: List[str] = []
+    shown_files = file_stats[:max_files]
+    for path, added, deleted in shown_files:
+        change = added + deleted
+        bar_len = max(1, int((change / max(max_change, 1)) * bar_max_width))
+        bar = "━" * bar_len
+
+        disp_path = path if len(path) <= 36 else "..." + path[-33:]
+
+        if added > 0 and deleted > 0:
+            change_label = f"+{added} -{deleted}"
+        elif deleted > 0:
+            change_label = f"-{deleted}"
+        else:
+            change_label = f"+{added}"
+
+        out.append(f"   {disp_path:<36} | {change_label:>7} {bar}")
+
+    if len(file_stats) > max_files:
+        out.append(f"   ... ({len(file_stats) - max_files} more file(s))")
+
+    out.append(f"\n   Total: {len(diffs)} file(s) affected (-{total_deleted} lines, +{total_added} lines)")
+    return "\n".join(out)
+

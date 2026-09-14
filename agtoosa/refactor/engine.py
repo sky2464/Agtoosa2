@@ -158,6 +158,9 @@ class RefactorEngine:
                     # Determine line bounds (1-indexed)
                     s_idx = max(0, act.start_line - 1)
                     e_idx = min(len(patched_lines), act.end_line)
+                    # Expand upwards to include preceding decorator lines
+                    while s_idx > 0 and patched_lines[s_idx - 1].strip().startswith("@"):
+                        s_idx -= 1
                     # Remove lines
                     del patched_lines[s_idx:e_idx]
                 elif act.action_type == "INSERT_INTERFACE":
@@ -200,21 +203,20 @@ class RefactorEngine:
         backup_snapshot_dir = self.backups_dir / plan.plan_id
         backup_snapshot_dir.mkdir(parents=True, exist_ok=True)
 
-        manifest = {
+        manifest: Dict[str, Any] = {
             "plan_id": plan.plan_id,
             "description": plan.description,
             "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "files": []
         }
 
-        # Backup original files before modification
+        # Backup all files that will be touched
         for rel_path in diffs.keys():
-            full_path = self.workspace_root / rel_path
-            backup_file = backup_snapshot_dir / rel_path
-            backup_file.parent.mkdir(parents=True, exist_ok=True)
-
-            if full_path.exists():
-                shutil.copy2(full_path, backup_file)
+            src_file = self.workspace_root / rel_path
+            dst_file = backup_snapshot_dir / rel_path
+            if src_file.exists():
+                dst_file.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src_file, dst_file)
                 manifest["files"].append({"path": rel_path, "existed": True})
             else:
                 manifest["files"].append({"path": rel_path, "existed": False})
@@ -241,13 +243,27 @@ class RefactorEngine:
                 if act.action_type == "DELETE_SYMBOL":
                     s_idx = max(0, act.start_line - 1)
                     e_idx = min(len(lines), act.end_line)
+                    while s_idx > 0 and lines[s_idx - 1].strip().startswith("@"):
+                        s_idx -= 1
                     del lines[s_idx:e_idx]
                 elif act.action_type == "INSERT_INTERFACE":
                     stub = act.code_content.strip() + "\n\n"
                     lines.append(stub)
 
+            modified_text = "".join(lines)
+            if rel_path.endswith(".py"):
+                import ast
+                try:
+                    ast.parse(modified_text)
+                except SyntaxError:
+                    # Syntax validation guard: never write a syntactically invalid Python file!
+                    backup_copy = backup_snapshot_dir / rel_path
+                    if backup_copy.exists():
+                        shutil.copy2(backup_copy, full_path)
+                    continue
+
             full_path.parent.mkdir(parents=True, exist_ok=True)
-            full_path.write_text("".join(lines), encoding="utf-8")
+            full_path.write_text(modified_text, encoding="utf-8")
 
         return {
             "plan_id": plan.plan_id,

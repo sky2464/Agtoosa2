@@ -14,12 +14,7 @@ if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
 
 from agtoosa import __version__
-from agtoosa.cli.graph_cmd import (
-    cmd_graph_build,
-    cmd_graph_status,
-    cmd_graph_query,
-    cmd_graph_export,
-)
+
 
 
 def cmd_version(args, workspace_root: Path) -> int:
@@ -95,6 +90,26 @@ def cmd_version(args, workspace_root: Path) -> int:
 def main(argv=None) -> int:
     if argv is None:
         argv = sys.argv[1:]
+
+    # Fast-path for emergency rollback: always works even if codebase has syntax errors
+    if len(argv) >= 2 and argv[0] == "refactor" and argv[1] == "rollback":
+        backup_id = argv[2] if len(argv) > 2 else ""
+        if not backup_id or backup_id.startswith("-"):
+            print("❌ Error: Missing backup snapshot ID. Usage: agtoosa refactor rollback <backup_id>")
+            return 1
+        workspace = Path.cwd()
+        for idx, a in enumerate(argv):
+            if a in ("-C", "--workspace") and idx + 1 < len(argv):
+                workspace = Path(argv[idx + 1])
+        from agtoosa.refactor.engine import RefactorEngine
+        engine = RefactorEngine(workspace)
+        if engine.rollback(backup_id):
+            print(f"✅ Successfully rolled back refactoring snapshot '{backup_id}'. Original files restored.")
+            return 0
+        else:
+            print(f"❌ Rollback failed: Backup snapshot '{backup_id}' not found.")
+            return 1
+
 
     parser = argparse.ArgumentParser(
         prog="agtoosa",
@@ -420,6 +435,8 @@ def main(argv=None) -> int:
     dead_code_p.add_argument("--min-confidence", type=str, default="low", choices=["low", "medium", "high"], help="Minimum confidence threshold (default: low)")
     dead_code_p.add_argument("--apply", action="store_true", help="Apply safe dead-code pruning to workspace")
     dead_code_p.add_argument("--dry-run", action="store_true", help="Preview unified diff without modifying files")
+    dead_code_p.add_argument("--diff", action="store_true", help="When combined with --dry-run, output full unified diff blocks")
+    dead_code_p.add_argument("-v", "--verbose", action="store_true", help="Display per-symbol rationales and step-by-step deletion guides")
 
     rollback_p = refactor_sub.add_parser("rollback", help="Roll back an applied refactoring using backup snapshot ID")
     rollback_p.add_argument("backup_id", type=str, help="Backup snapshot ID to restore")
@@ -489,7 +506,14 @@ def main(argv=None) -> int:
     workspace_root = Path(args.workspace).resolve()
 
     if args.command == "graph":
+        from agtoosa.cli.graph_cmd import (
+            cmd_graph_build,
+            cmd_graph_status,
+            cmd_graph_query,
+            cmd_graph_export,
+        )
         if args.graph_action == "build":
+
             return cmd_graph_build(args, workspace_root)
         elif args.graph_action == "status":
             return cmd_graph_status(args, workspace_root)

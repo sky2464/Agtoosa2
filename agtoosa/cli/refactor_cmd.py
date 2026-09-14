@@ -4,15 +4,16 @@ import json
 from pathlib import Path
 from typing import Any
 
-from agtoosa.graph.store import GraphStore
-from agtoosa.cli.graph_cmd import get_default_db_path
-from agtoosa.refactor.decoupler import CycleDecouplerEngine
-from agtoosa.refactor.dead_code import DeadCodePruner, format_dead_code_text
 from agtoosa.refactor.engine import RefactorEngine
+from agtoosa.refactor.dead_code import format_dead_code_text, format_diffstat
 
 
 def cmd_refactor_decouple(args: Any, workspace_root: Path) -> int:
     """Analyze cyclic dependencies and generate architectural decoupling blueprints."""
+    from agtoosa.cli.graph_cmd import get_default_db_path
+    from agtoosa.graph.store import GraphStore
+    from agtoosa.refactor.decoupler import CycleDecouplerEngine
+
     db_path = get_default_db_path(workspace_root)
     if not db_path.exists():
         print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
@@ -21,6 +22,7 @@ def cmd_refactor_decouple(args: Any, workspace_root: Path) -> int:
     store = GraphStore(db_path)
     engine = CycleDecouplerEngine(store, workspace_root)
     report = engine.analyze_cycles()
+
 
     if getattr(args, "json", False):
         print(json.dumps(report.to_dict(), indent=2))
@@ -66,6 +68,10 @@ def cmd_refactor_decouple(args: Any, workspace_root: Path) -> int:
 
 def cmd_refactor_dead_code(args: Any, workspace_root: Path) -> int:
     """Identify dead code / zombie symbols and generate safe deletion blueprints."""
+    from agtoosa.cli.graph_cmd import get_default_db_path
+    from agtoosa.graph.store import GraphStore
+    from agtoosa.refactor.dead_code import DeadCodePruner
+
     db_path = get_default_db_path(workspace_root)
     if not db_path.exists():
         print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
@@ -73,14 +79,17 @@ def cmd_refactor_dead_code(args: Any, workspace_root: Path) -> int:
 
     store = GraphStore(db_path)
     min_confidence = getattr(args, "min_confidence", "low")
+    verbose = getattr(args, "verbose", False)
+    show_diff = getattr(args, "diff", False)
     pruner = DeadCodePruner(store, workspace_root)
+
     report = pruner.analyze(min_confidence=min_confidence)
 
     if getattr(args, "json", False):
         print(json.dumps(report.to_dict(), indent=2))
         return 0
 
-    print(format_dead_code_text(report))
+    print(format_dead_code_text(report, verbose=verbose))
 
     if getattr(args, "apply", False) or getattr(args, "dry_run", False):
         dry_run = getattr(args, "dry_run", False)
@@ -95,16 +104,30 @@ def cmd_refactor_dead_code(args: Any, workspace_root: Path) -> int:
         res = refactor_engine.apply_plan(plan, dry_run=dry_run)
 
         if dry_run:
-            print(f"\n🔍 Dry Run Unified Diffs ({len(plan.actions)} symbols in {res['files_affected']} files):")
-            for path, diff in res.get("diffs", {}).items():
-                print(f"\n--- {path} ---")
-                print(diff)
+            diffs = res.get("diffs", {})
+            print(f"\n🔍 Dry Run Preview: {res['files_affected']} file(s) would be modified ({len(plan.actions)} symbols):")
+            print(format_diffstat(diffs))
+
+            if show_diff:
+                print("\n📄 Full Unified Diffs:")
+                for path, diff in diffs.items():
+                    print(f"\n--- {path} ---")
+                    print(diff)
+            else:
+                print("\n💡 Tip: Pass --diff to inspect full unified patch diffs.")
+
+            print("\n💡 Next Steps:")
+            print("   • Inspect full patch diffs:   agtoosa refactor dead-code --dry-run --diff")
+            print("   • Target specific confidence: agtoosa refactor dead-code --min-confidence high --dry-run")
+            print("   • Apply safe pruning:         agtoosa refactor dead-code --apply")
+            print("   • Export machine JSON:        agtoosa refactor dead-code --json")
         else:
             print(f"\n🚀 Pruned {len(plan.actions)} dead symbol(s) across {res['files_affected']} file(s)")
             print(f"   📦 Backup ID: {res['backup_id']}")
             print(f"   🔄 To rollback, run: agtoosa refactor rollback {res['backup_id']}")
 
     return 0
+
 
 
 def cmd_refactor_rollback(args: Any, workspace_root: Path) -> int:
