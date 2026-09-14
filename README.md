@@ -56,6 +56,7 @@ python3 -m agtoosa.cli.main graph export --format graphml -o .agtoosa/graph.grap
 - [Master Architecture](docs/Master-Architecture.md): Architecture, C4 diagrams, and quality attributes.
 - [ADR-001](docs/adr/ADR-001-unified-graph-native-architecture.md): Architectural decision record for the Python graph engine.
 - [Capability Matrix](docs/Capability-Matrix.md): Functional parity mapping against reference capabilities.
+- [Graphify Parity Research Dossier](docs/research/Graphify-Parity-Research.md): Evidence-backed competitive gap analysis driving the Milestone 16 roadmap.
 - [DEV-001 Specification](docs/specs/spec-DEV-001-native-graph.md): Stage 1 specification.
 - [DEV-005 Specification](docs/specs/spec-DEV-005-visualizer-and-reports.md): Stage 5 interactive visualizer & report specification.
 

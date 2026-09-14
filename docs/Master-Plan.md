@@ -13,6 +13,7 @@
 | Core Engine | Python 3.11+ (SQLite FTS5, Zero-Dependency Standard Library) |
 | Active Milestone | `v0.6.0` — **All 32 Stages Delivered (100% Complete)** |
 | Next Frontier | `v0.7.0 / v0.8.0` — **Multimodal Ingestion, Living C4 Wiki & Verified Knowledge Intelligence (Graphify Superseding Engine)** |
+| Foundation Frontier | `v1.0.0` — **Concrete-Syntax Parse Fidelity, Measured Retrieval Quality & Offline Semantic Gateway** (Milestone 16) |
 
 ---
 
@@ -22,16 +23,20 @@ Evaluated across architectural impact, AI agent context amplification, enterpris
 
 | Rank | Cycle ID | Title | Rating | Milestone | Status | Strategic Value & Architectural Impact |
 |:---:|---|---|:---:|---|:---:|---|
-| 🥇 | **DEV-025** | Framework Dependency Injection & Dynamic Routes | **96 / 100** | Milestone 10 (v0.4.2) | ✅ Done | **Highest Architectural Leverage**: Transforms Agtoosa from a syntax AST parser into a true runtime architecture graph by extracting FastAPI/Flask/NestJS/Express DI containers, decorators (`@app.get`), and ORM schema bindings (SQLAlchemy, Prisma). AI agents gain real execution context. |
-| 🥈 | **DEV-033** | Multimodal Ingestion & Visual-to-Code Drift Verification | **95 / 100** | Milestone 14 (v0.7.0) | 📋 Planned | **Supersedes Graphify Ingestion**: Ingests PDFs, research papers, whiteboard sketches, architecture diagrams, and web URLs. Cross-references visual diagrams against SQLite AST symbols to detect and flag architectural Visual-to-Code drift. |
-| 🥉 | **DEV-034** | Hierarchical Leiden Clustering & Living C4 Autonomous Wiki | **93 / 100** | Milestone 14 (v0.7.0) | 📋 Planned | **Supersedes Graphify Wiki**: Hierarchical Leiden community detection partitioned into Domains, Subsystems, and Modules. Generates `.agtoosa/wiki/` with Obsidian `[[wikilinks]]`, Robert C. Martin package coupling metrics ($C_a, C_e, I, A, D$), and Studio Web tab. |
-| 4th | **DEV-037** | Universal Slash Command Skill & Topology-Budgeted Traversal | **92 / 100** | Milestone 14 (v0.8.0) | 📋 Planned | **Universal AI Copilot Parity**: Ships drop-in `/agtoosa` skills for Claude Code, Cursor, Gemini CLI, Windsurf, and Antigravity. Features PageRank-weighted AST skeleton pruning under strict token budgets (`--budget 1500`). |
-| 5th | **DEV-029** | PR Blast Radius & Breaking Schema Review Bot | **91 / 100** | Milestone 12 (v0.6.0) | ✅ Done | **Automated PR Governance**: Calculates multi-dimensional blast radius directly from git diffs and posts sticky Markdown review comments with production telemetry risk tiers. |
-| 6th | **DEV-035** | Zero-Trust Hallucination Guard & Subagent Extraction | **90 / 100** | Milestone 14 (v0.7.0) | 📋 Planned | **Supersedes Graphify Extraction**: Parallel subagent extraction for non-code assets with tri-state confidence (`EXTRACTED`, `INFERRED`, `AMBIGUOUS`) backed by bidirectional AST grounding to catch and prevent LLM hallucinated symbols. |
-| 7th | **DEV-027** | VS Code & Cursor In-Editor Gutter Lens & Marketplace | **89 / 100** | Milestone 11 (v0.5.0) | ✅ Done | **Maximum Developer Adoption**: Brings real-time CodeLens blast radius, caller count, and 1-click Studio refactor actions ("✂️ Prune", "🔄 Decouple") directly into IDE editor gutters. Published to VS Code Marketplace & Open VSX. |
-| 8th | **DEV-036** | Socratic Architecture Audit & 1-Click Refactor Plans | **88 / 100** | Milestone 14 (v0.8.0) | 📋 Planned | **Supersedes Graphify Graph Report**: Generates `GRAPH_REPORT.md` with God nodes, betweenness centrality, and surprising cross-modality links, attaching executable 1-click refactoring blueprints from `CycleDecouplerEngine`. |
-| 9th | **DEV-030** | Distributed OpenTelemetry Trace Ingestion & Topology | **87 / 100** | Milestone 12 (v0.6.0) | ✅ Done | **Distributed System Visibility**: Ingests OTLP, Jaeger, and Zipkin traces to map runtime RPC/HTTP/gRPC service topologies and stitches them directly to static AST endpoints. |
-| 10th | **DEV-026** | Async Message Queue & Event Bus Lineage | **85 / 100** | Milestone 10 (v0.4.2) | ✅ Done | **Event-Driven Topology**: Maps asynchronous message lineages across Kafka, RabbitMQ, Redis Pub/Sub, and Celery task queues. |
+| 🥇 | **DEV-040** | Tree-sitter Universal Concrete-Syntax Parser Backend | **97 / 100** | Milestone 16 (v1.0.0) | 📋 Planned | **Foundation Fidelity — highest leverage in the entire plan**: Replaces regular-expression symbol matching with real concrete syntax trees across ~40 languages. Every downstream capability (impact radius, context packs, repair engine, visual drift, wiki) reads the graph the parser produces, so today's regex ceiling silently caps all of them. |
+| 🥈 | **DEV-025** | Framework Dependency Injection & Dynamic Routes | **96 / 100** | Milestone 10 (v0.4.2) | ✅ Done | **Highest Runtime Leverage**: Transforms Agtoosa from a syntax AST parser into a true runtime architecture graph by extracting FastAPI/Flask/NestJS/Express DI containers, decorators (`@app.get`), and ORM schema bindings (SQLAlchemy, Prisma). AI agents gain real execution context. |
+| 🥉 | **DEV-033** | Multimodal Ingestion & Visual-to-Code Drift Verification | **95 / 100** | Milestone 14 (v0.7.0) | 📋 Planned | **Supersedes Graphify Ingestion**: Ingests PDFs, research papers, whiteboard sketches, architecture diagrams, and web URLs. Cross-references visual diagrams against SQLite AST symbols to detect and flag architectural Visual-to-Code drift. |
+| 4th | **DEV-034** | Hierarchical Leiden Clustering & Living C4 Autonomous Wiki | **93 / 100** | Milestone 14 (v0.7.0) | 📋 Planned | **Supersedes Graphify Wiki**: Hierarchical Leiden community detection partitioned into Domains, Subsystems, and Modules. Generates `.agtoosa/wiki/` with Obsidian `[[wikilinks]]`, Robert C. Martin package coupling metrics ($C_a, C_e, I, A, D$), and Studio Web tab. |
+| 5th | **DEV-037** | Universal Slash Command Skill & Topology-Budgeted Traversal | **92 / 100** | Milestone 14 (v0.8.0) | 📋 Planned | **Universal AI Copilot Parity**: Ships drop-in `/agtoosa` skills for Claude Code, Cursor, Gemini CLI, Windsurf, and Antigravity. Features PageRank-weighted AST skeleton pruning under strict token budgets (`--budget 1500`). |
+| 6th | **DEV-029** | PR Blast Radius & Breaking Schema Review Bot | **91 / 100** | Milestone 12 (v0.6.0) | ✅ Done | **Automated PR Governance**: Calculates multi-dimensional blast radius directly from git diffs and posts sticky Markdown review comments with production telemetry risk tiers. |
+| 7th | **DEV-035** | Zero-Trust Hallucination Guard & Subagent Extraction | **90 / 100** | Milestone 14 (v0.7.0) | 📋 Planned | **Supersedes Graphify Extraction**: Parallel subagent extraction for non-code assets with tri-state confidence (`EXTRACTED`, `INFERRED`, `AMBIGUOUS`) backed by bidirectional AST grounding to catch and prevent LLM hallucinated symbols. |
+| 8th | **DEV-027** | VS Code & Cursor In-Editor Gutter Lens & Marketplace | **89 / 100** | Milestone 11 (v0.5.0) | ✅ Done | **Maximum Developer Adoption**: Brings real-time CodeLens blast radius, caller count, and 1-click Studio refactor actions ("✂️ Prune", "🔄 Decouple") directly into IDE editor gutters. Published to VS Code Marketplace & Open VSX. |
+| 9th | **DEV-036** | Socratic Architecture Audit & 1-Click Refactor Plans | **88 / 100** | Milestone 14 (v0.8.0) | 📋 Planned | **Supersedes Graphify Graph Report**: Generates `GRAPH_REPORT.md` with God nodes, betweenness centrality, and surprising cross-modality links, attaching executable 1-click refactoring blueprints from `CycleDecouplerEngine`. |
+| 10th | **DEV-030** | Distributed OpenTelemetry Trace Ingestion & Topology | **87 / 100** | Milestone 12 (v0.6.0) | ✅ Done | **Distributed System Visibility**: Ingests OTLP, Jaeger, and Zipkin traces to map runtime RPC/HTTP/gRPC service topologies and stitches them directly to static AST endpoints. |
+| 11th | **DEV-041** | Retrieval Quality & Token-Efficiency Benchmark Harness | **86 / 100** | Milestone 16 (v1.0.0) | 📋 Planned | **Evidence Over Assertion**: Converts the unmeasured ">70% token reduction" claim into a reproducible scorecard (recall@k, MRR, nDCG, tokens-to-answer) benchmarked head-to-head against grep, whole-file dumps, and vector-only retrieval — the instrument every other cycle needs to prove it improved anything. |
+| 12th | **DEV-026** | Async Message Queue & Event Bus Lineage | **85 / 100** | Milestone 10 (v0.4.2) | ✅ Done | **Event-Driven Topology**: Maps asynchronous message lineages across Kafka, RabbitMQ, Redis Pub/Sub, and Celery task queues. |
+| 13th | **DEV-043** | Offline-First Semantic Provider Gateway & Zero-Dep Louvain | **84 / 100** | Milestone 16 (v1.0.0) | 📋 Planned | **Shared Semantic Substrate**: The single redacting, budget-capped, cache-backed LLM transport that DEV-033, DEV-035, and DEV-036 each assume but none defines — plus a pure-Python modularity optimiser replacing the union-find fallback so zero-dependency installs get real community detection. |
+| 14th | **DEV-042** | Rationale & Decision Provenance Extraction | **78 / 100** | Milestone 16 (v1.0.0) | 📋 Planned | **Intent as a First-Class Node**: Promotes `# WHY:`, `# NOTE:`, `# HACK:`, and `# ASSUMPTION:` comments into queryable graph nodes bound to their enclosing symbol and linked to ADRs — capturing the one thing syntax can never reconstruct. |
 
 ---
 
@@ -522,6 +527,122 @@ flowchart LR
 |:---:|---|---|:---:|---|---|
 | 🥇 | **DEV-038** | Zero-Knowledge Architecture Cryptographic Attestation | **70 / 100** | Milestone 15 (v0.9.0) | **Cryptographic Security Proofs**: Produces cryptographically signed architectural attestations verifying compliance with layer boundary invariants without exposing proprietary source code. |
 | 🥈 | **DEV-039** | Autonomous Cross-Language Microservice Synthesis | **68 / 100** | Milestone 15 (v0.9.0) | **Multi-Language Generation**: Generates strongly-typed gRPC and OpenAPI client/server adapters directly from federated multi-repo graph models. |
+
+---
+
+## Milestone 16: Foundation Fidelity, Measured Retrieval Quality & Offline Semantic Gateway (v1.0.0)
+
+> **Strategic Objective**: Milestone 14 supersedes Graphify at the *knowledge* layer — multimodal ingestion, hierarchical wiki, hallucination guarding, universal skills. Milestone 16 closes the gaps *underneath* it. A 2026-09-14 line-level audit against the Graphify reference found four capabilities where Agtoosa2 is not merely behind but structurally capped, and where no cycle in Milestones 14 or 15 applies. Full evidence: [Graphify Parity Research Dossier](research/Graphify-Parity-Research.md).
+
+### Research Basis: Residual Gap Audit (2026-09-14)
+
+Every row was verified against source, not inferred. Rows marked ❌ are covered by **no** planned cycle.
+
+| Gap | Graphify Reference Baseline | Agtoosa2 Verified State | Source Evidence | M14 Coverage |
+|---|---|---|---|:---:|
+| **Concrete-syntax parse fidelity** | tree-sitter CST across all 37 grammars; deterministic, offline, $0 per-token | Real AST for **Python only**. JS/TS, Go, Rust, Java, Kotlin, C/C++, C#, SQL are **regular-expression matched** — arrow functions, nested closures, generics, and method scoping are structurally invisible | `agtoosa/parser/js_ts_parser.py` (`IMPORT_ESM_REGEX`, `CLASS_REGEX`); `agtoosa/parser/polyglot_parser.py` (`GO_FUNC_REGEX`, `RUST_FN_REGEX`) | ❌ |
+| **Language breadth** | 37 grammars | **14 extensions** in `PolyglotParser.SUPPORTED_EXTENSIONS` plus `.py`/`.js`/`.ts`/`.sh`. Absent: Ruby, PHP, Swift, Dart, Scala, Elixir, Lua, Julia, Zig, OCaml, Vue, Svelte, Astro, Terraform/HCL, PowerShell, Groovy, Verilog, VHDL, Fortran | `agtoosa/parser/polyglot_parser.py:14-29` | ❌ |
+| **Retrieval-quality proof** | Published & reproducible: LOCOMO (n=300) recall@10 **0.497**, QA **45.3%**; LongMemEval-S (n=50) QA **76%** | `README.md` asserts ">70% token reduction" with **no harness that measures it**. `agtoosa/benchmark/` measures execution latency, not retrieval quality | `agtoosa/benchmark/harness.py` | ❌ |
+| **Rationale nodes** | `# NOTE:` / `# WHY:` comments promoted to first-class graph nodes | **Zero occurrences** of rationale extraction anywhere in the parser subsystem | no match for `WHY:`/`rationale` under `agtoosa/parser/` | ❌ |
+| **Zero-dependency community detection** | Leiden via `graspologic`, or native on Python 3.13+ | `networkx.greedy_modularity_communities` **only when networkx is installed**; otherwise falls back to **union-find connected components** — reachability, not community detection | `agtoosa/graph/metrics.py:203-274` | ⚠️ partial (DEV-034 assumes Leiden; the zero-dep path is unspecified) |
+| **LLM provider transport** | Pluggable: Claude, Gemini, OpenAI, DeepSeek, Ollama, Bedrock, Azure | **No LLM integration exists anywhere.** The only outbound HTTP is the `urllib` GitHub client | `agtoosa/review/pr_bot.py` is the sole network client | ⚠️ partial (DEV-033/035/036 each *consume* a semantic layer; none *defines* it) |
+| **Semantic search quality** | Real embedding backends | "Dense semantic vectors" are **MD5-hashed subword buckets** — a hashing trick, not a learned embedding: synonyms collide arbitrarily, near-synonyms never match | `agtoosa/graph/embeddings.py:70` | ⚠️ partial (no cycle measures or upgrades this) |
+
+**Where Agtoosa2 already wins and Milestone 16 must not regress**: delivery-gate proof chains, CI drift gating with merge blocking, the autonomous refactor/repair engine, OTLP runtime blast radius, C4-as-code, monorepo boundaries, cross-repo federation, and performance-regression CI — none of which Graphify has any analogue for.
+
+### Governing Constraints
+
+1. **`pyproject.toml` keeps `dependencies = []`.** New capability ships as extras (`treesitter`, `llm`, `media`), never as a core dependency.
+2. **Every optional path degrades, never fails.** No grammar → existing regex parser handles the file. No provider key → deterministic passes only.
+3. **Offline by default.** No network call without explicit opt-in. Graphify's semantic pass is opt-out; Agtoosa2's is opt-in — this is what keeps air-gapped installs first-class.
+4. **`BaseParser` is the extension point.** New parsers implement `can_parse`/`parse` and register in `ParserEngine.parsers`; the node/edge model is extended, never forked.
+5. **Schema changes require a migration.** `SCHEMA_VERSION = 1` in `agtoosa/graph/store.py` has no migration logic; the first cycle that alters the schema must establish one.
+
+---
+
+### Detailed Stage Specifications
+
+- **DEV-040 (Stage 40) — Tree-sitter Universal Concrete-Syntax Parser Backend** [📋 Planned — Rating: 97/100]
+  - **Objective**: Replace regular-expression symbol matching with real concrete syntax trees across ~40 languages, lifting the fidelity ceiling that every downstream capability silently inherits.
+  - **Why this outranks every other cycle**: The graph is only as accurate as the parser that built it. A regex that misses an arrow function produces a graph missing that call edge — and `graph impact`, `context compile`, `CycleDecouplerEngine`, the DEV-033 visual-drift matcher, and the DEV-034 wiki all consume that same defective graph. No amount of downstream intelligence recovers an edge that was never extracted.
+  - **Universal Grammar Backend (`agtoosa/parser/treesitter_parser.py`, `agtoosa/parser/grammars.py`)**:
+    - Implements `BaseParser`; registered **first** in `ParserEngine.parsers` so it wins `can_parse()` whenever its grammar loads. Selection is **per file**, never global.
+    - `agtoosa/parser/grammars.py` maps extension → grammar → S-expression node queries for definitions, calls, imports, inheritance, and decorators.
+    - Target languages beyond today's 14: Ruby, PHP, Swift, Dart, Scala, Elixir, Lua, Julia, Zig, OCaml, Vue, Svelte, Astro, JSX/TSX, Terraform/HCL, PowerShell, Groovy, Verilog, VHDL, Fortran.
+  - **Fidelity Gains Regular Expressions Cannot Reach**:
+    - Nested, anonymous, and arrow functions; closures bound to their enclosing scope.
+    - Method bodies correctly scoped to their owning class rather than matched flat.
+    - Generic type parameters, decorator arguments, and precise call-site line numbers.
+  - **Graceful Degradation Chain**:
+    - Grammar unavailable for the host platform → `PythonASTParser` / `JavaScriptTypeScriptParser` / `PolyglotParser` handle the file exactly as today. A missing wheel degrades fidelity, never the build.
+    - Tree-sitter edges carry `provenance="extracted"`; regex-fallback edges carry `provenance="inferred"`, so DEV-042's confidence model and DEV-035's grounding guard can weight them differently.
+  - **Packaging**: `pyproject.toml` gains `treesitter = [...]` as a pinned extra (grammar-pack choice and platform-fallback policy resolved in the spec); `full` becomes the union of all extras.
+  - **CLI & MCP Tooling**:
+    - CLI: `agtoosa graph build [--parser-report]` — reports which backend parsed each file and why.
+    - CLI: `agtoosa graph parsers [--json]` — lists available grammars and degraded languages.
+  - **Verification Fixture**: `tests/test_treesitter.py`, including a **parity harness** asserting the tree-sitter backend extracts a strict superset of the regex parser's symbols on identical fixtures.
+
+- **DEV-041 (Stage 41) — Retrieval Quality & Token-Efficiency Benchmark Harness** [📋 Planned — Rating: 86/100]
+  - **Objective**: Convert the unmeasured ">70% token reduction" claim into a reproducible, publishable scorecard, and give every other cycle an instrument that proves it improved something.
+  - **Why it matters**: Graphify publishes LOCOMO recall@10 0.497 and LongMemEval-S QA 76%. Agtoosa2 publishes an assertion. Without a harness, the MD5-hash embedding weakness in `agtoosa/graph/embeddings.py:70` stays invisible, and no Milestone 14 or 16 cycle can demonstrate a delta.
+  - **Retrieval Scorer (`agtoosa/benchmark/retrieval.py`, `agtoosa/benchmark/datasets.py`)**:
+    - Metrics: recall@k, MRR, nDCG, answer accuracy, **tokens-to-answer**, and wall-clock latency.
+    - Baselines measured head-to-head: raw grep, whole-file dump, vector-only retrieval, and Agtoosa2 context packs.
+    - Sits beside the existing performance harness (`agtoosa/benchmark/harness.py`) and reuses `BenchmarkBaselineStore` snapshot semantics.
+  - **Self-Hosted Corpus (CI-safe default)**:
+    - Ships a question set hand-labelled against this repository's own modules, tests, and specs, committed as fixtures — so CI never depends on a third-party dataset download.
+    - LOCOMO / LongMemEval-S-shaped task format kept opt-in, so external numbers sit directly beside the reference figures when run.
+  - **Attribution Discipline**: run before and after DEV-040 and DEV-043 so each cycle's contribution to retrieval quality is separately attributable.
+  - **CLI & MCP Tooling**:
+    - CLI: `agtoosa benchmark retrieval [--suite <name>] [--baseline grep|files|vector] [--json]`.
+    - Emits a Markdown scorecard suitable for direct inclusion in `README.md`.
+  - **Verification Fixture**: `tests/test_retrieval_bench.py` — scorer correctness and determinism; the full suite is a CLI run, not a unit test.
+
+- **DEV-043 (Stage 43) — Offline-First Semantic Provider Gateway & Zero-Dependency Louvain** [📋 Planned — Rating: 84/100]
+  - **Objective**: Specify once the semantic transport that DEV-033, DEV-035, and DEV-036 each assume, and retire the union-find community fallback so zero-dependency installs are not second-class.
+  - **Provider Gateway (`agtoosa/semantic/provider.py`)**:
+    - Provider-agnostic transport over Claude, OpenAI, Gemini, Bedrock, Azure, and Ollama, built on `urllib.request` in the zero-dependency core — the same technique `agtoosa/review/pr_bot.py` already uses for the GitHub REST API.
+    - **Secret redaction before any payload leaves the machine**, reusing `agtoosa/core/security.py`.
+    - SHA-256 content-keyed response cache (mirroring the fingerprint discipline in `agtoosa/parser/__init__.py`) so re-indexing unchanged files costs nothing.
+    - Hard token-budget ceiling and `--dry-run` cost estimate; **no network call without explicit opt-in**.
+    - Model identifiers, request shapes, and cost tables must be taken from current Claude API reference material at implementation time, never written from memory.
+  - **Zero-Dependency Community Detection (`agtoosa/graph/communities.py`)**:
+    - Extracts community logic out of `agtoosa/graph/metrics.py` and implements **pure-Python Louvain** (modularity-optimising) as the real default.
+    - Optional Leiden refinement pass when `networkx`/`graspologic` is present, feeding DEV-034's hierarchical partitioning.
+    - Removes the union-find connected-components fallback, which computes reachability rather than community structure.
+  - **CLI & MCP Tooling**:
+    - CLI: `agtoosa semantic status [--json]`, `agtoosa semantic enrich [--provider <name>] [--dry-run]`.
+    - CLI: `agtoosa graph communities [--json]`.
+    - MCP Tool: `agtoosa_get_communities`.
+  - **Verification Fixture**: `tests/test_semantic_gateway.py` (stubbed provider — no live calls in CI; asserts redaction, cache hits, budget enforcement, and offline no-op) and `tests/test_communities.py` (modularity score strictly beats connected-components on a known partition fixture).
+
+- **DEV-042 (Stage 42) — Rationale & Decision Provenance Extraction** [📋 Planned — Rating: 78/100]
+  - **Objective**: Promote developer intent recorded in comments into queryable graph nodes — the one signal syntax analysis can never reconstruct.
+  - **Rationale Extractor (`agtoosa/parser/rationale.py`)**:
+    - Recognises `# WHY:`, `# NOTE:`, `# HACK:`, `# ASSUMPTION:`, and `TODO(owner)` markers across all supported comment syntaxes.
+    - Binds each to its enclosing symbol via the parser's existing scope resolution, and links to `NodeType.ADR` nodes when a decision record is cited.
+  - **Formalised Edge Confidence**:
+    - `Edge.provenance` (`agtoosa/core/model.py:85`) is today a free-form `str` with three informal values in a trailing comment. Formalise as `EXTRACTED | INFERRED | AMBIGUOUS | MANUAL` with a numeric `confidence` column, populated from the DEV-040 parser backend and DEV-043 semantic passes.
+    - Establishes the **first schema migration path**: bumps `SCHEMA_VERSION` in `agtoosa/graph/store.py` and adds the migration machinery the store currently lacks.
+  - **Context Pack Integration**: rationale nodes are included in compiled context packs, so an AI agent reading a symbol also reads why it is the way it is.
+  - **CLI & MCP Tooling**:
+    - CLI: `agtoosa graph rationale <symbol> [--json]`.
+    - CLI: `--min-confidence <float>` on `graph impact` and `context compile`.
+    - MCP Tool: `agtoosa_get_rationale`.
+  - **Verification Fixture**: `tests/test_rationale.py` and `tests/test_confidence.py` (including a schema-migration round-trip from `SCHEMA_VERSION = 1`).
+
+---
+
+### Milestone 16 Sequencing
+
+| Wave | Cycles | Rationale |
+|:---:|---|---|
+| **A** | DEV-041 | Build the instrument first and record a pre-change baseline; nothing else can claim an improvement until this exists. |
+| **B** | DEV-040, DEV-042 | Foundation fidelity and provenance — both fully deterministic, both raise the floor for every later cycle and for all of Milestone 14. |
+| **C** | DEV-043 | The shared semantic substrate, built on a now-accurate graph and unblocking DEV-033/035/036. |
+| **D** | DEV-041 (re-run) | Publish the per-cycle delta as a reproducible scorecard. |
+
+> **Dependency note**: DEV-040 should land before Milestone 14 execution begins. DEV-033's visual-drift matcher and DEV-034's wiki both resolve against AST symbols, so running them on a regex-derived graph would bake today's parse gaps into the wiki and the drift report.
 
 
 

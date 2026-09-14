@@ -2,7 +2,8 @@
 
 > **Reference Benchmark:** Graphify Open-Source Capabilities & Enterprise Graph OS.  
 > **Status:** 32 Stages Delivered & Verified (`v0.6.0`) — 100% Automated Test Pass Rate.  
-> **Milestone 14 (Next Frontier):** Stages 33–37: Multimodal Ingestion, Living C4 Architecture Wiki & Verified Knowledge Intelligence (Direct Superseding of Graphify).
+> **Milestone 14 (Next Frontier):** Stages 33–37: Multimodal Ingestion, Living C4 Architecture Wiki & Verified Knowledge Intelligence (Direct Superseding of Graphify).  
+> **Milestone 16 (Foundation Frontier):** Stages 40–43: Concrete-Syntax Parse Fidelity, Measured Retrieval Quality, Rationale Provenance & Offline Semantic Gateway — the residual gaps isolated by the [Graphify Parity Research Dossier](research/Graphify-Parity-Research.md) (2026-09-14) that no Milestone 14/15 cycle covers.
 
 ---
 
@@ -57,5 +58,21 @@
 | **Zero-Trust Hallucination Guard**| `agtoosa extract semantic` | **Stage 35** (DEV-035) [📋] | Subagent parallel extraction, tri-state confidence, bidirectional AST grounding | Planned |
 | **Socratic Audit & Refactor Plans**| `agtoosa audit` | **Stage 36** (DEV-036) [📋] | `GRAPH_REPORT.md`, God nodes, cross-modality links, 1-click refactor blueprints | Planned |
 | **Universal Slash Command Skill** | `/agtoosa`, `--budget` | **Stage 37** (DEV-037) [📋] | Universal skill (Claude, Cursor, Gemini, Antigravity), AST topology pruning | Planned |
+| **Concrete-Syntax Parse Fidelity** | `agtoosa graph build --parser-report` | **Stage 40** (DEV-040) [📋] | tree-sitter CST across ~40 grammars; nested/arrow functions, class-scoped methods, generics, exact call sites; graceful fallback to regex parsers | Planned |
+| **Retrieval Quality Benchmarking** | `agtoosa benchmark retrieval` | **Stage 41** (DEV-041) [📋] | recall@k, MRR, nDCG, tokens-to-answer vs grep / whole-file / vector-only baselines; self-hosted CI-safe corpus | Planned |
+| **Rationale & Edge Confidence** | `agtoosa graph rationale`, `--min-confidence` | **Stage 42** (DEV-042) [📋] | `# WHY:` / `# NOTE:` / `# HACK:` nodes bound to enclosing symbols, ADR linkage, tri-state provenance + schema migration | Planned |
+| **Offline Semantic Gateway & Louvain** | `agtoosa semantic status/enrich`, `agtoosa graph communities` | **Stage 43** (DEV-043) [📋] | Redacting, budget-capped, cache-backed provider transport (opt-in); pure-Python Louvain replacing the union-find fallback | Planned |
+
+---
+
+## Residual Reference Gaps (Open)
+
+Capabilities present in the Graphify reference that remain unaddressed after Milestones 14–16. Tracked so parity claims stay honest.
+
+| Reference Capability | Status | Note |
+|---|---|---|
+| **Learned embedding backends** | ⚠️ Open | `SemanticEmbeddingEngine` uses MD5-hashed subword buckets (`agtoosa/graph/embeddings.py`), not a learned model. DEV-041 *measures* the impact; replacement is deliberately deferred until that evidence exists. |
+| **Google Workspace ingestion** | ⚠️ Open | Graphify ingests Sheets/Docs/Slides via the `gws` CLI. Out of scope for Milestone 14's multimodal cycle (DEV-033), which covers PDFs, web URLs, and diagrams. |
+| **Local A/V transcription** | ⚠️ Open | Graphify transcribes MP4/MP3/WAV via `faster-whisper`. Not scoped in DEV-033. |
 
 
