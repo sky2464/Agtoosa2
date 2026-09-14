@@ -61,3 +61,18 @@ python3 -m agtoosa.cli.main graph export --format graphml -o .agtoosa/graph.grap
 - [DEV-001 Specification](docs/specs/spec-DEV-001-native-graph.md): Stage 1 specification.
 - [DEV-005 Specification](docs/specs/spec-DEV-005-visualizer-and-reports.md): Stage 5 interactive visualizer & report specification.
 
+## Key Engineering Workflows
+
+```bash
+# 1. Inspect architectural health and PageRank hubs
+uv run agtoosa graph report
+
+# 2. Identify unreachable dead code and zombie symbols
+uv run agtoosa refactor dead-code
+
+# 3. Compile token-budgeted context for AI agents
+uv run agtoosa query "GraphStore" --budget 1500
+
+# 4. Trace blast radius before making a change
+uv run agtoosa graph impact "agtoosa.graph.store.GraphStore"
+```
