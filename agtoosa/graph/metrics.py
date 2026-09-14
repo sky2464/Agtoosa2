@@ -304,8 +304,22 @@ class MetricsEngine:
             members = ", ".join(comm["sample_members"][:3])
             lines.append(f"   • Community #{comm['community_id']} ({comm['size']} nodes): {members}...")
 
+        lines.append("\n💡 What This Means & Actionable Next Steps:")
+        if health.get("isolated_count", 0) > 0:
+            lines.append(f"   • 🧹 Prune Dead Code: Run 'agtoosa refactor dead-code --dry-run' to safely inspect {health['isolated_count']} candidate(s).")
+        if report.get("top_hubs"):
+            top_hub = report["top_hubs"][0]
+            lines.append(f"   • 🔍 Inspect Gravity Hubs: Run 'agtoosa graph explain \"{top_hub['name']}\"' or 'agtoosa graph impact \"{top_hub['name']}\"'.")
+        if health.get("cycle_count", 0) > 0:
+            lines.append(f"   • 🔄 Decouple Cycles: Run 'agtoosa refactor decouple' to break circular dependencies.")
+        if health.get("verified_units_ratio", 1.0) < 0.2:
+            lines.append(f"   • 📜 Trace Requirements: Run 'agtoosa ship verify' to link story specs to test proof evidence.")
+        lines.append("   • 🌐 Visual Studio: Run 'agtoosa graph view --serve' to explore interactive topology on port 8080.")
+        lines.append("   • 🧭 Context for AI Agents: Run 'agtoosa query \"<symbol>\" --budget 1500' for token-budgeted GraphRAG.")
+
         lines.append("\n" + "=" * 60)
         return "\n".join(lines)
+
 
     def format_markdown(self, report: Dict[str, Any]) -> str:
         """Format metrics into Github-Flavored Markdown."""

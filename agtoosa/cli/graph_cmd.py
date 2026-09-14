@@ -61,7 +61,14 @@ def cmd_graph_status(args: Any, workspace_root: Path) -> int:
         for ntype, count in sorted(stats.node_counts_by_type.items()):
             print(f"     - {ntype}: {count}")
 
+    print("\n💡 Suggested Next Actions:")
+    print("   • Health & Centrality:  uv run agtoosa graph report")
+    print("   • Socratic Audit:       uv run agtoosa audit")
+    print("   • Dead Code Pruning:    uv run agtoosa refactor dead-code --dry-run")
+    print("   • Interactive Studio:   uv run agtoosa graph view --serve")
+
     return 0
+
 
 
 def cmd_graph_query(args: Any, workspace_root: Path) -> int:

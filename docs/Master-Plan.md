@@ -546,6 +546,18 @@ DEV-047–049 were added on 2026-09-14 from a second parity audit (findings R-12
 
 **Foundation gate:** ✅ **CLEARED**. AC-01–27 carry automated evidence, every designated ambiguous-case fixture resolves zero wrong concrete targets, and publication/migration/stale-patch/rollback regressions pass (237/237 tests passing, `scripts/evaluate_graph_quality.py` passes with 100% precision, package version reconciled to `0.6.0`). **Milestone 14 is now unlocked.**
 
+---
+
+## Developer Experience & Guidance: Milestone 17 (DEV-050)
+
+- **DEV-050: Actionable Architecture Hints & Guided Next-Steps Engine** [✅ Complete — Rating: 94/100]
+  - **Objective**: Translate raw graph metrics, PageRank scores, and dead code candidates into plain-English "What is going on", "What this means", and "What to run next" guided hints.
+  - **Dynamic CLI Recommendations**:
+    - `agtoosa graph status`: Automatically recommends next steps (Health check, Socratic audit, Studio launch).
+    - `agtoosa graph report`: Dynamically recommends dead-code pruning, gravity hub inspection, requirement tracing, and AI context queries based on detected health findings.
+  - **Specification**: [spec-DEV-050-actionable-hints-and-guided-workflows.md](specs/spec-DEV-050-actionable-hints-and-guided-workflows.md).
+
+
 
 ---
 

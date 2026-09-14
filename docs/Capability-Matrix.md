@@ -76,8 +76,10 @@ These stories establish that indexed relationships are accurate before the matri
 | Source rationale & decision provenance | **DEV-047** [✅] | R-12 | `tests/test_rationale.py`, `agtoosa/parser/rationale.py` |
 | Community detection correctness across install profiles | **DEV-048** [✅] | R-13 | `tests/test_communities.py`, `agtoosa/graph/community.py` |
 | Semantic provider gateway & egress boundary | **DEV-049** [✅] | R-14 | `tests/test_semantic_gateway.py`, `agtoosa/semantic/gateway.py` |
+| **Actionable Architecture Hints & Guided Workflows** | **DEV-050** [✅] | DX-01 | `tests/test_metrics.py`, `docs/specs/spec-DEV-050-actionable-hints-and-guided-workflows.md`, `agtoosa/graph/metrics.py` |
 
 ### Verified record status
+
 
 | Item | Status |
 |---|---|
