@@ -68,7 +68,7 @@ class ReviewIntelligenceEngine:
         normalized = path.replace("\\", "/").lower()
         if "core/model" in normalized or "core/security" in normalized:
             return 3  # Tier 3: Foundational Domain Entities & Security Primitives
-        if "core/context_compiler" in normalized or "core/lifecycle" in normalized:
+        if "core/context_compiler" in normalized or "core/lifecycle" in normalized or "core/topology_compiler" in normalized:
             return 2  # Tier 2: Application Services
 
         parts = normalized.split("/")
