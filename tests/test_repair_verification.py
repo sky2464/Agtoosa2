@@ -27,7 +27,7 @@ def test_dry_run_is_conservative_preview():
             diff="--- a/test.py\n+++ b/test.py",
             files_modified=["test.py"],
             underlying_plan=PatchPlan("patch-1", "Test patch", [
-                PatchAction("delete_block", "test.py", 1, 5, "")
+                PatchAction("DELETE_SYMBOL", "test.py", "sym1", 1, 5, "")
             ]),
         )
 
@@ -61,7 +61,7 @@ def test_stale_source_detection_aborts_apply():
             files_modified=["test.py"],
             source_hashes={"test.py": orig_hash},
             underlying_plan=PatchPlan("patch-1", "Test patch", [
-                PatchAction("delete_block", "test.py", 1, 1, "")
+                PatchAction("DELETE_SYMBOL", "test.py", "sym1", 1, 1, "")
             ]),
         )
 
@@ -100,7 +100,7 @@ def test_verification_command_failure_triggers_rollback():
             files_modified=["test.py"],
             source_hashes={"test.py": orig_hash},
             underlying_plan=PatchPlan("patch-1", "Test patch", [
-                PatchAction("insert_after", "test.py", 2, 2, "syntax error here !!!")
+                PatchAction("INSERT_INTERFACE", "test.py", "broken", 2, 2, "syntax error here !!!")
             ]),
         )
 

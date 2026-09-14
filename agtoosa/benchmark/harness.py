@@ -163,7 +163,7 @@ class BenchmarkHarness:
         n = len(durations_ns)
 
         def percentile(p: float) -> float:
-            idx = int(math.ceil(p * n)) - 1
+            idx = math.ceil(p * n) - 1
             idx = max(0, min(n - 1, idx))
             return durations_ns[idx] / 1_000_000.0  # ns to ms
 
