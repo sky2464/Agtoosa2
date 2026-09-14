@@ -109,7 +109,7 @@ class SemanticGateway:
         # 2. Pre-transmission secret redaction (AC-27)
         redacted_prompt = redact_secrets(prompt)
         redacted_system = redact_secrets(system) if system else None
-        was_redacted = (redacted_prompt != prompt) or (system and redacted_system != system)
+        was_redacted = bool((redacted_prompt != prompt) or (system is not None and redacted_system != system))
 
         # 3. Content-addressed deterministic caching (AC-27)
         cache_key_data = f"{self.config.provider_name}:{redacted_system or ''}:{redacted_prompt}:{max_tokens}"

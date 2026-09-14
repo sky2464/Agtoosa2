@@ -203,21 +203,23 @@ class PRAgentRepairEngine:
                 else:
                     node = self.store.get_node(sym_id)
                     if node:
-                        s_line = node.get("start_line", 1) or 1
-                        e_line = node.get("end_line", 1) or 1
+                        s_line = int(node.get("start_line") or 1)
+                        e_line = int(node.get("end_line") or 1)
+                        name_val = str(node.get("name") or sym_id)
+                        path_val = str(node.get("path") or "")
                         matched_zombies.append(
                             ZombieSymbol(
-                                node_id=node.get("id"),
-                                name=node.get("name"),
-                                node_type=node.get("node_type"),
-                                path=node.get("path"),
+                                node_id=str(node.get("id") or sym_id),
+                                name=name_val,
+                                node_type=str(node.get("node_type") or "symbol"),
+                                path=path_val,
                                 start_line=s_line,
                                 end_line=e_line,
                                 confidence="high",
                                 reason="Identified for PR repair pruning",
                                 estimated_lines=max(1, e_line - s_line + 1),
                                 safe_to_delete=True,
-                                deletion_steps=[f"Delete {node.get('name')} from {node.get('path')}"]
+                                deletion_steps=[f"Delete {name_val} from {path_val}"]
                             )
                         )
             if not matched_zombies:

@@ -192,7 +192,7 @@ Always use Agtoosa2 to query symbol topology and verify architectural invariants
     def __init__(self, workspace_root: Optional[Path] = None):
         self.workspace_root = (workspace_root or Path.cwd()).resolve()
 
-    def install(self, target: str = "all", custom_path: Optional[Path] = None) -> Dict[str, List[str]]:
+    def install(self, target: str = "all", custom_path: Optional[Path] = None) -> Dict[str, Any]:
         """Install skill bundles to specified agent hosts."""
         installed_files: List[str] = []
 
