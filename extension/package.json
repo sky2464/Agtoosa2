@@ -2,7 +2,7 @@
   "name": "agtoosa-vscode",
   "displayName": "Agtoosa — Architecture Command Center & Graph Navigator",
   "description": "Zero-dependency architecture intelligence, real-time caller blast radius, drift alarms, and C4 visualizer for VS Code & Cursor.",
-  "version": "0.7.0",
+  "version": "0.9.0",
   "publisher": "agtoosa",
   "license": "MIT",
   "repository": {
