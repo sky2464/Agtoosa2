@@ -470,6 +470,17 @@ def main(argv=None) -> int:
     attest_ver_p.add_argument("-k", "--key", type=str, help="HMAC-SHA256 signing secret key")
     attest_ver_p.add_argument("--json", action="store_true", help="Output verification result as JSON")
 
+    # agtoosa synthesize ...
+    synth_parser = subparsers.add_parser("synthesize", help="Autonomous cross-language microservice synthesis")
+    synth_sub = synth_parser.add_subparsers(dest="synthesize_subcommand", required=True)
+
+    synth_ms_p = synth_sub.add_parser("microservice", help="Synthesize gRPC, OpenAPI, and client/server adapters")
+    synth_ms_p.add_argument("-s", "--service", type=str, help="Target service name")
+    synth_ms_p.add_argument("-t", "--target", type=str, default="python", choices=["python", "typescript", "go"], help="Target programming language (default: python)")
+    synth_ms_p.add_argument("-f", "--format", type=str, default="all", choices=["proto", "openapi", "code", "all"], help="Generated artifact format (default: all)")
+    synth_ms_p.add_argument("-o", "--output", type=str, help="Output directory path")
+    synth_ms_p.add_argument("--json", action="store_true", help="Output synthesis manifest as JSON")
+
     # agtoosa mcp
     subparsers.add_parser("mcp", help="Launch native Model Context Protocol (MCP) server on stdio")
 
@@ -637,6 +648,9 @@ def main(argv=None) -> int:
     elif args.command == "attest":
         from agtoosa.cli.attest_cmd import cmd_attest
         return cmd_attest(args, workspace_root)
+    elif args.command == "synthesize":
+        from agtoosa.cli.synthesize_cmd import cmd_synthesize
+        return cmd_synthesize(args, workspace_root)
     elif args.command == "version":
         return cmd_version(args, workspace_root)
     elif args.command == "mcp":

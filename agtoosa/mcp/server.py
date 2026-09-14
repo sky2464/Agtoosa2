@@ -288,6 +288,19 @@ class MCPServer:
                     },
                     "required": ["attestation"]
                 }
+            },
+            {
+                "name": "agtoosa_synthesize_microservice",
+                "description": "Autonomous cross-language microservice synthesis: generates gRPC (.proto), OpenAPI (3.0), and client/server adapters in Python, TypeScript, or Go (DEV-039).",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "service_name": {"type": "string", "description": "Target service name"},
+                        "target_lang": {"type": "string", "description": "Target language: python, typescript, go", "default": "python"},
+                        "format": {"type": "string", "description": "Output format: proto, openapi, code, all", "default": "all"},
+                        "output_dir": {"type": "string", "description": "Optional output directory to write artifacts to"}
+                    }
+                }
             }
         ]
 
@@ -516,6 +529,34 @@ class MCPServer:
                 "log": log,
                 "merkle_root": attestation.get("merkle_root"),
                 "version": attestation.get("version")
+            }, indent=2)
+
+        elif name == "agtoosa_synthesize_microservice":
+            from agtoosa.federation.synthesis import MicroserviceSynthesizer
+            synthesizer = MicroserviceSynthesizer(self.store, self.workspace_root)
+            service_name = args.get("service_name")
+            target_lang = args.get("target_lang", "python")
+            fmt = args.get("format", "all")
+            out_dir_str = args.get("output_dir")
+
+            inferred_name, endpoints, schemas = synthesizer.discover_service_endpoints(service_name)
+            svc_name = service_name or inferred_name
+
+            output_dir = Path(out_dir_str) if out_dir_str else self.workspace_root / "generated" / svc_name
+            files = synthesizer.synthesize_microservice_bundle(
+                service_name=svc_name,
+                output_dir=output_dir,
+                target_lang=target_lang,
+                format_type=fmt
+            )
+            return json.dumps({
+                "status": "success",
+                "service": svc_name,
+                "target_lang": target_lang,
+                "format": fmt,
+                "endpoints_count": len(endpoints),
+                "schemas_count": len(schemas),
+                "files": files
             }, indent=2)
 
         return json.dumps({"error": f"Unknown tool: {name}"})

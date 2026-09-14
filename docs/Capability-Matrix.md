@@ -1,8 +1,9 @@
 # Agtoosa2 — Capability Matrix & Parity Definition
 
 > **Reference Benchmark:** Graphify Open-Source Capabilities & Enterprise Graph OS.  
-> **Status:** All 37 Stages Delivered & Verified (`v0.7.0`) — 100% Automated Test Pass Rate (258/258 tests passing).  
+> **Status:** All 39 Stages Delivered & Verified (`v0.9.0`) — 100% Automated Test Pass Rate (273/273 tests passing).  
 > **Milestone 14:** Stages 33–37 Delivered: Multimodal Ingestion, Living C4 Architecture Wiki, Zero-Trust Semantic Extraction, Socratic Audit, and Universal Slash Command Skill.  
+> **Milestone 15:** Stages 38–39 Delivered: Zero-Knowledge Architecture Cryptographic Attestation and Autonomous Polyglot Microservice Synthesis.  
 > **Foundation Gate:** [EPIC-001 — Trusted Knowledge Intelligence](specs/epic-001-trusted-knowledge-intelligence.md) (DEV-040–049) ✅ CLEARED with 100% held-out precision benchmark.
 
 ---
@@ -57,6 +58,8 @@
 | **Zero-Trust Hallucination Guard**| `agtoosa extract semantic` | **Stage 35** (DEV-035) [✅] | Subagent parallel extraction, tri-state confidence, bidirectional AST grounding | `tests/test_semantic_extraction.py` |
 | **Socratic Audit & Refactor Plans**| `agtoosa audit` | **Stage 36** (DEV-036) [✅] | `GRAPH_REPORT.md`, God nodes, cross-modality links, 1-click refactor blueprints | `tests/test_socratic_audit.py` |
 | **Universal Slash Command Skill** | `/agtoosa`, `--budget` | **Stage 37** (DEV-037) [✅] | Universal skill (Claude, Cursor, Gemini, Antigravity), AST topology pruning | `tests/test_universal_skill.py` |
+| **Zero-Knowledge Architecture Attestation** | `agtoosa attest` | **Stage 38** (DEV-038) [✅] | Salted blind commitments, Merkle proofs, layer boundary & cycle attestation | `tests/test_attestation.py` |
+| **Autonomous Microservice Synthesis** | `agtoosa synthesize` | **Stage 39** (DEV-039) [✅] | gRPC .proto, OpenAPI 3.0, polyglot server/client adapters (Python, TS, Go) | `tests/test_synthesis.py` |
 
 ---
 

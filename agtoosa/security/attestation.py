@@ -202,8 +202,7 @@ class ArchitectureAttestationEngine:
             if not expected_sig:
                 errors.append("Signing key provided but attestation is unsigned.")
             else:
-                clone = dict(attestation)
-                clone["signature"] = None
+                clone = {k: v for k, v in attestation.items() if k != "signature"}
                 canonical_repr = json.dumps(clone, sort_keys=True, separators=(",", ":"))
                 computed_sig = hmac.new(
                     signing_key.encode("utf-8"),

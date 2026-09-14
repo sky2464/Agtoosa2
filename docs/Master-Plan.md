@@ -12,20 +12,20 @@
 | Repository | `https://github.com/sky2464/Agtoosa2` |
 | Version | `0.9.0` (Active Frontier) |
 | Core Engine | Python 3.11+ (SQLite FTS5, Zero-Dependency Standard Library) |
-| Active Milestone | `v0.9.0` — **Milestone 15 (DEV-038 Zero-Knowledge Architecture Cryptographic Attestation & DEV-039 Autonomous Cross-Language Microservice Synthesis)** |
+| Active Milestone | `v0.9.0` — **Milestone 15 (DEV-038 & DEV-039) Delivered & Shipped (100% Complete)** |
 | Foundation Gate | [**EPIC-001 — Trusted Knowledge Intelligence**](specs/epic-001-trusted-knowledge-intelligence.md) (DEV-040–049) — ✅ **CLEARED & VERIFIED (100% Precision)** |
-| Delivered Milestones | Milestone 1–12, 14, 17 & EPIC-001 (All 48 Stages Delivered & Verified) |
+| Delivered Milestones | Milestone 1–12, 14, 15, 17 & EPIC-001 (All 50 Stages Delivered & Verified) |
 
 ---
 
-## Active Frontier: Milestone 15 (v0.9.0)
+## Active Frontier: Milestone 15 (v0.9.0) — Delivered & Shipped
 
 Milestone 15 establishes Agtoosa2 as an enterprise-grade trust and cross-service synthesis platform:
 
-| Rank | Cycle ID | Title | Rating | Target Milestone | Status | Strategic Value & Architectural Impact |
+| Rank | Cycle ID | Title | Rating | Milestone | Status | Strategic Value & Architectural Impact |
 |:---:|---|---|:---:|---|:---:|---|
-| 🥇 | **DEV-038** | Zero-Knowledge Architecture Cryptographic Attestation | **70 / 100** | Milestone 15 (v0.9.0) | 🚀 Active | **Cryptographic Security Proofs**: Produces cryptographically signed architectural attestations verifying compliance with layer boundary invariants without exposing proprietary source code. |
-| 🥈 | **DEV-039** | Autonomous Cross-Language Microservice Synthesis | **68 / 100** | Milestone 15 (v0.9.0) | 🚀 Active | **Multi-Language Generation**: Generates strongly-typed gRPC (.proto) and OpenAPI client/server adapters directly from federated multi-repo graph models. |
+| 🥇 | **DEV-038** | Zero-Knowledge Architecture Cryptographic Attestation | **70 / 100** | Milestone 15 (v0.9.0) | ✅ Done | **Cryptographic Security Proofs**: Produces cryptographically signed architectural attestations verifying compliance with layer boundary invariants without exposing proprietary source code. |
+| 🥈 | **DEV-039** | Autonomous Cross-Language Microservice Synthesis | **68 / 100** | Milestone 15 (v0.9.0) | ✅ Done | **Multi-Language Generation**: Generates strongly-typed gRPC (.proto) and OpenAPI client/server adapters directly from federated multi-repo graph models. |
 
 ---
 
@@ -95,7 +95,7 @@ flowchart LR
     M1 --> EPIC1[EPIC-001: Trusted Knowledge Intelligence ✅]
     EPIC1 --> M14
     M14 --> M17[M17: Guided Workflows DEV-050 ✅]
-    M14 --> M15[Milestone 15: v0.9.0 🚀]
-    M15 --> S38[DEV-038: Zero-Knowledge Attestation 🚀]
-    M15 --> S39[DEV-039: Microservice Synthesis 🚀]
+    M14 --> M15[Milestone 15: v0.9.0 ✅]
+    M15 --> S38[DEV-038: Zero-Knowledge Attestation ✅]
+    M15 --> S39[DEV-039: Microservice Synthesis ✅]
 ```
