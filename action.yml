@@ -57,7 +57,7 @@ runs:
     - name: Build Knowledge Graph
       shell: bash
       run: |
-        python -m agtoosa.cli.main graph build -C "${{ inputs.workspace }}"
+        python -m agtoosa.cli.main -C "${{ inputs.workspace }}" graph build
 
     - name: Run Agtoosa Architecture Quality Gate
       id: agtoosa-gate
@@ -78,8 +78,7 @@ runs:
           POST_FLAG="--post-comment"
         fi
 
-        python -m agtoosa.cli.main ci review \
-          -C "${{ inputs.workspace }}" \
+        python -m agtoosa.cli.main -C "${{ inputs.workspace }}" ci review \
           --base-ref "${{ inputs.base-ref }}" \
           --output-comment "${{ inputs.output-comment }}" \
           --github-token "${{ inputs.github-token }}" \
