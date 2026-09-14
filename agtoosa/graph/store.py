@@ -117,6 +117,15 @@ class GraphStore:
                 CREATE INDEX IF NOT EXISTS idx_telemetry_calls ON runtime_telemetry(call_count);
                 CREATE INDEX IF NOT EXISTS idx_telemetry_latency ON runtime_telemetry(avg_duration_ms);
 
+                CREATE TABLE IF NOT EXISTS graph_snapshots (
+                    id TEXT PRIMARY KEY,
+                    created_at TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    node_count INTEGER NOT NULL,
+                    edge_count INTEGER NOT NULL,
+                    source_hash TEXT NOT NULL
+                );
+
                 CREATE VIRTUAL TABLE IF NOT EXISTS nodes_fts USING fts5(
                     id UNINDEXED,
                     name,
@@ -150,14 +159,127 @@ class GraphStore:
                 (str(self.SCHEMA_VERSION),)
             )
 
-    def clear(self) -> None:
-        """Clear all graph data for a clean rebuild."""
+    MANUAL_RECORD_NODE_TYPES = {'story', 'criterion', 'task', 'adr', 'doc', 'evidence'}
+
+    def clear(self, preserve_manual: bool = True) -> None:
+        """Clear graph data. If preserve_manual=True, retains manual lifecycle/evidence records (DEV-042)."""
         with self._get_connection() as conn:
-            conn.execute("DELETE FROM edges;")
-            conn.execute("DELETE FROM nodes;")
-            conn.execute("DELETE FROM file_fingerprints;")
-            conn.execute("DELETE FROM node_embeddings;")
+            if preserve_manual:
+                conn.execute(
+                    "DELETE FROM edges WHERE edge_type NOT IN ('implements', 'verifies', 'evidenced_by');"
+                )
+                conn.execute(
+                    "DELETE FROM nodes WHERE node_type NOT IN ('story', 'criterion', 'task', 'adr', 'doc', 'evidence');"
+                )
+                conn.execute("DELETE FROM file_fingerprints;")
+                conn.execute("DELETE FROM node_embeddings;")
+            else:
+                conn.execute("DELETE FROM edges;")
+                conn.execute("DELETE FROM nodes;")
+                conn.execute("DELETE FROM file_fingerprints;")
+                conn.execute("DELETE FROM node_embeddings;")
             conn.execute("INSERT INTO nodes_fts(nodes_fts) VALUES('rebuild');")
+
+    def publish_atomic_snapshot(
+        self,
+        snapshot_id: str,
+        nodes: List[Node],
+        edges: List[Edge],
+        fingerprints: Dict[str, Tuple[str, float]],
+        source_hash: str = "",
+        preserve_manual: bool = True
+    ) -> str:
+        """Atomically clear derived data, persist new nodes/edges/fingerprints, and record snapshot in ONE transaction (DEV-042)."""
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            # 1. Clear derived records
+            if preserve_manual:
+                conn.execute("DELETE FROM edges WHERE edge_type NOT IN ('implements', 'verifies', 'evidenced_by');")
+                conn.execute("DELETE FROM nodes WHERE node_type NOT IN ('story', 'criterion', 'task', 'adr', 'doc', 'evidence');")
+                conn.execute("DELETE FROM file_fingerprints;")
+            else:
+                conn.execute("DELETE FROM edges;")
+                conn.execute("DELETE FROM nodes;")
+                conn.execute("DELETE FROM file_fingerprints;")
+
+            # 2. Insert nodes
+            if nodes:
+                node_data = [
+                    (
+                        n.id,
+                        n.name,
+                        n.node_type.value if hasattr(n.node_type, "value") else str(n.node_type),
+                        n.path,
+                        n.start_line,
+                        n.end_line,
+                        n.docstring,
+                        json.dumps(n.metadata) if n.metadata else None
+                    )
+                    for n in nodes
+                ]
+                conn.executemany(
+                    """
+                    INSERT OR REPLACE INTO nodes (id, name, node_type, path, start_line, end_line, docstring, metadata_json)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                    """,
+                    node_data
+                )
+
+            # 3. Insert edges
+            if edges:
+                edge_data = [
+                    (
+                        e.source_id,
+                        e.target_id,
+                        e.edge_type.value if hasattr(e.edge_type, "value") else str(e.edge_type),
+                        e.provenance,
+                        json.dumps(e.metadata) if e.metadata else None
+                    )
+                    for e in edges
+                ]
+                conn.executemany(
+                    """
+                    INSERT INTO edges (source_id, target_id, edge_type, provenance, metadata_json)
+                    VALUES (?, ?, ?, ?, ?);
+                    """,
+                    edge_data
+                )
+
+            # 4. Insert fingerprints
+            if fingerprints:
+                fp_data = [(p, h, m) for p, (h, m) in fingerprints.items()]
+                conn.executemany(
+                    "INSERT OR REPLACE INTO file_fingerprints (path, content_hash, mtime) VALUES (?, ?, ?);",
+                    fp_data
+                )
+
+            # 5. Record snapshot
+            conn.execute(
+                """
+                INSERT INTO graph_snapshots (id, created_at, status, node_count, edge_count, source_hash)
+                VALUES (?, ?, 'active', ?, ?, ?);
+                """,
+                (snapshot_id, now, len(nodes), len(edges), source_hash)
+            )
+
+        return snapshot_id
+
+    def get_latest_snapshot(self) -> Optional[Dict[str, Any]]:
+        """Return the most recently published snapshot metadata."""
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT id, created_at, status, node_count, edge_count, source_hash FROM graph_snapshots ORDER BY created_at DESC LIMIT 1;"
+            ).fetchone()
+            if not row:
+                return None
+            return {
+                "id": row[0],
+                "created_at": row[1],
+                "status": row[2],
+                "node_count": row[3],
+                "edge_count": row[4],
+                "source_hash": row[5]
+            }
 
     def get_fingerprints(self) -> Dict[str, str]:
         """Return mapping of rel_path -> content_hash."""

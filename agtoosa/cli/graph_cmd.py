@@ -832,4 +832,448 @@ def cmd_graph_topology(args: Any, workspace_root: Path) -> int:
     return 0
 
 
+def cmd_graph_capabilities(args: Any, workspace_root: Path) -> int:
+    """Inspect installed parser coverage and language capabilities (DEV-040/043)."""
+    import dataclasses
+    from agtoosa.parser.capabilities import CAPABILITY_REGISTRY
 
+    caps = CAPABILITY_REGISTRY.list_all()
+    summary = CAPABILITY_REGISTRY.get_summary()
+    as_json = getattr(args, "json", False)
+
+    if as_json:
+        payload = {
+            "summary": summary,
+            "capabilities": [dataclasses.asdict(c) for c in caps]
+        }
+        for c in payload["capabilities"]:
+            c["active_backend"] = c["active_backend"].value if hasattr(c["active_backend"], "value") else str(c["active_backend"])
+            c["coverage_tier"] = c["coverage_tier"].value if hasattr(c["coverage_tier"], "value") else str(c["coverage_tier"])
+        print(json.dumps(payload, indent=2))
+        return 0
+
+    print("🛠️  Agtoosa2 Language & Parser Capabilities (EPIC-001 / DEV-040 / DEV-043)")
+    print("=" * 76)
+    for cap in caps:
+        tier = cap.coverage_tier.value
+        backend = cap.active_backend.value
+        exts = ", ".join(cap.file_extensions)
+        rationale = "✅ Yes" if cap.supports_rationale_markers else "❌ No"
+        print(f"\n📦 {cap.display_name} ({cap.family_id})")
+        print(f"   • Extensions: {exts}")
+        print(f"   • Backend: {backend} | Tier: {tier}")
+        print(f"   • Decision Rationale (# WHY:, # NOTE:): {rationale}")
+        if cap.limitations:
+            print("   • Known Limitations:")
+            for lim in cap.limitations:
+                print(f"     - {lim}")
+    print("\n" + "=" * 76)
+    return 0
+
+
+def cmd_graph_verify(args: Any, workspace_root: Path) -> int:
+    """Verify knowledge graph integrity and source hash freshness (DEV-043)."""
+    import hashlib
+    from agtoosa.core.model import ContractEnvelope, ResolutionStatus
+
+    db_path = get_default_db_path(workspace_root)
+    as_json = getattr(args, "json", False)
+
+    if not db_path.exists():
+        msg = f"Knowledge graph database not found at {db_path}."
+        if as_json:
+            envelope = ContractEnvelope(
+                freshness="stale",
+                completeness="empty",
+                resolution_status=ResolutionStatus.UNRESOLVED,
+                diagnostics=[msg],
+            )
+            print(json.dumps(envelope.to_dict(), indent=2))
+        else:
+            print(f"❌ {msg}")
+            print("   Run 'agtoosa graph build' first.")
+        return 1
+
+    store = GraphStore(db_path)
+    latest_snap = store.get_latest_snapshot()
+    fingerprints = store.get_fingerprints()
+
+    stale_files: List[str] = []
+    missing_files: List[str] = []
+    verified_files: int = 0
+
+    for rel_path, stored_hash in fingerprints.items():
+        file_path = workspace_root / rel_path
+        if not file_path.exists():
+            missing_files.append(rel_path)
+            continue
+        try:
+            content_bytes = file_path.read_bytes()
+            current_hash = hashlib.sha256(content_bytes).hexdigest()
+            if current_hash != stored_hash:
+                stale_files.append(rel_path)
+            else:
+                verified_files += 1
+        except Exception:
+            missing_files.append(rel_path)
+
+    # Check for unindexed new files
+    from agtoosa.parser.scanner import scan_workspace
+    workspace_files = scan_workspace(workspace_root)
+    unindexed_files: List[str] = []
+    for f in workspace_files:
+        try:
+            rel = str(f.relative_to(workspace_root))
+            if rel not in fingerprints:
+                unindexed_files.append(rel)
+        except ValueError:
+            pass
+
+    is_fresh = (len(stale_files) == 0 and len(missing_files) == 0 and len(unindexed_files) == 0)
+    freshness = "fresh" if is_fresh else "stale"
+    completeness = "complete" if len(missing_files) == 0 else "partial"
+
+    diagnostics = []
+    if stale_files:
+        diagnostics.append(f"{len(stale_files)} file(s) modified since last index: {', '.join(stale_files[:5])}")
+    if missing_files:
+        diagnostics.append(f"{len(missing_files)} file(s) deleted since last index: {', '.join(missing_files[:5])}")
+    if unindexed_files:
+        diagnostics.append(f"{len(unindexed_files)} new file(s) unindexed: {', '.join(unindexed_files[:5])}")
+
+    snapshot_id = latest_snap["id"] if latest_snap else None
+
+    envelope = ContractEnvelope(
+        contract_version="1.0.0",
+        snapshot_id=snapshot_id,
+        freshness=freshness,
+        completeness=completeness,
+        resolution_status=ResolutionStatus.RESOLVED if is_fresh else ResolutionStatus.AMBIGUOUS,
+        data={
+            "verified_files": verified_files,
+            "stale_files": stale_files,
+            "missing_files": missing_files,
+            "unindexed_files": unindexed_files,
+            "latest_snapshot": latest_snap,
+        },
+        diagnostics=diagnostics,
+    )
+
+    if as_json:
+        print(json.dumps(envelope.to_dict(), indent=2))
+        return 0 if is_fresh else 1
+
+    print("🛡️  Agtoosa2 Graph Integrity Verification (DEV-043)")
+    print(f"   • Database: {db_path}")
+    print(f"   • Active Snapshot: {snapshot_id or 'None'}")
+    print(f"   • Verified Matching Files: {verified_files}")
+    if is_fresh:
+        print("✅ Graph is completely FRESH and synchronized with disk.")
+        return 0
+    else:
+        print("⚠️  Graph is STALE or DRIFTED:")
+        for diag in diagnostics:
+            print(f"   • {diag}")
+        print("   Run 'agtoosa graph build' to synchronize graph state.")
+        return 1
+
+
+def cmd_ingest(args: Any, workspace_root: Path) -> int:
+    """Ingest diagram or document into knowledge graph (DEV-033)."""
+    target = args.target
+    db_path = get_default_db_path(workspace_root)
+    store = GraphStore(db_path)
+
+    nodes = []
+    edges = []
+
+    if target.startswith("http://") or target.startswith("https://"):
+        from agtoosa.parser.multimodal.doc_ingester import DocumentIngester
+        ingester = DocumentIngester()
+        nodes, edges = ingester.ingest_url(target)
+    else:
+        file_path = (workspace_root / target).resolve() if not Path(target).is_absolute() else Path(target)
+        if not file_path.exists():
+            print(f"❌ Target not found: {target}")
+            return 1
+
+        suffix = file_path.suffix.lower()
+        if suffix in {".mmd", ".mermaid", ".puml", ".plantuml", ".excalidraw"} or "excalidraw" in file_path.name.lower():
+            from agtoosa.parser.multimodal.diagram_parser import DiagramParser
+            parser = DiagramParser()
+            nodes, edges = parser.parse_file(file_path, workspace_root)
+        elif suffix in {".md", ".markdown", ".txt"}:
+            from agtoosa.parser.multimodal.doc_ingester import DocumentIngester
+            ingester = DocumentIngester()
+            nodes, edges = ingester.ingest_markdown(file_path, workspace_root)
+        else:
+            print(f"⚠️ Unsupported multimodal file type: {suffix}")
+            return 1
+
+    if nodes or edges:
+        store.insert_batch(nodes, edges)
+
+    as_json = getattr(args, "json", False)
+    if as_json:
+        print(json.dumps({
+            "target": target,
+            "nodes_ingested": len(nodes),
+            "edges_ingested": len(edges),
+            "node_names": [n.name for n in nodes]
+        }, indent=2))
+    else:
+        print(f"📥 Successfully ingested '{target}' into knowledge graph:")
+        print(f"   • Extracted Nodes: {len(nodes)}")
+        print(f"   • Extracted Edges: {len(edges)}")
+        for n in nodes[:5]:
+            print(f"     - {n.node_type.value}: {n.name}")
+        if len(nodes) > 5:
+            print(f"     ... and {len(nodes) - 5} more")
+
+    return 0
+
+
+def cmd_add(args: Any, workspace_root: Path) -> int:
+    """Add remote technical documentation or paper into knowledge graph (DEV-033)."""
+    args.target = args.url
+    return cmd_ingest(args, workspace_root)
+
+
+def cmd_graph_drift_visual(args: Any, workspace_root: Path) -> int:
+    """Detect architectural drift between visual diagrams and AST code (DEV-033)."""
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print(f"❌ Knowledge graph database not found at {db_path}.")
+        return 1
+
+    store = GraphStore(db_path)
+    from agtoosa.graph.visual_drift import VisualDriftDetector
+    detector = VisualDriftDetector(store)
+    report = detector.detect_drift()
+
+    as_json = getattr(args, "json", False)
+    if as_json:
+        print(json.dumps(report, indent=2))
+    else:
+        print("\n🖼️  Visual-to-Code Architecture Drift Audit (DEV-033)")
+        print("=" * 70)
+        print(f"Status: {'⚠️  DRIFT DETECTED' if report['drift_detected'] else '✅ SYNCHRONIZED'}")
+        print(f" • Total Visual Components: {report['total_visual_nodes']}")
+        print(f" • Synchronized Components: {len(report['synchronized_components'])}")
+        print(f" • Ghost Nodes:            {report['total_ghost_nodes']}")
+        print(f" • Path Mismatches:         {report['total_path_mismatches']}")
+
+        if report["ghost_nodes"]:
+            print("\n👻 GHOST NODES (Diagram components without code implementation):")
+            for g in report["ghost_nodes"]:
+                print(f"   • '{g['name']}' in {g['path']} ({g['diagram_type']})")
+
+        if report["path_mismatches"]:
+            print("\n⚡ PATH MISMATCHES (Diagram arrows divergent from AST callgraph):")
+            for p in report["path_mismatches"]:
+                print(f"   • {p['visual_edge']}: {p['issue']}")
+
+        print("=" * 70 + "\n")
+
+    if getattr(args, "strict", False) and report["drift_detected"]:
+        return 1
+    return 0
+
+
+def cmd_wiki_build(args: Any, workspace_root: Path) -> int:
+    """Generate living C4 architecture wiki and Martin metrics (DEV-034)."""
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print(f"❌ Knowledge graph database not found at {db_path}.")
+        return 1
+
+    store = GraphStore(db_path)
+    from agtoosa.graph.wiki import LivingWikiGenerator
+    generator = LivingWikiGenerator(store, workspace_root)
+
+    output_dir = getattr(args, "dir", None)
+    wiki_dir = Path(output_dir) if output_dir else None
+    fmt = getattr(args, "format", "obsidian")
+
+    result = generator.generate_wiki(wiki_dir=wiki_dir, format=fmt)
+
+    as_json = getattr(args, "json", False)
+    if as_json:
+        print(json.dumps(result, indent=2))
+    else:
+        print(f"\n📚 Living Architecture Wiki Built Successfully (DEV-034)")
+        print("=" * 70)
+        print(f"Directory: {result['output_dir']}")
+        print(f"Format:    {result['format']}")
+        print(f"Articles:  {len(result['articles_created'])} created:")
+        for art in result["articles_created"]:
+            print(f"   • {art}")
+        print("=" * 70 + "\n")
+
+    return 0
+
+
+def cmd_wiki_metrics(args: Any, workspace_root: Path) -> int:
+    """Output Robert C. Martin Package Coupling & Distance Metrics (DEV-034)."""
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print(f"❌ Knowledge graph database not found at {db_path}.")
+        return 1
+
+    store = GraphStore(db_path)
+    from agtoosa.graph.wiki import LivingWikiGenerator
+    generator = LivingWikiGenerator(store, workspace_root)
+
+    communities = generator.analyze_communities()
+
+    as_json = getattr(args, "json", False)
+    if as_json:
+        data = [c.to_dict() for c in communities]
+        print(json.dumps(data, indent=2))
+    else:
+        print("\n📐 Robert C. Martin Architecture Metrics (DEV-034)")
+        print("=" * 80)
+        print(f"{'Community / Subsystem':<28} {'Nodes':<7} {'Ca':<5} {'Ce':<5} {'I':<8} {'A':<8} {'D':<8}")
+        print("-" * 80)
+        for c in communities:
+            m = c.metrics
+            print(f"{c.name:<28} {len(c.nodes):<7} {m.afferent_coupling:<5} {m.efferent_coupling:<5} {m.instability:<8.2f} {m.abstractness:<8.2f} {m.distance_from_main_sequence:<8.2f}")
+        print("=" * 80)
+        print("Metrics: Ca (Afferent Coupling), Ce (Efferent Coupling), I (Instability), A (Abstractness), D (Distance from Main Sequence)\n")
+
+    return 0
+
+
+def cmd_extract_semantic(args: Any, workspace_root: Path) -> int:
+    """Run Zero-Trust multi-agent semantic extraction and hallucination guard (DEV-035)."""
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print(f"❌ Knowledge graph database not found at {db_path}.")
+        return 1
+
+    store = GraphStore(db_path)
+    from agtoosa.semantic.guard import SemanticExtractionEngine
+
+    target_dir_str = getattr(args, "dir", None)
+    target_dir = Path(target_dir_str) if target_dir_str else (workspace_root / "docs")
+    if not target_dir.is_absolute():
+        target_dir = (workspace_root / target_dir).resolve()
+
+    if not target_dir.exists():
+        print(f"❌ Target documentation directory not found at {target_dir}.")
+        return 1
+
+    chunk_size = getattr(args, "chunk_size", 15)
+    strict = getattr(args, "strict_grounding", False)
+
+    engine = SemanticExtractionEngine(store, workspace_root)
+    report = engine.batch_extract(target_dir, chunk_size=chunk_size, strict_grounding=strict)
+
+    as_json = getattr(args, "json", False)
+    if as_json:
+        print(json.dumps(report, indent=2))
+    else:
+        print("\n🛡️  Zero-Trust Semantic Extraction & Hallucination Guard (DEV-035)")
+        print("=" * 75)
+        print(f"Directory:              {target_dir}")
+        print(f"Total Files Processed:  {report['total_files']} (in {report['total_chunks']} chunks)")
+        print(f"Grounded Edges Created: {report['edges_created']}")
+        print(f"Hallucinations Blocked: {report['hallucinations_blocked']}")
+        print(f"Strict Grounding Mode:  {'ENABLED' if strict else 'DISABLED (Fuzzy recovery)'}")
+        print("=" * 75 + "\n")
+
+    return 0
+
+
+def cmd_audit(args: Any, workspace_root: Path) -> int:
+    """Execute Socratic architecture audit and generate GRAPH_REPORT.md (DEV-036)."""
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print(f"❌ Knowledge graph database not found at {db_path}.")
+        return 1
+
+    store = GraphStore(db_path)
+    from agtoosa.review.socratic_audit import SocraticAuditEngine
+
+    engine = SocraticAuditEngine(store, workspace_root)
+
+    output_path_str = getattr(args, "output", None)
+    output_path = Path(output_path_str) if output_path_str else None
+    if output_path and not output_path.is_absolute():
+        output_path = (workspace_root / output_path).resolve()
+
+    as_json = getattr(args, "json", False) or getattr(args, "format", "markdown") == "json"
+    fmt = "json" if as_json else "markdown"
+
+    result = engine.write_report(output_path=output_path, format=fmt)
+
+    if as_json and not output_path:
+        print(json.dumps(result["data"], indent=2))
+    else:
+        print("\n🏛️  Socratic Architecture Audit Complete (DEV-036)")
+        print("=" * 75)
+        print(f"Report Location:        {result['output_path']}")
+        print(f"Format:                 {result['format']}")
+        print(f"Total Alarms Detected:  {result['total_alarms']}")
+        print(f"God Nodes Flagged:      {len(result['data']['god_nodes'])}")
+        print(f"Cyclic Hotspots:        {result['data']['cyclic_hotspots']['total_cycles_detected']}")
+        print(f"Latent Doc Couplings:   {len(result['data']['cross_modality_couplings'])}")
+        print("=" * 75 + "\n")
+
+    return 0
+
+
+def cmd_budgeted_query(args: Any, workspace_root: Path) -> int:
+    """Run token-budgeted topology query with AST skeleton extraction (DEV-037)."""
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print(f"❌ Knowledge graph database not found at {db_path}.")
+        return 1
+
+    store = GraphStore(db_path)
+    from agtoosa.core.topology_compiler import TopologyContextCompiler
+
+    compiler = TopologyContextCompiler(store)
+    query_str = getattr(args, "query", "")
+    budget = getattr(args, "budget", 1500)
+    strategy = getattr(args, "strategy", "hybrid")
+
+    pack = compiler.compile_budgeted_query(query=query_str, budget_tokens=budget, strategy=strategy)
+
+    as_json = getattr(args, "json", False)
+    if as_json:
+        print(json.dumps(pack.to_dict(), indent=2))
+    else:
+        print(f"\n🧭 Token-Budgeted Topology Context ({pack.strategy.upper()})")
+        print("=" * 75)
+        print(f"Query:          {pack.query}")
+        print(f"Token Budget:   {pack.budget_tokens} max ({pack.tokens_used} tokens used)")
+        print(f"Nodes Included: {pack.nodes_included}")
+        print("=" * 75)
+        print(pack.content)
+
+    return 0
+
+
+def cmd_skill_install(args: Any, workspace_root: Path) -> int:
+    """Install universal agent skill bundles (DEV-037)."""
+    from agtoosa.core.topology_compiler import SkillInstaller
+
+    target = getattr(args, "target", "all")
+    custom_path_str = getattr(args, "path", None)
+    custom_path = Path(custom_path_str) if custom_path_str else None
+
+    installer = SkillInstaller(workspace_root)
+    res = installer.install(target=target, custom_path=custom_path)
+
+    as_json = getattr(args, "json", False)
+    if as_json:
+        print(json.dumps(res, indent=2))
+    else:
+        print(f"\n📦 Agtoosa2 Universal Agent Skills Installed ({res['target']})")
+        print("=" * 75)
+        for f in res["installed_files"]:
+            print(f"   • {f}")
+        print("=" * 75 + "\n")
+
+    return 0

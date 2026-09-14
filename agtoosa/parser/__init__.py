@@ -56,10 +56,8 @@ class ParserEngine:
                 # Unchanged - skip parsing
                 continue
 
-            # Modified or new file
-            if rel_path in existing_fingerprints:
-                store.remove_file(rel_path)
-
+            # Modified or new file - remove old nodes before reparsing
+            store.remove_file(rel_path)
             files_to_parse.append((file_path, rel_path, content_hash, mtime))
 
         # Handle deleted files
@@ -103,63 +101,9 @@ class ParserEngine:
         return store.get_stats()
 
     def _resolve_cross_file_symbols(self, store: GraphStore) -> None:
-        """Link import nodes and function calls to matching defined symbols across files."""
-        with store._get_connection() as conn:
-            # Map symbol names to target node IDs (classes, functions)
-            symbol_rows = conn.execute(
-                "SELECT name, id FROM nodes WHERE node_type IN ('class', 'function');"
-            ).fetchall()
-            symbol_map = {}
-            for name, nid in symbol_rows:
-                # Map both short name and full name
-                symbol_map[name] = nid
-
-            # Find import nodes
-            import_rows = conn.execute(
-                "SELECT id, name FROM nodes WHERE node_type = 'import';"
-            ).fetchall()
-
-            resolution_edges = []
-            for import_id, full_import_name in import_rows:
-                short_name = full_import_name.split(".")[-1]
-                if short_name in symbol_map:
-                    target_id = symbol_map[short_name]
-                    if target_id != import_id:
-                        resolution_edges.append((import_id, target_id, "references", "resolved", "{}"))
-
-            if resolution_edges:
-                conn.executemany(
-                    """
-                    INSERT INTO edges (source_id, target_id, edge_type, provenance, metadata_json)
-                    VALUES (?, ?, ?, ?, ?);
-                    """,
-                    resolution_edges
-                )
-
-            # Resolve function call placeholders to actual symbol nodes
-            call_edges = conn.execute(
-                "SELECT rowid, source_id, target_id FROM edges WHERE target_id LIKE 'func_call:%';"
-            ).fetchall()
-            for rowid, src_id, tgt_placeholder in call_edges:
-                callee_name = tgt_placeholder.split(":", 1)[-1]
-                if callee_name in symbol_map:
-                    real_target_id = symbol_map[callee_name]
-                    conn.execute(
-                        "UPDATE edges SET target_id = ?, provenance = 'resolved' WHERE rowid = ?;",
-                        (real_target_id, rowid)
-                    )
-
-            # Resolve symbol placeholders (e.g. injected dependencies) to actual symbol nodes
-            sym_edges = conn.execute(
-                "SELECT rowid, source_id, target_id FROM edges WHERE target_id LIKE 'symbol:%';"
-            ).fetchall()
-            for rowid, src_id, tgt_placeholder in sym_edges:
-                sym_name = tgt_placeholder.split(":", 1)[-1]
-                if sym_name in symbol_map:
-                    real_target_id = symbol_map[sym_name]
-                    conn.execute(
-                        "UPDATE edges SET target_id = ?, provenance = 'resolved' WHERE rowid = ?;",
-                        (real_target_id, rowid)
-                    )
+        """Link import nodes and function calls to matching defined symbols across files (DEV-041)."""
+        from agtoosa.parser.resolver import SymbolResolver
+        resolver = SymbolResolver(store)
+        resolver.resolve_all_symbols()
 
 

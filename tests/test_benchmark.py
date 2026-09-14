@@ -24,6 +24,15 @@ class TestContinuousBenchmarking(unittest.TestCase):
         self.db_path = self.workspace / ".agtoosa" / "graph.db"
         self.store = GraphStore(self.db_path)
 
+        # Write real Python source for genuine benchmark execution (DEV-045 / R-09)
+        app_dir = self.workspace / "app"
+        app_dir.mkdir(parents=True, exist_ok=True)
+        (app_dir / "compute.py").write_text(
+            "def fast_calc():\n    return sum(i for i in range(10))\n\n"
+            "def slow_query():\n    return sum(i for i in range(100))\n",
+            encoding="utf-8"
+        )
+
         # Seed sample nodes into store
         self.node_fast = Node(
             id="function:app/compute.py:fast_calc",
@@ -31,15 +40,15 @@ class TestContinuousBenchmarking(unittest.TestCase):
             node_type=NodeType.FUNCTION,
             path="app/compute.py",
             start_line=1,
-            end_line=10
+            end_line=2
         )
         self.node_slow = Node(
             id="function:app/compute.py:slow_query",
             name="slow_query",
             node_type=NodeType.FUNCTION,
             path="app/compute.py",
-            start_line=12,
-            end_line=30
+            start_line=4,
+            end_line=5
         )
         self.store.insert_batch([self.node_fast, self.node_slow], [])
 
@@ -98,6 +107,21 @@ class TestContinuousBenchmarking(unittest.TestCase):
         self.assertGreaterEqual(result.p95_ms, result.p50_ms)
         self.assertGreaterEqual(result.p99_ms, result.p95_ms)
         self.assertGreater(result.throughput_ops_sec, 0)
+        self.assertEqual(result.status, "completed")
+
+    def test_harness_unresolvable_target_returns_unsupported_not_synthetic(self):
+        """Verify unresolvable targets return unsupported/skipped without synthetic fallback (DEV-045 / R-09 / AC-17)."""
+        harness = BenchmarkHarness(self.store, self.workspace)
+        node = {
+            "id": "function:app/compute.py:nonexistent_func",
+            "name": "nonexistent_func",
+            "path": "app/compute.py"
+        }
+        res = harness.run_benchmark(node)
+        self.assertEqual(res.status, "unsupported")
+        self.assertIsNotNone(res.skip_reason)
+        self.assertEqual(res.iterations, 0)
+        self.assertEqual(res.p50_ms, 0.0)
 
     def test_baseline_store_persistence(self):
         """Verify BenchmarkBaselineStore saves, loads, and tags snapshots."""

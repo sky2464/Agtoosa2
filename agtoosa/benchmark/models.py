@@ -26,6 +26,8 @@ class BenchmarkResult:
     max_ms: float
     throughput_ops_sec: float
     peak_memory_bytes: int = 0
+    status: str = "completed"  # "completed", "skipped", "unsupported", "failed"
+    skip_reason: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:

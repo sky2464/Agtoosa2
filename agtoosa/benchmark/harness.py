@@ -111,6 +111,26 @@ class BenchmarkHarness:
         path = node.get("path", "")
 
         func = callable_override or self._resolve_callable(node)
+        if func is None:
+            # Unresolvable target: return explicit unsupported/skipped outcome (R-09 / AC-17)
+            return BenchmarkResult(
+                node_id=node_id,
+                name=name,
+                path=path,
+                iterations=0,
+                p50_ms=0.0,
+                p95_ms=0.0,
+                p99_ms=0.0,
+                avg_ms=0.0,
+                min_ms=0.0,
+                max_ms=0.0,
+                throughput_ops_sec=0.0,
+                peak_memory_bytes=0,
+                status="unsupported",
+                skip_reason="Target symbol is not an executable zero-argument callable or could not be loaded safely",
+                metadata={"node_type": node.get("node_type", "function")}
+            )
+
         durations_ns: List[int] = []
 
         # Memory tracking
@@ -170,11 +190,13 @@ class BenchmarkHarness:
             max_ms=max_ms,
             throughput_ops_sec=throughput,
             peak_memory_bytes=max(0, peak_mem),
+            status="completed",
+            skip_reason=None,
             metadata={"node_type": node.get("node_type", "function")}
         )
 
-    def _resolve_callable(self, node: Dict[str, Any]) -> Callable[[], Any]:
-        """Attempt to dynamically load the python callable, or return a synthetic probe."""
+    def _resolve_callable(self, node: Dict[str, Any]) -> Optional[Callable[[], Any]]:
+        """Attempt to dynamically load the python callable safely; returns None if unresolvable (R-09)."""
         path_str = node.get("path", "")
         name = node.get("name", "")
 
@@ -194,15 +216,5 @@ class BenchmarkHarness:
                 except Exception:
                     pass
 
-        # Fallback synthetic calibrated workload based on symbol size
-        start_line = node.get("start_line", 1) or 1
-        end_line = node.get("end_line", 1) or 1
-        line_count = max(1, end_line - start_line + 1)
-
-        def synthetic_probe():
-            acc = 0
-            for i in range(line_count * 10):
-                acc += (i % 7)
-            return acc
-
-        return synthetic_probe
+        # Never substitute synthetic probe (R-09 / AC-17)
+        return None

@@ -102,3 +102,56 @@ class GraphStats:
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
+
+
+class EvidenceClass(str, Enum):
+    EXTRACTED = "extracted"
+    INFERRED = "inferred"
+    MANUAL = "manual"
+
+
+class ResolutionStatus(str, Enum):
+    RESOLVED = "resolved"
+    AMBIGUOUS = "ambiguous"
+    UNRESOLVED = "unresolved"
+
+
+@dataclass
+class Citation:
+    path: str
+    start_line: Optional[int] = None
+    end_line: Optional[int] = None
+    content_hash: Optional[str] = None
+    snapshot_id: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class ContractEnvelope:
+    contract_version: str = "1.0.0"
+    snapshot_id: Optional[str] = None
+    freshness: str = "fresh"  # fresh, stale, unknown
+    completeness: str = "complete"  # complete, partial, empty
+    resolution_status: ResolutionStatus = ResolutionStatus.RESOLVED
+    data: Any = None
+    candidates: List[Dict[str, Any]] = field(default_factory=list)
+    citations: List[Citation] = field(default_factory=list)
+    diagnostics: List[str] = field(default_factory=list)
+    coverage_summary: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "contract_version": self.contract_version,
+            "snapshot_id": self.snapshot_id,
+            "freshness": self.freshness,
+            "completeness": self.completeness,
+            "resolution_status": self.resolution_status.value if hasattr(self.resolution_status, "value") else str(self.resolution_status),
+            "data": self.data,
+            "candidates": self.candidates,
+            "citations": [c.to_dict() if hasattr(c, "to_dict") else c for c in self.citations],
+            "diagnostics": self.diagnostics,
+            "coverage_summary": self.coverage_summary,
+        }
+

@@ -222,6 +222,73 @@ def main(argv=None) -> int:
     topo_p.add_argument("-s", "--service", type=str, help="Filter topology to specific service name or ID")
     topo_p.add_argument("--json", action="store_true", help="Output service topology as JSON")
 
+    # agtoosa graph capabilities (DEV-040/043)
+    caps_p = graph_sub.add_parser("capabilities", help="Inspect installed parser coverage and language capabilities")
+    caps_p.add_argument("--json", action="store_true", help="Output parser capabilities as JSON")
+
+    # agtoosa graph verify (DEV-043)
+    verify_p = graph_sub.add_parser("verify", help="Verify knowledge graph integrity and source hash freshness")
+    verify_p.add_argument("--json", action="store_true", help="Output verification status as JSON")
+
+    # agtoosa graph drift visual (DEV-033)
+    drift_p = graph_sub.add_parser("drift", help="Detect architecture drift between models and code")
+    drift_sub = drift_p.add_subparsers(dest="drift_action", required=True)
+    drift_vis_p = drift_sub.add_parser("visual", help="Audit visual diagrams against AST callgraphs")
+    drift_vis_p.add_argument("--strict", action="store_true", help="Exit 1 if drift or ghost nodes are detected")
+    drift_vis_p.add_argument("--json", action="store_true", help="Output drift audit as JSON")
+
+    # agtoosa ingest <target> (DEV-033)
+    ingest_p = subparsers.add_parser("ingest", help="Ingest multimodal diagram, markdown, or URL")
+    ingest_p.add_argument("target", type=str, help="Path to diagram, doc, or URL")
+    ingest_p.add_argument("--json", action="store_true", help="Output ingestion result as JSON")
+
+    # agtoosa add <url> (DEV-033)
+    add_p = subparsers.add_parser("add", help="Add remote documentation or RFC URL")
+    add_p.add_argument("url", type=str, help="Target URL")
+    add_p.add_argument("--json", action="store_true", help="Output ingestion result as JSON")
+
+    # agtoosa wiki ... (DEV-034)
+    wiki_p = subparsers.add_parser("wiki", help="Living C4 architecture wiki and Martin metrics engine")
+    wiki_sub = wiki_p.add_subparsers(dest="wiki_action", required=True)
+    wiki_build_p = wiki_sub.add_parser("build", help="Generate living architecture wiki and C4 diagrams")
+    wiki_build_p.add_argument("-d", "--dir", type=str, help="Target wiki directory (default: .agtoosa/wiki)")
+    wiki_build_p.add_argument("-f", "--format", type=str, default="obsidian", choices=["obsidian", "standard"], help="Markdown format (default: obsidian)")
+    wiki_build_p.add_argument("--json", action="store_true", help="Output wiki summary as JSON")
+
+    wiki_metrics_p = wiki_sub.add_parser("metrics", help="Compute Robert C. Martin coupling and stability metrics")
+    wiki_metrics_p.add_argument("--json", action="store_true", help="Output Martin metrics as JSON")
+
+    # agtoosa extract semantic (DEV-035)
+    extract_p = subparsers.add_parser("extract", help="Multi-agent semantic extraction and hallucination guard")
+    extract_sub = extract_p.add_subparsers(dest="extract_action", required=True)
+    extract_sem_p = extract_sub.add_parser("semantic", help="Extract grounded concepts from documentation assets")
+    extract_sem_p.add_argument("-d", "--dir", type=str, help="Documentation directory (default: docs/)")
+    extract_sem_p.add_argument("--chunk-size", type=int, default=15, help="Batch size for parallel/chunk processing (default: 15)")
+    extract_sem_p.add_argument("--strict-grounding", action="store_true", help="Reject ungrounded symbols without fuzzy repair")
+    extract_sem_p.add_argument("--json", action="store_true", help="Output extraction report as JSON")
+
+    # agtoosa audit (DEV-036)
+    audit_p = subparsers.add_parser("audit", help="Run Socratic architecture audit & generate GRAPH_REPORT.md")
+    audit_p.add_argument("-o", "--output", type=str, help="Output file path (default: GRAPH_REPORT.md)")
+    audit_p.add_argument("-f", "--format", type=str, default="markdown", choices=["markdown", "json"], help="Output format (default: markdown)")
+    audit_p.add_argument("--generate-blueprints", action="store_true", default=True, help="Attach 1-click refactoring blueprints")
+    audit_p.add_argument("--json", action="store_true", help="Output audit report as JSON to stdout")
+
+    # agtoosa query <question> (DEV-037)
+    budget_query_p = subparsers.add_parser("query", help="Token-budgeted topology query with AST skeleton extraction")
+    budget_query_p.add_argument("query", type=str, help="Question or target symbol to search")
+    budget_query_p.add_argument("-b", "--budget", type=int, default=1500, help="Maximum token budget (default: 1500)")
+    budget_query_p.add_argument("-s", "--strategy", type=str, default="hybrid", choices=["pagerank", "bfs", "dfs", "hybrid"], help="Traversal ranking strategy (default: hybrid)")
+    budget_query_p.add_argument("--json", action="store_true", help="Output context pack as JSON")
+
+    # agtoosa skill ... (DEV-037)
+    skill_p = subparsers.add_parser("skill", help="Universal multi-host agent skill installation")
+    skill_sub = skill_p.add_subparsers(dest="skill_action", required=True)
+    skill_inst_p = skill_sub.add_parser("install", help="Install skill files for Claude, Antigravity, or Cursor")
+    skill_inst_p.add_argument("-t", "--target", type=str, default="all", choices=["all", "claude", "cursor", "gemini", "antigravity"], help="Agent host target (default: all)")
+    skill_inst_p.add_argument("-p", "--path", type=str, help="Custom output directory or file path")
+    skill_inst_p.add_argument("--json", action="store_true", help="Output installation summary as JSON")
+
 
     # agtoosa context compile <target>
     context_parser = subparsers.add_parser("context", help="Context Compilation v2 (Graph RAG for AI Agents)")
@@ -449,6 +516,43 @@ def main(argv=None) -> int:
         elif args.graph_action == "topology":
             from agtoosa.cli.graph_cmd import cmd_graph_topology
             return cmd_graph_topology(args, workspace_root)
+        elif args.graph_action == "capabilities":
+            from agtoosa.cli.graph_cmd import cmd_graph_capabilities
+            return cmd_graph_capabilities(args, workspace_root)
+        elif args.graph_action == "verify":
+            from agtoosa.cli.graph_cmd import cmd_graph_verify
+            return cmd_graph_verify(args, workspace_root)
+        elif args.graph_action == "drift":
+            if args.drift_action == "visual":
+                from agtoosa.cli.graph_cmd import cmd_graph_drift_visual
+                return cmd_graph_drift_visual(args, workspace_root)
+    elif args.command == "ingest":
+        from agtoosa.cli.graph_cmd import cmd_ingest
+        return cmd_ingest(args, workspace_root)
+    elif args.command == "add":
+        from agtoosa.cli.graph_cmd import cmd_add
+        return cmd_add(args, workspace_root)
+    elif args.command == "wiki":
+        if args.wiki_action == "build":
+            from agtoosa.cli.graph_cmd import cmd_wiki_build
+            return cmd_wiki_build(args, workspace_root)
+        elif args.wiki_action == "metrics":
+            from agtoosa.cli.graph_cmd import cmd_wiki_metrics
+            return cmd_wiki_metrics(args, workspace_root)
+    elif args.command == "extract":
+        if args.extract_action == "semantic":
+            from agtoosa.cli.graph_cmd import cmd_extract_semantic
+            return cmd_extract_semantic(args, workspace_root)
+    elif args.command == "audit":
+        from agtoosa.cli.graph_cmd import cmd_audit
+        return cmd_audit(args, workspace_root)
+    elif args.command == "query":
+        from agtoosa.cli.graph_cmd import cmd_budgeted_query
+        return cmd_budgeted_query(args, workspace_root)
+    elif args.command == "skill":
+        if args.skill_action == "install":
+            from agtoosa.cli.graph_cmd import cmd_skill_install
+            return cmd_skill_install(args, workspace_root)
     elif args.command == "context":
 
         from agtoosa.cli.lifecycle_cmd import cmd_context_compile

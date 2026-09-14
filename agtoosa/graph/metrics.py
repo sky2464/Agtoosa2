@@ -202,76 +202,10 @@ class MetricsEngine:
 
     def _detect_communities(self, nodes: List[Dict[str, Any]], edges: List[Dict[str, Any]],
                             node_map: Dict[str, Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Group nodes into modular communities / sub-graphs."""
-        if not nodes:
-            return []
-
-        if HAS_NETWORKX:
-            try:
-                ug = nx.Graph()
-                for n in nodes:
-                    ug.add_node(n["id"])
-                for e in edges:
-                    src, tgt = e["source_id"], e["target_id"]
-                    if src in node_map and tgt in node_map:
-                        ug.add_edge(src, tgt)
-
-                communities_gen = nx.community.greedy_modularity_communities(ug)
-                results = []
-                for idx, comm in enumerate(communities_gen, start=1):
-                    member_types = defaultdict(int)
-                    for nid in comm:
-                        member_types[node_map[nid]["node_type"]] += 1
-
-                    results.append({
-                        "community_id": idx,
-                        "size": len(comm),
-                        "node_types": dict(member_types),
-                        "sample_members": [node_map[nid]["name"] for nid in list(comm)[:5]]
-                    })
-                return sorted(results, key=lambda x: x["size"], reverse=True)
-            except Exception:
-                pass
-
-        # Fallback: Weakly Connected Components
-        parent: Dict[str, str] = {n["id"]: n["id"] for n in nodes}
-
-        def find(i: str) -> str:
-            if parent[i] == i:
-                return i
-            parent[i] = find(parent[i])
-            return parent[i]
-
-        def union(i: str, j: str):
-            root_i = find(i)
-            root_j = find(j)
-            if root_i != root_j:
-                parent[root_i] = root_j
-
-        for e in edges:
-            src, tgt = e["source_id"], e["target_id"]
-            if src in parent and tgt in parent:
-                union(src, tgt)
-
-        clusters = defaultdict(list)
-        for nid in parent:
-            root = find(nid)
-            clusters[root].append(nid)
-
-        results = []
-        for idx, (root, members) in enumerate(clusters.items(), start=1):
-            member_types = defaultdict(int)
-            for nid in members:
-                member_types[node_map[nid]["node_type"]] += 1
-
-            results.append({
-                "community_id": idx,
-                "size": len(members),
-                "node_types": dict(member_types),
-                "sample_members": [node_map[nid]["name"] for nid in members[:5]]
-            })
-
-        return sorted(results, key=lambda x: x["size"], reverse=True)
+        """Group nodes into modular communities / sub-graphs using first-party modularity optimization (DEV-048)."""
+        from agtoosa.graph.community import detect_communities_modularity
+        res = detect_communities_modularity(nodes, edges, node_map)
+        return res.get("communities", [])
 
     def _compute_health_scorecard(self, nodes: List[Dict[str, Any]], edges: List[Dict[str, Any]],
                                   adj_in: Dict[str, List[str]], adj_out: Dict[str, List[str]],

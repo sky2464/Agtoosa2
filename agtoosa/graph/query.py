@@ -8,40 +8,22 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from agtoosa.graph.store import GraphStore
 
 
+from agtoosa.parser.resolver import resolve_node_candidates, ResolutionStatus, ResolutionResult
+
+
 def resolve_node(store: GraphStore, query: str) -> Optional[Dict[str, Any]]:
-    """Resolve a target query string to a specific node."""
-    clean_q = query.strip()
-
-    # 1. Try exact node ID match
-    node = store.get_node(clean_q)
-    if node:
-        return node
-
-    # 2. Try prefixed domain entity IDs
-    for prefix in ("story:", "task:", "criterion:", "adr:", "file:"):
-        prefixed_node = store.get_node(f"{prefix}{clean_q}")
-        if prefixed_node:
-            return prefixed_node
-
-    # 3. Try exact path match in nodes table
-    with store._get_connection() as conn:
-        row = conn.execute("SELECT id FROM nodes WHERE path = ? AND node_type = 'file';", (clean_q,)).fetchone()
-        if row:
-            return store.get_node(row[0])
-
-        # Try exact name match
-        row = conn.execute("SELECT id FROM nodes WHERE name = ? ORDER BY (node_type = 'class') DESC, (node_type = 'function') DESC LIMIT 1;", (clean_q,)).fetchone()
-        if row:
-            return store.get_node(row[0])
-
-    # 4. Fallback to FTS match
-    results = store.query_fts(clean_q, limit=5)
-    if results:
-        for r in results:
-            if r["name"].lower() == clean_q.lower():
-                return store.get_node(r["id"])
-        return store.get_node(results[0]["id"])
-
+    """Resolve a target query string to a specific node using honest candidate resolution (DEV-041)."""
+    res = resolve_node_candidates(store, query)
+    if res.status == ResolutionStatus.RESOLVED and res.selected_id:
+        return store.get_node(res.selected_id)
+    # If ambiguous, fall back to first candidate but include candidate list in metadata
+    if res.candidates:
+        node = store.get_node(res.candidates[0].node_id)
+        if node:
+            node = dict(node)
+            node["_resolution_status"] = res.status.value
+            node["_candidates"] = [c.node_id for c in res.candidates]
+            return node
     return None
 
 

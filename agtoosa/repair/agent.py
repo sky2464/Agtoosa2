@@ -7,6 +7,7 @@ and generates atomic git commits with full rollback safety.
 
 from __future__ import annotations
 from dataclasses import dataclass, field, asdict
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -43,6 +44,7 @@ class RepairPlan:
     files_modified: List[str]
     underlying_plan: Optional[PatchPlan] = None
     backup_id: Optional[str] = None
+    source_hashes: Dict[str, str] = field(default_factory=dict)
     applied: bool = False
     verified: bool = False
 
@@ -54,6 +56,7 @@ class RepairPlan:
             "diff": self.diff,
             "files_modified": self.files_modified,
             "backup_id": self.backup_id,
+            "source_hashes": self.source_hashes,
             "applied": self.applied,
             "verified": self.verified
         }
@@ -174,12 +177,19 @@ class PRAgentRepairEngine:
             diffs = self.refactor.generate_diffs(patch_plan)
             diff_str = "\n".join(diffs.values())
             files_modified = list(set(a.file_path for a in patch_plan.actions))
+            source_hashes = {}
+            for f in files_modified:
+                p = self.workspace_root / f
+                if p.exists():
+                    source_hashes[f] = hashlib.sha256(p.read_bytes()).hexdigest()
+
             return RepairPlan(
                 plan_id=plan_id,
                 issue=issue,
                 description=f"Autonomous Decoupling Interface Protocol for cycle: {' -> '.join(issue.symbols[:3])}",
                 diff=diff_str,
                 files_modified=files_modified,
+                source_hashes=source_hashes,
                 underlying_plan=patch_plan
             )
 
@@ -220,6 +230,12 @@ class PRAgentRepairEngine:
             diffs = self.refactor.generate_diffs(patch_plan)
             diff_str = "\n".join(diffs.values())
             files_modified = list(set(a.file_path for a in patch_plan.actions))
+            source_hashes = {}
+            for f in files_modified:
+                p = self.workspace_root / f
+                if p.exists():
+                    source_hashes[f] = hashlib.sha256(p.read_bytes()).hexdigest()
+
             names = [z.name for z in matched_zombies]
             return RepairPlan(
                 plan_id=plan_id,
@@ -227,40 +243,70 @@ class PRAgentRepairEngine:
                 description=f"Safe pruning of dead code symbol(s): {', '.join(names)}",
                 diff=diff_str,
                 files_modified=files_modified,
+                source_hashes=source_hashes,
                 underlying_plan=patch_plan
             )
 
         return None
 
-    def apply_and_verify(self, plan: RepairPlan, dry_run: bool = False) -> Dict[str, Any]:
-        """Apply refactoring plan, re-audit invariants, and automatically rollback if verification fails."""
+    def apply_and_verify(
+        self,
+        plan: RepairPlan,
+        dry_run: bool = False,
+        verification_commands: Optional[List[List[str]]] = None
+    ) -> Dict[str, Any]:
+        """Apply refactoring plan, re-audit invariants, and automatically rollback if verification fails (DEV-044)."""
         if not plan.underlying_plan:
             return {"success": False, "error": "No underlying AST refactor plan to apply"}
 
         if dry_run:
+            # Conservative preview: dry run cannot be marked verified (R-10 / AC-14)
             return {
                 "success": True,
                 "plan_id": plan.plan_id,
                 "dry_run": True,
                 "files_modified": plan.files_modified,
                 "diff": plan.diff,
-                "verified": True
+                "verified": False
             }
 
-        # 1. Apply plan with atomic backup
+        # 1. Source binding check (AC-14): verify source files have not drifted
+        for rel_path, expected_hash in plan.source_hashes.items():
+            abs_path = self.workspace_root / rel_path
+            if not abs_path.exists():
+                return {
+                    "success": False,
+                    "error": f"Target file missing: {rel_path}",
+                    "stale": True,
+                    "verified": False
+                }
+            cur_hash = hashlib.sha256(abs_path.read_bytes()).hexdigest()
+            if cur_hash != expected_hash:
+                return {
+                    "success": False,
+                    "error": f"Stale source detected for {rel_path}: file changed since plan synthesis.",
+                    "stale": True,
+                    "verified": False
+                }
+
+        # 2. Apply plan with atomic backup
         apply_res = self.refactor.apply_plan(plan.underlying_plan, dry_run=False)
         backup_id = apply_res.get("backup_id")
         plan.backup_id = backup_id
         plan.applied = True
 
-        # 2. Re-audit architectural invariants
+        # 3. Post-apply re-indexing (AC-15)
+        from agtoosa.parser import ParserEngine
+        engine = ParserEngine()
+        engine.index_workspace(self.workspace_root, self.store)
+
+        # 4. Re-audit architectural invariants
         post_audit = self.guard.audit()
         post_findings = post_audit.get("findings", []) if isinstance(post_audit, dict) else (post_audit.findings if hasattr(post_audit, "findings") else [])
 
         # Check if the specific issue was resolved
         issue_still_present = False
         if plan.issue.issue_type == "circular_dependency":
-            # Check if this specific cycle remains
             for f in post_findings:
                 if isinstance(f, dict):
                     rule = f.get("rule") or f.get("category")
@@ -274,20 +320,67 @@ class PRAgentRepairEngine:
                     if cat == "CYCLE":
                         issue_still_present = True
                         break
+        elif plan.issue.issue_type == "dead_code":
+            # Verify pruned symbol is no longer in graph or marked dead
+            for sym_id in plan.issue.symbols:
+                if self.store.get_node(sym_id):
+                    # Node still present in graph
+                    issue_still_present = True
+                    break
 
-        # Verification check: If the issue persists or errors increased, rollback immediately!
+        # Verification check: If the issue persists, rollback immediately!
         if issue_still_present:
             if backup_id:
                 self.refactor.rollback(backup_id)
+                engine.index_workspace(self.workspace_root, self.store)
             plan.applied = False
             plan.verified = False
             return {
                 "success": False,
                 "rolled_back": True,
                 "backup_id": backup_id,
-                "reason": "Post-repair verification failed: architectural cycle was not resolved.",
-                "post_findings": post_findings
+                "reason": "Post-repair verification failed: target issue was not resolved.",
+                "post_findings": post_findings,
+                "verified": False
             }
+
+        # 5. Run configured verification commands (AC-16)
+        if verification_commands:
+            for cmd in verification_commands:
+                try:
+                    proc = subprocess.run(
+                        cmd,
+                        cwd=str(self.workspace_root),
+                        capture_output=True,
+                        text=True
+                    )
+                    if proc.returncode != 0:
+                        if backup_id:
+                            self.refactor.rollback(backup_id)
+                            engine.index_workspace(self.workspace_root, self.store)
+                        plan.applied = False
+                        plan.verified = False
+                        return {
+                            "success": False,
+                            "rolled_back": True,
+                            "backup_id": backup_id,
+                            "reason": f"Verification command failed with exit code {proc.returncode}: {' '.join(cmd)}",
+                            "output": proc.stderr or proc.stdout,
+                            "verified": False
+                        }
+                except Exception as ex:
+                    if backup_id:
+                        self.refactor.rollback(backup_id)
+                        engine.index_workspace(self.workspace_root, self.store)
+                    plan.applied = False
+                    plan.verified = False
+                    return {
+                        "success": False,
+                        "rolled_back": True,
+                        "backup_id": backup_id,
+                        "reason": f"Failed to execute verification command: {ex}",
+                        "verified": False
+                    }
 
         plan.verified = True
         return {

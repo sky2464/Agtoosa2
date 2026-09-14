@@ -1,4 +1,9 @@
-"""Zero-dependency dense semantic embedding engine and vector search for Agtoosa2."""
+"""Zero-dependency hashed feature embedding engine and vector search for Agtoosa2.
+
+NOTE (R-08): This engine uses character n-gram and token feature hashing into fixed-dimension
+buckets with L2 normalization (feature hashing / hashing trick). It does NOT use a learned
+or neural language model.
+"""
 
 from __future__ import annotations
 import hashlib
@@ -15,8 +20,11 @@ STOP_WORDS: Set[str] = {
 }
 
 
-class SemanticEmbeddingEngine:
-    """Zero-dependency dense semantic feature vectorizer and cosine similarity search."""
+class HashedFeatureEmbeddingEngine:
+    """Zero-dependency hashed token and character n-gram feature vectorizer and cosine similarity search."""
+
+    ALGORITHM: str = "feature_hashing_token_ngram"
+    EMBEDDING_TYPE: str = "hashed_feature"
 
     def __init__(self, dimension: int = 128):
         self.dimension = dimension
@@ -160,3 +168,7 @@ class SemanticEmbeddingEngine:
                 })
 
         return results
+
+
+# Backward compatibility alias (DEV-043 / R-08)
+SemanticEmbeddingEngine = HashedFeatureEmbeddingEngine

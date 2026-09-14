@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
+from agtoosa import __version__
 from agtoosa.graph.store import GraphStore
 from agtoosa.graph.query import explain_node, compute_impact
 from agtoosa.core.context_compiler import ContextCompiler
@@ -240,6 +241,29 @@ class MCPServer:
                         "save_baseline": {"type": "boolean", "description": "Whether to persist current measurements as new baseline", "default": False}
                     }
                 }
+            },
+            {
+                "name": "agtoosa_get_socratic_audit",
+                "description": "Run active Socratic architecture audit detecting God nodes, cyclic hotspots, and unverified cross-modality couplings with 1-click refactoring blueprints (DEV-036).",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "generate_blueprints": {"type": "boolean", "description": "Attach executable refactoring blueprints", "default": True}
+                    }
+                }
+            },
+            {
+                "name": "agtoosa_budgeted_query",
+                "description": "Execute token-budgeted topology query extracting high-centrality AST code skeletons within strict token limits (DEV-037).",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {"type": "string", "description": "Search query or target symbol"},
+                        "budget_tokens": {"type": "integer", "description": "Maximum token budget", "default": 1500},
+                        "strategy": {"type": "string", "description": "Ranking strategy (hybrid, pagerank, bfs, dfs)", "default": "hybrid"}
+                    },
+                    "required": ["query"]
+                }
             }
         ]
 
@@ -433,6 +457,22 @@ class MCPServer:
                 "report": report.to_dict()
             }, indent=2)
 
+        elif name == "agtoosa_get_socratic_audit":
+            from agtoosa.review.socratic_audit import SocraticAuditEngine
+            engine = SocraticAuditEngine(self.store, self.workspace_root)
+            generate_blueprints = args.get("generate_blueprints", True)
+            report_data = engine.run_full_audit(generate_blueprints=generate_blueprints)
+            return json.dumps(report_data, indent=2)
+
+        elif name == "agtoosa_budgeted_query":
+            from agtoosa.core.topology_compiler import TopologyContextCompiler
+            compiler = TopologyContextCompiler(self.store)
+            query_str = args.get("query", "")
+            budget = int(args.get("budget_tokens", 1500))
+            strategy = args.get("strategy", "hybrid")
+            pack = compiler.compile_budgeted_query(query_str, budget_tokens=budget, strategy=strategy)
+            return json.dumps(pack.to_dict(), indent=2)
+
         return json.dumps({"error": f"Unknown tool: {name}"})
 
 
@@ -465,7 +505,7 @@ class MCPServer:
                         "tools": {},
                         "resources": {"subscribe": True, "listChanged": True}
                     },
-                    "serverInfo": {"name": "agtoosa-mcp", "version": "0.5.0"}
+                    "serverInfo": {"name": "agtoosa-mcp", "version": __version__}
                 }
             }
         elif method == "notifications/initialized":

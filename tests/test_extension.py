@@ -88,7 +88,7 @@ class TestExtensionManifest(unittest.TestCase):
             out_dir = Path(tmp_dir)
             vsix_file = build_vsix(REPO_ROOT, output_dir=out_dir)
             self.assertTrue(vsix_file.exists())
-            self.assertTrue(vsix_file.name.startswith("agtoosa-vscode-0.5.0.vsix"))
+            self.assertTrue(vsix_file.name.startswith(f"agtoosa-vscode-{__version__}.vsix"))
 
             with zipfile.ZipFile(vsix_file, "r") as z:
                 names = z.namelist()
@@ -101,7 +101,7 @@ class TestExtensionManifest(unittest.TestCase):
                 self.assertIn("extension/resources/cold.svg", names)
 
                 manifest_xml = z.read("extension.vsixmanifest").decode("utf-8")
-                self.assertIn('Version="0.5.0"', manifest_xml)
+                self.assertIn(f'Version="{__version__}"', manifest_xml)
                 self.assertIn('Id="agtoosa-vscode"', manifest_xml)
 
 
