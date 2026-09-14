@@ -175,18 +175,42 @@ class PythonASTParser(BaseParser):
                     )
                 )
 
-                # Walk body to find function calls
+                # Walk body to find function and method calls
                 for child in ast.walk(node):
-                    if isinstance(child, ast.Call) and hasattr(child.func, "id"):
-                        callee_name = child.func.id
-                        edges.append(
-                            Edge(
-                                source_id=func_id,
-                                target_id=f"func_call:{callee_name}",
-                                edge_type=EdgeType.CALLS,
-                                provenance="inferred"
+                    if isinstance(child, ast.Call):
+                        if hasattr(child.func, "id"):
+                            callee_name = child.func.id
+                            edges.append(
+                                Edge(
+                                    source_id=func_id,
+                                    target_id=f"func_call:{callee_name}",
+                                    edge_type=EdgeType.CALLS,
+                                    provenance="inferred"
+                                )
                             )
-                        )
+                        elif isinstance(child.func, ast.Attribute):
+                            callee_name = child.func.attr
+                            # If calling self.method() or cls.method() inside a class, emit direct AST edge
+                            if isinstance(child.func.value, ast.Name) and child.func.value.id in ("self", "cls"):
+                                if self.current_parent_id and not self.current_parent_id.startswith("file:"):
+                                    class_name = self.current_parent_id.split(":")[-1]
+                                    target_method_id = f"func:{rel_path}:{class_name}.{callee_name}"
+                                    edges.append(
+                                        Edge(
+                                            source_id=func_id,
+                                            target_id=target_method_id,
+                                            edge_type=EdgeType.CALLS,
+                                            provenance="ast"
+                                        )
+                                    )
+                            edges.append(
+                                Edge(
+                                    source_id=func_id,
+                                    target_id=f"func_call:{callee_name}",
+                                    edge_type=EdgeType.CALLS,
+                                    provenance="inferred"
+                                )
+                            )
 
                 prev_parent = self.current_parent_id
                 self.current_parent_id = func_id

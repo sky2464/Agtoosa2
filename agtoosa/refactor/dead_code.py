@@ -29,14 +29,24 @@ ENTRYPOINT_PATTERNS = {
     # Testing frameworks
     "setUp", "tearDown", "setUpClass", "tearDownClass",
     "setUpModule", "tearDownModule",
-    # Common framework hooks
+    # Common framework hooks & serialization
     "on_ready", "on_start", "on_stop", "on_event",
     "handle", "handler", "callback", "middleware",
-    "configure", "setup", "teardown",
+    "configure", "setup", "teardown", "cleanup", "dispose",
+    "to_dict", "from_dict", "to_json", "from_json", "dict", "json", "as_dict",
+    "can_parse", "parse", "extract", "validate", "status_file_path",
+    # Frontend and extension lifecycle
+    "activate", "deactivate", "escapeHtml", "runAgtoosaCli",
 }
 
-ENTRYPOINT_PREFIXES = ("test_", "Test", "cmd_", "handle_", "on_")
-ENTRYPOINT_PATH_PATTERNS = ("test_", "tests/", "conftest", "__main__", "cli/", "migrations/")
+ENTRYPOINT_PREFIXES = (
+    "test_", "Test", "cmd_", "handle_", "on_", "visit_",
+    "render", "format", "show", "resize", "reset", "update", "switch", "is_connected",
+)
+ENTRYPOINT_PATH_PATTERNS = (
+    "test_", "tests/", "conftest", "__main__", "cli/", "migrations/",
+    "extension/", "web/js/",
+)
 
 
 @dataclass
@@ -137,14 +147,25 @@ class DeadCodePruner:
             incoming_callers = callers_of.get(nid, set())
 
             if len(incoming_callers) == 0:
+                # If symbol is actively referenced in its own file (e.g. self._init_db()), skip it!
+                if self._has_file_references(path, name, start_line, end_line):
+                    continue
+
                 # Zero callers — potential dead code
                 confidence = self._assess_confidence(node, incoming_callers, callees_of, contained_by, nodes)
+                
+                # If referenced anywhere in other workspace files, downgrade confidence and mark unsafe
+                if self._has_workspace_references(name, path):
+                    confidence = "low"
+                    safe = False
+                else:
+                    safe = confidence in ("medium", "high")
+
                 conf_level = confidence_levels.get(confidence, 0)
 
                 if conf_level >= min_level:
                     estimated_lines = max(1, end_line - start_line + 1)
                     reason = self._build_reason(node, incoming_callers)
-                    safe = confidence in ("medium", "high")
                     steps = self._build_deletion_steps(node, callees_of)
 
                     zombies.append(ZombieSymbol(
@@ -177,6 +198,49 @@ class DeadCodePruner:
             confidence_breakdown=dict(breakdown),
             zombies=zombies,
         )
+
+    def _get_file_content(self, rel_path: str) -> Optional[str]:
+        if not hasattr(self, "_content_cache"):
+            self._content_cache: Dict[str, Optional[str]] = {}
+        if rel_path not in self._content_cache:
+            full_path = self.workspace_root / rel_path
+            if full_path.exists() and full_path.is_file():
+                try:
+                    self._content_cache[rel_path] = full_path.read_text(encoding="utf-8", errors="ignore")
+                except Exception:
+                    self._content_cache[rel_path] = None
+            else:
+                self._content_cache[rel_path] = None
+        return self._content_cache[rel_path]
+
+    def _has_file_references(self, rel_path: str, symbol_name: str, start_line: int, end_line: int) -> bool:
+        """Check if symbol identifier appears in the file outside its own definition."""
+        content = self._get_file_content(rel_path)
+        if not content:
+            return False
+        pattern = re.compile(r'\b' + re.escape(symbol_name) + r'\b')
+        for idx, line in enumerate(content.splitlines(), start=1):
+            if start_line <= idx <= end_line:
+                continue
+            if pattern.search(line):
+                return True
+        return False
+
+    def _has_workspace_references(self, symbol_name: str, defining_path: str) -> bool:
+        """Check if symbol identifier appears in any other Python source file in workspace."""
+        pattern = re.compile(r'\b' + re.escape(symbol_name) + r'\b')
+        search_dirs = [self.workspace_root / "agtoosa", self.workspace_root / "tests"]
+        for s_dir in search_dirs:
+            if not s_dir.exists():
+                continue
+            for f in s_dir.rglob("*.py"):
+                rel = str(f.relative_to(self.workspace_root)).replace("\\", "/")
+                if rel == defining_path:
+                    continue
+                c = self._get_file_content(rel)
+                if c and pattern.search(c):
+                    return True
+        return False
 
     def _is_entrypoint(self, name: str, path: str, node_type: str) -> bool:
         """Check if a symbol is a known entrypoint and should be excluded from dead code analysis."""

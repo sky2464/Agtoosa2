@@ -369,7 +369,7 @@ def main(argv=None) -> int:
 
     ci_benchmark_p = ci_sub.add_parser("benchmark", help="Run automated CI continuous performance regression benchmark against baseline")
     ci_benchmark_p.add_argument("--base", type=str, default="origin/main", help="Base git ref for diff evaluation")
-    ci_benchmark_p.add_argument("--threshold", type=float, default=10.0, help="Regression threshold percentage (default: 10.0%)")
+    ci_benchmark_p.add_argument("--threshold", type=float, default=10.0, help="Regression threshold percentage (default: 10.0%%)")
     ci_benchmark_p.add_argument("--strict", action="store_true", help="Fail with non-zero exit code if performance regressions are detected")
     ci_benchmark_p.add_argument("--save-baseline", action="store_true", help="Save current measurements as the new baseline")
     ci_benchmark_p.add_argument("-o", "--output", type=str, help="Path to write GitHub PR Markdown comment")
@@ -382,7 +382,7 @@ def main(argv=None) -> int:
     bench_run_p = bench_sub.add_parser("run", help="Run micro-benchmarks on specified target symbol or path")
     bench_run_p.add_argument("--target", type=str, help="Target symbol name, node ID, or file path to benchmark")
     bench_run_p.add_argument("--iterations", type=int, default=100, help="Number of benchmark iterations (default: 100)")
-    bench_run_p.add_argument("--threshold", type=float, default=10.0, help="Regression threshold percentage (default: 10.0%)")
+    bench_run_p.add_argument("--threshold", type=float, default=10.0, help="Regression threshold percentage (default: 10.0%%)")
     bench_run_p.add_argument("--save-baseline", action="store_true", help="Save current measurements to baseline")
     bench_run_p.add_argument("--json", action="store_true", help="Output benchmark results as JSON")
 

@@ -10,7 +10,7 @@ import difflib
 import json
 from pathlib import Path
 import shutil
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from agtoosa.refactor.dead_code import ZombieSymbol
 from agtoosa.refactor.decoupler import DecouplingStrategy
@@ -179,7 +179,7 @@ class RefactorEngine:
 
         return diffs
 
-    def apply_plan(self, plan: PatchPlan, dry_run: bool = False) -> Dict[str, Any]:
+    def apply_plan(self, plan: PatchPlan, dry_run: bool = False, verify: bool = True) -> Dict[str, Any]:
         """Apply patch actions with atomic backup creation and rollback manifest."""
         diffs = self.generate_diffs(plan)
 
@@ -255,15 +255,35 @@ class RefactorEngine:
                 import ast
                 try:
                     ast.parse(modified_text)
-                except SyntaxError:
-                    # Syntax validation guard: never write a syntactically invalid Python file!
-                    backup_copy = backup_snapshot_dir / rel_path
-                    if backup_copy.exists():
-                        shutil.copy2(backup_copy, full_path)
-                    continue
+                except SyntaxError as exc:
+                    # Syntax validation guard: reject invalid patch and immediately restore repository
+                    self.rollback(plan.plan_id)
+                    return {
+                        "plan_id": plan.plan_id,
+                        "status": "rolled_back_on_failure",
+                        "backup_id": plan.plan_id,
+                        "error": f"Syntax/compilation error in {rel_path}: {exc}",
+                        "files_affected": 0,
+                        "diffs": diffs
+                    }
 
             full_path.parent.mkdir(parents=True, exist_ok=True)
             full_path.write_text(modified_text, encoding="utf-8")
+
+        # Post-apply automated verification gate
+        if verify:
+            verification_ok, error_msg = self.verify_workspace(list(diffs.keys()))
+            if not verification_ok:
+                # Immediate automatic rollback to guarantee repo integrity
+                self.rollback(plan.plan_id)
+                return {
+                    "plan_id": plan.plan_id,
+                    "status": "rolled_back_on_failure",
+                    "backup_id": plan.plan_id,
+                    "error": error_msg,
+                    "files_affected": 0,
+                    "diffs": diffs
+                }
 
         return {
             "plan_id": plan.plan_id,
@@ -273,6 +293,44 @@ class RefactorEngine:
             "files_affected": len(diffs),
             "diffs": diffs
         }
+
+    def verify_workspace(self, modified_files: Optional[List[str]] = None) -> Tuple[bool, Optional[str]]:
+        """Verify that modified files compile cleanly and core CLI/engine smoke tests pass."""
+        import py_compile
+        import subprocess
+        import sys
+
+        # 1. Syntax & compilation check on modified Python files
+        if modified_files:
+            for rel in modified_files:
+                full = self.workspace_root / rel
+                if full.suffix == ".py" and full.exists():
+                    try:
+                        py_compile.compile(str(full), doraise=True)
+                    except Exception as e:
+                        return False, f"Syntax/compilation error in {rel}: {e}"
+
+        # 2. Smoke check: if .agtoosa/graph.db exists in this workspace, invoke status command to ensure graph engine and CLI load without errors
+        db_path = self.workspace_root / ".agtoosa" / "graph.db"
+        if db_path.exists():
+            python_bin = sys.executable
+            try:
+                res = subprocess.run(
+                    [python_bin, "-m", "agtoosa.cli.main", "graph", "status"],
+                    cwd=str(self.workspace_root),
+                    capture_output=True,
+                    text=True,
+                    timeout=15
+                )
+                if res.returncode != 0:
+                    err = (res.stderr or res.stdout or "").strip()
+                    err_lines = [l for l in err.splitlines() if l.strip()]
+                    summary = err_lines[-1] if err_lines else f"Exited with code {res.returncode}"
+                    return False, f"Smoke verification failed ('agtoosa graph status'): {summary}"
+            except Exception as e:
+                return False, f"Smoke verification error: {e}"
+
+        return True, None
 
     def rollback(self, backup_id: str) -> bool:
         """Roll back an applied refactoring plan by restoring original files from backup."""

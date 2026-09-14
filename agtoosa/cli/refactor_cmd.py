@@ -122,6 +122,12 @@ def cmd_refactor_dead_code(args: Any, workspace_root: Path) -> int:
             print("   • Apply safe pruning:         agtoosa refactor dead-code --apply")
             print("   • Export machine JSON:        agtoosa refactor dead-code --json")
         else:
+            if res.get("status") == "rolled_back_on_failure":
+                print(f"\n❌ Refactoring Verification Failed: {res.get('error')}")
+                print(f"🛡️  Automatic Rollback Triggered: All files restored to backup snapshot '{res.get('backup_id')}'.")
+                print("   Your codebase was not modified and remains fully healthy.")
+                return 1
+
             print(f"\n🚀 Pruned {len(plan.actions)} dead symbol(s) across {res['files_affected']} file(s)")
             print(f"   📦 Backup ID: {res['backup_id']}")
             print(f"   🔄 To rollback, run: agtoosa refactor rollback {res['backup_id']}")

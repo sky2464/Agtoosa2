@@ -147,6 +147,29 @@ class TestRefactorEngine(unittest.TestCase):
         self.engine.rollback(apply_res["backup_id"])
         self.assertFalse(interface_file.exists())
 
+    def test_auto_rollback_on_broken_code(self):
+        """If a patch creates an invalid syntax or compilation failure, apply_plan must automatically roll back."""
+        # Insert syntactically invalid code stub
+        action = PatchAction(
+            action_type="INSERT_INTERFACE",
+            file_path="sample_service.py",
+            symbol_name="broken",
+            code_content="def this is totally invalid python code !!! syntax error :::"
+        )
+        plan = PatchPlan(
+            plan_id="test_broken_plan",
+            description="Test broken patch",
+            actions=[action]
+        )
+
+        orig_content = self.sample_file.read_text(encoding="utf-8")
+        res = self.engine.apply_plan(plan, dry_run=False, verify=True)
+
+        self.assertEqual(res["status"], "rolled_back_on_failure")
+        self.assertIn("Syntax/compilation error", res.get("error", ""))
+        # Verify file is restored to original content immediately
+        self.assertEqual(self.sample_file.read_text(encoding="utf-8"), orig_content)
+
 
 if __name__ == "__main__":
     unittest.main()
