@@ -13,6 +13,7 @@
 | Core Engine | Python 3.11+ (SQLite FTS5, Zero-Dependency Standard Library) |
 | Active Milestone | `v0.6.0` — **All 32 Stages Delivered (100% Complete)** |
 | Next Frontier | `v0.7.0 / v0.8.0` — **Multimodal Ingestion, Living C4 Wiki & Verified Knowledge Intelligence (Graphify Superseding Engine)** |
+| Foundation Gate | [**EPIC-001 — Trusted Knowledge Intelligence**](specs/epic-001-trusted-knowledge-intelligence.md) (DEV-040–049) — accuracy before breadth; must pass before Milestone 14 executes |
 
 ---
 
@@ -513,6 +514,37 @@ flowchart LR
     - CLI: `agtoosa skill install [--target all|claude|cursor|gemini|antigravity]`.
     - CLI: `agtoosa query "<question>" [--budget <tokens>] [--strategy bfs|dfs|pagerank|hybrid] [--json]`.
     - MCP Tool: `agtoosa_budgeted_query`.
+
+---
+
+## Foundation Gate: EPIC-001 — Trusted Knowledge Intelligence (DEV-040–049)
+
+> **Full epic:** [EPIC-001 — Trusted Knowledge Intelligence](specs/epic-001-trusted-knowledge-intelligence.md).
+> **Research:** [Graphify parity and graph trust](research/2026-09-13-graphify-parity-and-trust.md) (R-01–14).
+
+Milestone 14 expands what the graph *contains*. EPIC-001 establishes that what the graph contains is *true*, and it gates Milestone 14 rather than following it. The ordering is deliberate: a richer graph amplifies incorrect relationships as readily as correct ones, so accuracy precedes breadth across all currently supported languages.
+
+Two corrections this epic applies to the roadmap above, recorded so they are not silently reintroduced:
+
+- Earlier Master Plan text described Graphify as single-host, Louvain-only, and blindly trusting of semantic output. The pinned reference does not support those characterisations, and the "supersedes Graphify" framing in Milestone 14 should be read as a design intent, not a measured result.
+- Graphify's published benchmark figures are conversational-memory scores. They do not establish multilingual static-analysis correctness and must not be transferred into Agtoosa2 performance claims. DEV-046 defines the evaluation that would actually support a comparison.
+
+| Story | Title | Addresses | Depends on |
+|---|---|---|---|
+| **DEV-040** | Parser coverage and language adapters | R-01 | — |
+| **DEV-041** | Scoped identity and honest resolution | R-02/03/05 | DEV-040 |
+| **DEV-042** | Atomic snapshots, incremental equivalence, preservation | R-04/05/06 | DEV-040/041 |
+| **DEV-043** | Versioned explainable interfaces | R-03/08 | DEV-040–042 |
+| **DEV-044** | Verified repair and conservative dead-code actions | R-10 | DEV-043 |
+| **DEV-045** | Real benchmark evidence | R-09 | DEV-043 |
+| **DEV-046** | Held-out evaluation, parity ledger, release gate | R-01–11 | DEV-040–045 |
+| **DEV-047** | Source rationale and decision provenance | R-12 | DEV-040/041 |
+| **DEV-048** | Community detection correctness across install profiles | R-13 | DEV-042 |
+| **DEV-049** | Semantic provider gateway and egress boundary | R-14 | DEV-043; gates all semantic consumers |
+
+DEV-047–049 were added on 2026-09-14 from a second parity audit (findings R-12–14). That audit independently reproduced R-01 and raised no correction to R-01–11; its two other proposals duplicated DEV-040 and DEV-045/046 and were dropped before filing.
+
+**Foundation gate:** AC-01–25 carry evidence, every designated ambiguous-case fixture resolves zero wrong concrete targets, and publication/migration/stale-patch/rollback regressions pass. AC-26/27 are required when the first semantic consumer ships. Milestone 14 opens only after this gate; DEV-038/039 remain deferred behind it.
 
 ---
 

@@ -5,7 +5,9 @@
 **Planning baseline:** `8fd913a009db1209b84498aef72bc3fea75b4b76`.  
 **Research:** [Graphify parity and graph trust](../research/2026-09-13-graphify-parity-and-trust.md).  
 **Parent roadmap:** [Master Plan](../Master-Plan.md).  
-**New child stories:** DEV-040–046. Existing DEV-033–039 retain their identifiers. Numeric IDs are identifiers, not execution order.
+**New child stories:** DEV-040–049. Existing DEV-033–039 retain their identifiers. Numeric IDs are identifiers, not execution order.
+
+**Amendment 2026-09-14:** DEV-047–049 were added from a second parity audit against the same Graphify reference, recording findings R-12–14. That audit independently reproduced R-01 and raised no correction to R-01–11. Two candidate cycles it proposed were dropped as duplicates before filing: a tree-sitter parser backend (already DEV-040) and a retrieval-quality benchmark harness (already DEV-045/046). A third proposal — a numeric `confidence` column on every edge — was rejected as contradicting DEV-043's contract semantics, which require classified evidence and separately classified resolution status rather than an unexplained scalar.
 
 ## 1. Goal contract
 
@@ -132,6 +134,46 @@ Each child receives a canonical `spec-DEV-<id>-*.md` before code work, using the
 
 **Touchpoints:** proposed `tests/fixtures/trusted_graph/`, `scripts/evaluate_graph_quality.py`, evaluation manifests/reports, docs and CI. Evaluation data must carry redistribution permission and exclude private repositories/secrets.
 
+### DEV-047 — Source rationale and decision provenance
+
+**Addresses:** R-12. **Dependencies:** DEV-040/041. **Acceptance:** AC-22/23.
+
+- [ ] Recognize `WHY:`, `NOTE:`, `HACK:`, and `ASSUMPTION:` markers in each family's comment syntax, using the parser adapters from DEV-040 rather than a separate text scan.
+- [ ] Bind each rationale to its enclosing symbol through the scoped identity from DEV-041; an unbindable rationale stays attached to its file span rather than being guessed onto a nearby symbol.
+- [ ] Record file, span, and content hash as citations so rationale participates in the DEV-043 envelope and survives DEV-042 snapshot publication.
+- [ ] Link rationale to lifecycle records when it cites an ADR or story identifier; an unresolvable citation is reported as unresolved, never silently dropped.
+- [ ] Include rationale in compiled context packs within the existing budget rules, and apply secret redaction before it reaches any pack, MCP response, or Studio surface.
+- [ ] Test each comment syntax, markers inside strings and nested comments, rationale on overloaded and shadowed names, unbindable spans, and redaction of credential-shaped text.
+
+**Touchpoints:** `agtoosa/parser/`, `agtoosa/core/model.py`, `agtoosa/core/context_compiler.py`, `agtoosa/core/security.py`; proposed `tests/test_rationale.py`.
+
+### DEV-048 — Community detection correctness across install profiles
+
+**Addresses:** R-13. **Dependencies:** DEV-042. **Acceptance:** AC-24/25.
+
+- [ ] Move community detection out of `_detect_communities` into a dedicated module with one documented algorithm contract.
+- [ ] Implement a first-party modularity optimizer in the dependency-free core so the minimal install and the optional-dependency install answer the same question.
+- [ ] Remove the union-find connected-components path. Reachability may still be reported, but never under the name "community".
+- [ ] Make partitions deterministic for a given snapshot and seed; report the modularity score and the algorithm actually used alongside every partition.
+- [ ] Report unavailable rather than invented structure when a graph is too small or too sparse to partition meaningfully.
+- [ ] Test modularity against labelled ground-truth partitions, seed stability, minimal-install equivalence, disconnected graphs, and single-component graphs.
+
+**Touchpoints:** `agtoosa/graph/metrics.py`, a dedicated community module, `agtoosa graph report`; proposed `tests/test_communities.py`. Consumed by follow-on DEV-034 hierarchy work, which must not assume this story's output is hierarchical.
+
+### DEV-049 — Semantic provider gateway and egress boundary
+
+**Addresses:** R-14. **Dependencies:** DEV-043; precedes any semantic consumer. **Acceptance:** AC-26/27.
+
+- [ ] Define one gateway that every semantic consumer uses. DEV-033/035/036 must not implement provider handling, redaction, budgets, or caching independently.
+- [ ] Support the active assistant and explicitly configured local or cloud providers. No automatic cloud fallback, and no network call without recorded opt-in.
+- [ ] Apply workspace boundary checks and secret redaction before transmission; assert redaction on the serialized request, not on caller intent.
+- [ ] Enforce a token and cost ceiling per pass with a preview mode that estimates and transmits nothing. Exceeding a budget yields a partial, clearly-labelled result rather than a truncated write.
+- [ ] Key the response cache on content hash plus provider, model, and prompt version, per the DEV-035 requirement in the research report's §7.
+- [ ] Treat all provider output as data: it can link to evidence but cannot create test passes, approve lifecycle transitions, or resolve symbols that DEV-041 left ambiguous.
+- [ ] Test the offline no-op path with a socket-level assertion, redaction on the wire, budget refusal, cache key sensitivity to model and prompt version, and provider unavailability.
+
+**Touchpoints:** proposed `agtoosa/semantic/`, `agtoosa/core/security.py`, CLI and MCP surfaces; proposed `tests/test_semantic_gateway.py`. Concrete provider APIs, model identifiers, and cost tables must be taken from current provider reference documentation at specification time, never written from memory.
+
 ## 4. Acceptance and evidence map
 
 Evidence slots below are planned. None is currently satisfied by this epic's publication.
@@ -159,18 +201,26 @@ Evidence slots below are planned. None is currently satisfied by this epic's pub
 | AC-19 | Every current family has a held-out evaluation with denominators and raw outputs. | DEV-046 | Versioned corpus/run manifests and reports. |
 | AC-20 | Comparative claims identify pinned inputs, identical budgets, metrics and limitations. | DEV-046 | Paired evaluation report and claim-to-evidence ledger. |
 | AC-21 | Source citations, task links and status/version claims resolve to actual artifacts. | DEV-046 | Documentation/architecture CI and acceptance review. |
+| AC-22 | Rationale binds to the correct scoped symbol or stays at file span; it is never guessed onto a neighbour. | DEV-047 | Per-language marker fixtures including overloads, shadowing and unbindable spans. |
+| AC-23 | Rationale carries citations, survives snapshot publication, and is redacted before leaving the store. | DEV-047 | Citation binding, snapshot round-trip and redaction tests. |
+| AC-24 | Minimal and optional-dependency installs produce the same partition semantics and report the algorithm used. | DEV-048 | Install-profile equivalence and algorithm-reporting tests. |
+| AC-25 | Partitions are deterministic per snapshot/seed; insufficient structure reports unavailable rather than invented groups. | DEV-048 | Ground-truth modularity, seed stability and sparse/disconnected graph tests. |
+| AC-26 | No semantic network call occurs without recorded opt-in; redaction is proven on the serialized request. | DEV-049 | Socket-level offline assertion and on-the-wire redaction tests. |
+| AC-27 | Budgets refuse rather than truncate, and cache keys change with provider, model and prompt version. | DEV-049 | Budget refusal and cache-key sensitivity tests. |
 
 ## 5. Sequencing and later development
 
 **Foundation order:** define evaluation fixtures → DEV-040 → DEV-041 → DEV-042 → DEV-043 → DEV-044 and DEV-045 → DEV-046 acceptance. DEV-044 and DEV-045 are independent after their shared interface; this is a dependency statement, not an instruction to launch agents now.
 
-**Foundation gate:** all AC-01–21 have evidence; every designated ambiguous-case fixture has zero wrong concrete resolutions; publication, migration, stale-patch and rollback regressions pass; citation bindings validate. Precision/recall and performance are reported by language and workload. No unsupported numerical improvement target is assumed.
+**Amendment stories:** DEV-047 follows DEV-041 and rides the same parser and identity work. DEV-048 follows DEV-042 and is otherwise independent of the foundation chain. DEV-049 follows DEV-043 and must land before any semantic consumer, so it gates the follow-on rows below rather than the foundation gate. AC-22–25 join the foundation gate; AC-26/27 are required only when the first semantic consumer ships.
+
+**Foundation gate:** all AC-01–25 have evidence; every designated ambiguous-case fixture has zero wrong concrete resolutions; publication, migration, stale-patch and rollback regressions pass; citation bindings validate. Precision/recall and performance are reported by language and workload. No unsupported numerical improvement target is assumed.
 
 | Follow-on work | Existing stories | Required extension and release boundary |
 |---|---|---|
-| Complete knowledge ingestion | DEV-033 with DEV-035 | General Markdown/sections/rationale, manifests/configs/schemas first; then optional PDF/Office, images, audio/video and URL adapters. Preserve citations and size/privacy/provider controls. More languages follow the same capability/evaluation contract. |
+| Complete knowledge ingestion | DEV-033 with DEV-035, gated by DEV-049 | General Markdown/sections/rationale, manifests/configs/schemas first; then optional PDF/Office, images, audio/video and URL adapters. Document rationale extends DEV-047's source-comment rationale and must reuse its citation binding. Preserve citations and size/privacy/provider controls; all provider access goes through the DEV-049 gateway. More languages follow the same capability/evaluation contract. |
 | Evidence-backed investigation | DEV-035/036/037 | Answer why/impact/change questions with supporting paths, contradictions and missing evidence; evaluate learned semantic retrieval separately from current hashed features. |
-| Continuous understanding and living wiki | DEV-034/037 | Snapshot-bound wiki/community/report refresh, automatic host-specific consultation and source fallback, context budgets that preserve provenance. |
+| Continuous understanding and living wiki | DEV-034/037, building on DEV-048 | Snapshot-bound wiki/community/report refresh, automatic host-specific consultation and source fallback, context budgets that preserve provenance. Hierarchical partitioning extends DEV-048's flat contract; it may not assume that story's output is already hierarchical. |
 | Verified engineering assistance | DEV-036 plus DEV-044 | Combine code/spec/test/history/runtime evidence for proposed changes and relevant checks; previews first, application only through verified repair semantics. |
 | Deferred research | DEV-038/039 | Attestation/synthesis require foundation and repair gates. Define what signing proves; a zero-knowledge claim needs its own protocol and validation. |
 
