@@ -264,6 +264,30 @@ class MCPServer:
                     },
                     "required": ["query"]
                 }
+            },
+            {
+                "name": "agtoosa_generate_attestation",
+                "description": "Generate zero-knowledge architecture cryptographic attestation certificate with Merkle invariant proofs and blind commitments (DEV-038).",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "signing_key": {"type": "string", "description": "Optional HMAC-SHA256 signing secret key"},
+                        "salt": {"type": "string", "description": "Optional custom salt hex string"},
+                        "include_leaves": {"type": "boolean", "description": "Include compliant leaf hashes in certificate", "default": False}
+                    }
+                }
+            },
+            {
+                "name": "agtoosa_verify_attestation",
+                "description": "Verify zero-knowledge architecture cryptographic attestation certificate (DEV-038).",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "attestation": {"type": "object", "description": "Attestation JSON payload to verify"},
+                        "signing_key": {"type": "string", "description": "Optional HMAC-SHA256 signing secret key"}
+                    },
+                    "required": ["attestation"]
+                }
             }
         ]
 
@@ -472,6 +496,27 @@ class MCPServer:
             strategy = args.get("strategy", "hybrid")
             pack = compiler.compile_budgeted_query(query_str, budget_tokens=budget, strategy=strategy)
             return json.dumps(pack.to_dict(), indent=2)
+
+        elif name == "agtoosa_generate_attestation":
+            from agtoosa.security.attestation import ArchitectureAttestationEngine
+            engine = ArchitectureAttestationEngine(self.store, self.workspace_root)
+            signing_key = args.get("signing_key")
+            salt = args.get("salt")
+            include_leaves = bool(args.get("include_leaves", False))
+            attestation = engine.generate_attestation(signing_key=signing_key, salt=salt, include_leaves=include_leaves)
+            return json.dumps(attestation, indent=2)
+
+        elif name == "agtoosa_verify_attestation":
+            from agtoosa.security.attestation import ArchitectureAttestationEngine
+            attestation = args.get("attestation", {})
+            signing_key = args.get("signing_key")
+            valid, log = ArchitectureAttestationEngine.verify_attestation(attestation, signing_key=signing_key)
+            return json.dumps({
+                "valid": valid,
+                "log": log,
+                "merkle_root": attestation.get("merkle_root"),
+                "version": attestation.get("version")
+            }, indent=2)
 
         return json.dumps({"error": f"Unknown tool: {name}"})
 

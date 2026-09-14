@@ -454,6 +454,22 @@ def main(argv=None) -> int:
     c4_sync_p.add_argument("--check", action="store_true", help="CI validation mode: fail if diagrams are out-of-sync")
     c4_sync_p.add_argument("--json", action="store_true", help="Output sync result as JSON")
 
+    # agtoosa attest ...
+    attest_parser = subparsers.add_parser("attest", help="Zero-knowledge architecture cryptographic attestation")
+    attest_sub = attest_parser.add_subparsers(dest="attest_subcommand", required=True)
+
+    attest_gen_p = attest_sub.add_parser("generate", help="Generate zero-knowledge architectural attestation certificate")
+    attest_gen_p.add_argument("-o", "--output", type=str, help="Output JSON file path")
+    attest_gen_p.add_argument("-k", "--key", type=str, help="HMAC-SHA256 signing secret key")
+    attest_gen_p.add_argument("--salt", type=str, help="Optional custom salt hex string")
+    attest_gen_p.add_argument("--include-leaves", action="store_true", help="Include full compliant leaf hashes in payload")
+    attest_gen_p.add_argument("--json", action="store_true", help="Output attestation certificate as JSON")
+
+    attest_ver_p = attest_sub.add_parser("verify", help="Verify zero-knowledge architectural attestation certificate")
+    attest_ver_p.add_argument("path", type=str, help="Path to attestation JSON certificate")
+    attest_ver_p.add_argument("-k", "--key", type=str, help="HMAC-SHA256 signing secret key")
+    attest_ver_p.add_argument("--json", action="store_true", help="Output verification result as JSON")
+
     # agtoosa mcp
     subparsers.add_parser("mcp", help="Launch native Model Context Protocol (MCP) server on stdio")
 
@@ -618,6 +634,9 @@ def main(argv=None) -> int:
     elif args.command == "c4":
         from agtoosa.cli.c4_cmd import cmd_c4
         return cmd_c4(args, workspace_root)
+    elif args.command == "attest":
+        from agtoosa.cli.attest_cmd import cmd_attest
+        return cmd_attest(args, workspace_root)
     elif args.command == "version":
         return cmd_version(args, workspace_root)
     elif args.command == "mcp":

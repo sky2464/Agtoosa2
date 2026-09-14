@@ -55,6 +55,14 @@ class ReviewIntelligenceEngine:
         "watcher": 2,
         "parser": 2,
         "graph": 2,
+        "federation": 2,
+        "refactor": 2,
+        "repair": 2,
+        "observability": 2,
+        "c4": 2,
+        "benchmark": 2,
+        "semantic": 2,
+        "security": 2,
         "core": 3,
     }
 
