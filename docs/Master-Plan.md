@@ -9,10 +9,10 @@
 |---|---|
 | Product | `Agtoosa2` |
 | Repository | `https://github.com/sky2464/Agtoosa2` |
-| Version | `0.5.0` (GA Released) |
+| Version | `0.6.0` (GA Released) |
 | Core Engine | Python 3.11+ (SQLite FTS5, Zero-Dependency Standard Library) |
-| Active Milestone | `v0.5.0` — **All 27 Stages Delivered (100% Complete)** |
-| Next Frontier | `v0.6.0` — Automated Architecture CI Bot & Distributed OpenTelemetry Ingestion |
+| Active Milestone | `v0.6.0` — **All 32 Stages Delivered (100% Complete)** |
+| Next Frontier | `v0.7.0 / v0.8.0` — **Multimodal Ingestion, Living C4 Wiki & Verified Knowledge Intelligence (Graphify Superseding Engine)** |
 
 ---
 
@@ -23,45 +23,54 @@ Evaluated across architectural impact, AI agent context amplification, enterpris
 | Rank | Cycle ID | Title | Rating | Milestone | Status | Strategic Value & Architectural Impact |
 |:---:|---|---|:---:|---|:---:|---|
 | 🥇 | **DEV-025** | Framework Dependency Injection & Dynamic Routes | **96 / 100** | Milestone 10 (v0.4.2) | ✅ Done | **Highest Architectural Leverage**: Transforms Agtoosa from a syntax AST parser into a true runtime architecture graph by extracting FastAPI/Flask/NestJS/Express DI containers, decorators (`@app.get`), and ORM schema bindings (SQLAlchemy, Prisma). AI agents gain real execution context. |
-| 🥈 | **DEV-027** | VS Code & Cursor In-Editor Gutter Lens & Marketplace | **89 / 100** | Milestone 11 (v0.5.0) | ✅ Done | **Maximum Developer Adoption**: Brings real-time CodeLens blast radius, caller count, and 1-click Studio refactor actions ("✂️ Prune", "🔄 Decouple") directly into IDE editor gutters. Published to VS Code Marketplace & Open VSX. |
-| 🥉 | **DEV-026** | Async Message Queue & Event Bus Lineage | **85 / 100** | Milestone 10 (v0.4.2) | ✅ Done | **Distributed System Visibility**: Maps asynchronous event-driven topologies across microservices (Kafka topics, RabbitMQ exchanges, Redis Pub/Sub, and Celery task queues) to complete cross-service blast radius graphs. |
-| 4th | **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | **72 / 100** | Milestone 9 (v0.4.1) | ✅ Done | **Shift-Left Local Protection**: Hardens local developer workflows by preventing commits/pushes that introduce circular dependencies or exceed blast radius thresholds, backed by a sub-millisecond status cache (`.agtoosa/guard_status.json`). |
+| 🥈 | **DEV-033** | Multimodal Ingestion & Visual-to-Code Drift Verification | **95 / 100** | Milestone 14 (v0.7.0) | 📋 Planned | **Supersedes Graphify Ingestion**: Ingests PDFs, research papers, whiteboard sketches, architecture diagrams, and web URLs. Cross-references visual diagrams against SQLite AST symbols to detect and flag architectural Visual-to-Code drift. |
+| 🥉 | **DEV-034** | Hierarchical Leiden Clustering & Living C4 Autonomous Wiki | **93 / 100** | Milestone 14 (v0.7.0) | 📋 Planned | **Supersedes Graphify Wiki**: Hierarchical Leiden community detection partitioned into Domains, Subsystems, and Modules. Generates `.agtoosa/wiki/` with Obsidian `[[wikilinks]]`, Robert C. Martin package coupling metrics ($C_a, C_e, I, A, D$), and Studio Web tab. |
+| 4th | **DEV-037** | Universal Slash Command Skill & Topology-Budgeted Traversal | **92 / 100** | Milestone 14 (v0.8.0) | 📋 Planned | **Universal AI Copilot Parity**: Ships drop-in `/agtoosa` skills for Claude Code, Cursor, Gemini CLI, Windsurf, and Antigravity. Features PageRank-weighted AST skeleton pruning under strict token budgets (`--budget 1500`). |
+| 5th | **DEV-029** | PR Blast Radius & Breaking Schema Review Bot | **91 / 100** | Milestone 12 (v0.6.0) | ✅ Done | **Automated PR Governance**: Calculates multi-dimensional blast radius directly from git diffs and posts sticky Markdown review comments with production telemetry risk tiers. |
+| 6th | **DEV-035** | Zero-Trust Hallucination Guard & Subagent Extraction | **90 / 100** | Milestone 14 (v0.7.0) | 📋 Planned | **Supersedes Graphify Extraction**: Parallel subagent extraction for non-code assets with tri-state confidence (`EXTRACTED`, `INFERRED`, `AMBIGUOUS`) backed by bidirectional AST grounding to catch and prevent LLM hallucinated symbols. |
+| 7th | **DEV-027** | VS Code & Cursor In-Editor Gutter Lens & Marketplace | **89 / 100** | Milestone 11 (v0.5.0) | ✅ Done | **Maximum Developer Adoption**: Brings real-time CodeLens blast radius, caller count, and 1-click Studio refactor actions ("✂️ Prune", "🔄 Decouple") directly into IDE editor gutters. Published to VS Code Marketplace & Open VSX. |
+| 8th | **DEV-036** | Socratic Architecture Audit & 1-Click Refactor Plans | **88 / 100** | Milestone 14 (v0.8.0) | 📋 Planned | **Supersedes Graphify Graph Report**: Generates `GRAPH_REPORT.md` with God nodes, betweenness centrality, and surprising cross-modality links, attaching executable 1-click refactoring blueprints from `CycleDecouplerEngine`. |
+| 9th | **DEV-030** | Distributed OpenTelemetry Trace Ingestion & Topology | **87 / 100** | Milestone 12 (v0.6.0) | ✅ Done | **Distributed System Visibility**: Ingests OTLP, Jaeger, and Zipkin traces to map runtime RPC/HTTP/gRPC service topologies and stitches them directly to static AST endpoints. |
+| 10th | **DEV-026** | Async Message Queue & Event Bus Lineage | **85 / 100** | Milestone 10 (v0.4.2) | ✅ Done | **Event-Driven Topology**: Maps asynchronous message lineages across Kafka, RabbitMQ, Redis Pub/Sub, and Celery task queues. |
 
 ---
 
-## Completed Cycles (All 27 Stages Delivered)
+## Completed Cycles (All 32 Stages Delivered & Verified)
 
 | ID | Title | Type | Status | Primary Deliverable |
 |---|---|---|---|---|
+| **DEV-032** | Continuous Performance Regression Benchmarking CI | Feature | ✅ Done | Nanosecond AST benchmark harness, historical telemetry baselines, and PR performance regression blocker |
+| **DEV-031** | AI Automated PR Repair & Code Review Agent | Feature | ✅ Done | Autonomous PR repair agent applying verified DIP and dead-code refactoring patches with atomic rollback |
+| **DEV-030** | Distributed OpenTelemetry Trace Ingestion & Dynamic Topology | Feature | ✅ Done | Cross-service parent-child span hierarchy parsing, RPC topology metrics ($p50, p95, p99$), and AST endpoint stitching |
+| **DEV-029** | PR Blast Radius & Breaking Schema Review Bot | CI/CD | ✅ Done | Multi-dimensional git diff analyzer, sticky PR markdown comment generator, and GitHub Action integration |
+| **DEV-028** | Automated C4 Architecture-as-Code & Live Diagram Sync | Feature | ✅ Done | Hierarchical C4 synthesis (Mermaid, PlantUML, Structurizr DSL) with live in-markdown doc sync and CI drift linter |
 | **DEV-027** | VS Code & Cursor In-Editor Gutter Lens & Marketplace | Extension | ✅ Done | In-editor gutter heatmaps, 1-click QuickFix refactor actions, guard status bar, and `.vsix` packaging |
 | **DEV-026** | Async Message Queue & Event Bus Lineage | Feature | ✅ Done | Event-driven graph lineage for Kafka, RabbitMQ, Redis Pub/Sub, Celery, and BullMQ queues |
 | **DEV-025** | Framework Dependency Injection & Dynamic Routes | Feature | ✅ Done | Runtime routes & DI resolvers (FastAPI, Flask, Express, NestJS) + ORM schemas (SQLAlchemy, Prisma, Django) |
 | **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | Feature | ✅ Done | Real-time daemon, pre-push hook integration, sub-millisecond cache `.agtoosa/guard_status.json` |
-| **DEV-001** | Core Foundation & AST Knowledge Graph | Feature | ✅ Done | Unified CLI, polyglot AST extractors (Py/JS/TS/Sh), SQLite FTS5 graph store, `/agtoosa graph build/query/status/export` |
-| **DEV-002** | Reliable Incremental Updates & Investigation | Feature | ✅ Done | Content hash fingerprints, incremental sync, `/agtoosa graph explain/path/impact` |
-| **DEV-003** | Graph-Driven Lifecycle & Context Compilation v0.2 | Feature | ✅ Done | Spec/Story/Criteria/Task ingestion, Context Compiler v0.2 (Graph RAG), `review`, and mathematical proof `ship` gates |
-| **DEV-004** | Native Model Context Protocol (MCP) Server | Feature | ✅ Done | Built-in stdio/SSE MCP server exposing real-time graph navigation tools to AI coding agents |
-| **DEV-005** | Interactive Architecture Exploration & Visualizer | Feature | ✅ Done | Offline Cytoscape.js HTML visualizer (`agtoosa graph view`), architecture health & cycle reports (`agtoosa graph report`), and multi-format exports (Obsidian, GraphML, Cypher, DOT) |
-| **DEV-006** | Broad Polyglot Language & Schema Coverage | Feature | ✅ Done | Polyglot parser supporting Go, Rust, Java, Kotlin, C/C++, C#, SQL DDL, and Dockerfile |
-| **DEV-007** | Zero-Trust Security Hardening | Security | ✅ Done | Visualizer CSP & anti-XSS serialization; workspace sandboxing & symlink guards; .gitignore enforcement; secret redaction; MCP depth & line clamps; SQLite PRAGMA hardening |
-| **DEV-008** | High-Scale Performance & Streaming Optimization | Performance | ✅ Done | O(1) memory chunked streaming (`stream_nodes`, `stream_edges`); in-database recursive SQL CTE for impact traversal; single-pass compound FTS5 queries |
-| **DEV-009** | Continuous Watcher & MCP Push | Feature | ✅ Done | Zero-dependency filesystem watcher (`agtoosa graph watch`), Git hooks (`agtoosa graph hooks`), live MCP resource update notifications |
-| **DEV-010** | Review Intelligence & Architecture Drift Alarms | Feature | ✅ Done | Layer boundary enforcement, cyclic dependency alarms, blast radius warnings, PR diff analysis (`agtoosa review --diff`), and Architectural Memory Bank (`agtoosa review remember/reflect`) |
-| **DEV-011** | CI/CD Quality Gate & GitHub Action Integration | Feature | ✅ Done | Composite GitHub Action (`action.yml`), reference CI workflow, PR architectural impact markdown comment generator, CLI `agtoosa ci review/check` |
-| **DEV-012** | Standalone Binary Packaging & Multi-Platform Distribution | DevOps | ✅ Done | Standalone PyInstaller executable (`agtoosa.spec`), build orchestrator (`scripts/build_standalone.py`), Homebrew formula (`Formula/agtoosa.rb`), release workflow |
-| **DEV-013** | VS Code & Cursor IDE Extension | Extension | ✅ Done | Native extension package (`extension/`), architecture tree views, real-time CodeLens blast radius, CLI `agtoosa graph symbols` |
-| **DEV-014** | Hybrid GraphRAG v2 & Semantic Vector Search | Feature | ✅ Done | Zero-dependency dense vector embeddings (`node_embeddings` BLOBs), RRF lexical + semantic search, `compile_context --hybrid`, CLI & MCP |
-| **DEV-015** | Cross-Repo Graph Federation | Feature | ✅ Done | Multi-repository graph ingestion (`agtoosa graph federate`), OpenAPI/gRPC/GraphQL contract bindings, distributed cross-service blast radius |
-| **DEV-016** | Monorepo Package Boundary Enforcement | Feature | ✅ Done | Monorepo workspace discovery, encapsulation leak detection, undeclared dependencies, package cycles, `agtoosa review boundaries` |
-| **DEV-017** | OpenTelemetry & Profiler Heatmap Overlay | Feature | ✅ Done | OpenTelemetry span / profiler ingestion, execution latency & call frequency heatmaps |
-| **DEV-018** | Production Blast Radius | Feature | ✅ Done | Runtime telemetry traffic weighting, live error rates, caller risk multipliers, and dormant dependency detection |
-| **DEV-019** | Autonomous Cycle Decoupling Engine | Feature | ✅ Done | Automated dependency inversion, shared kernel, and event-driven decoupling blueprints with executable code stubs |
-| **DEV-020** | Dead Code & Zombie Symbol Pruning | Feature | ✅ Done | Unreachable AST node detection, confidence scoring, entrypoint exclusion, safe deletion refactoring blueprints |
-| **DEV-021** | Modular Native Studio Architecture (Zero Build Tools) | Refactor | ✅ Done | Monolithic visualizer.py decomposed from 2,979 lines to ~380 lines into clean, dedicated static assets under `agtoosa/graph/web/` (< 250 lines each) |
-| **DEV-022** | Autonomous AST Patch Engine | Feature | ✅ Done | AST rewriting engine applying safe dead-code deletions and dependency inversion interface abstractions with unified diff previews, atomic backups, and rollback capabilities |
 | **DEV-023** | Two-Way Interactive Studio Actions | Feature | ✅ Done | Live Studio HTTP server with REST endpoints (`/api/refactor/prune`, `/api/refactor/decouple`, `/api/refactor/rollback`) and 1-click web UI buttons |
-| **DEV-024** | Pre-Push Architectural Daemon & Drift Linter | Feature | ✅ Done | Pre-commit/pre-push guard daemon enforcing zero circular dependencies and blast radius thresholds |
-| **DEV-025** | Framework Dependency Injection & Dynamic Routes | Feature | ✅ Done | AST extractors for FastAPI, Flask, Express, NestJS DI containers and ORM relation mapping |
+| **DEV-022** | Autonomous AST Patch Engine | Feature | ✅ Done | AST rewriting engine applying safe dead-code deletions and dependency inversion interface abstractions with unified diff previews, atomic backups, and rollback capabilities |
+| **DEV-021** | Modular Native Studio Architecture (Zero Build Tools) | Refactor | ✅ Done | Monolithic visualizer.py decomposed from 2,979 lines to ~380 lines into clean, dedicated static assets under `agtoosa/graph/web/` (< 250 lines each) |
+| **DEV-020** | Dead Code & Zombie Symbol Pruning | Feature | ✅ Done | Unreachable AST node detection, confidence scoring, entrypoint exclusion, safe deletion refactoring blueprints |
+| **DEV-019** | Autonomous Cycle Decoupling Engine | Feature | ✅ Done | Automated dependency inversion, shared kernel, and event-driven decoupling blueprints with executable code stubs |
+| **DEV-018** | Production Blast Radius | Feature | ✅ Done | Runtime telemetry traffic weighting, live error rates, caller risk multipliers, and dormant dependency detection |
+| **DEV-017** | OpenTelemetry & Profiler Heatmap Overlay | Feature | ✅ Done | OpenTelemetry span / profiler ingestion, execution latency & call frequency heatmaps |
+| **DEV-016** | Monorepo Package Boundary Enforcement | Feature | ✅ Done | Monorepo workspace discovery, encapsulation leak detection, undeclared dependencies, package cycles, `agtoosa review boundaries` |
+| **DEV-015** | Cross-Repo Graph Federation | Feature | ✅ Done | Multi-repository graph ingestion (`agtoosa graph federate`), OpenAPI/gRPC/GraphQL contract bindings, distributed cross-service blast radius |
+| **DEV-014** | Hybrid GraphRAG v2 & Semantic Vector Search | Feature | ✅ Done | Zero-dependency dense vector embeddings (`node_embeddings` BLOBs), RRF lexical + semantic search, `compile_context --hybrid`, CLI & MCP |
+| **DEV-013** | VS Code & Cursor IDE Extension | Extension | ✅ Done | Native extension package (`extension/`), architecture tree views, real-time CodeLens blast radius, CLI `agtoosa graph symbols` |
+| **DEV-012** | Standalone Binary Packaging & Multi-Platform Distribution | DevOps | ✅ Done | Standalone PyInstaller executable (`agtoosa.spec`), build orchestrator (`scripts/build_standalone.py`), Homebrew formula (`Formula/agtoosa.rb`), release workflow |
+| **DEV-011** | CI/CD Quality Gate & GitHub Action Integration | Feature | ✅ Done | Composite GitHub Action (`action.yml`), reference CI workflow, PR architectural impact markdown comment generator, CLI `agtoosa ci review/check` |
+| **DEV-010** | Review Intelligence & Architecture Drift Alarms | Feature | ✅ Done | Layer boundary enforcement, cyclic dependency alarms, blast radius warnings, PR diff analysis (`agtoosa review --diff`), and Architectural Memory Bank (`agtoosa review remember/reflect`) |
+| **DEV-009** | Continuous Watcher & MCP Push | Feature | ✅ Done | Zero-dependency filesystem watcher (`agtoosa graph watch`), Git hooks (`agtoosa graph hooks`), live MCP resource update notifications |
+| **DEV-008** | High-Scale Performance & Streaming Optimization | Performance | ✅ Done | O(1) memory chunked streaming (`stream_nodes`, `stream_edges`); in-database recursive SQL CTE for impact traversal; single-pass compound FTS5 queries |
+| **DEV-007** | Zero-Trust Security Hardening | Security | ✅ Done | Visualizer CSP & anti-XSS serialization; workspace sandboxing & symlink guards; .gitignore enforcement; secret redaction; MCP depth & line clamps; SQLite PRAGMA hardening |
+| **DEV-006** | Broad Polyglot Language & Schema Coverage | Feature | ✅ Done | Polyglot parser supporting Go, Rust, Java, Kotlin, C/C++, C#, SQL DDL, and Dockerfile |
+| **DEV-005** | Interactive Architecture Exploration & Visualizer | Feature | ✅ Done | Offline Cytoscape.js HTML visualizer (`agtoosa graph view`), architecture health & cycle reports (`agtoosa graph report`), and multi-format exports (Obsidian, GraphML, Cypher, DOT) |
+| **DEV-004** | Native Model Context Protocol (MCP) Server | Feature | ✅ Done | Built-in stdio/SSE MCP server exposing real-time graph navigation tools to AI coding agents |
+| **DEV-003** | Graph-Driven Lifecycle & Context Compilation v0.2 | Feature | ✅ Done | Spec/Story/Criteria/Task ingestion, Context Compiler v0.2 (Graph RAG), `review`, and mathematical proof `ship` gates |
+| **DEV-002** | Reliable Incremental Updates & Investigation | Feature | ✅ Done | Content hash fingerprints, incremental sync, `/agtoosa graph explain/path/impact` |
+| **DEV-001** | Core Foundation & AST Knowledge Graph | Feature | ✅ Done | Unified CLI, polyglot AST extractors (Py/JS/TS/Sh), SQLite FTS5 graph store, `/agtoosa graph build/query/status/export` |
 
 ---
 
@@ -105,6 +114,14 @@ flowchart LR
     S25 --> S30
     S5 --> S28[Stage 28: C4 Architecture-as-Code (82) ✅]
     S30 --> S28
+    S29 --> S31[Stage 31: AI PR Repair Agent (79) ✅]
+    S30 --> S32[Stage 32: Perf Regression CI (74) ✅]
+    S3 --> S33[Stage 33: Multimodal Ingest & Visual Drift (95)]
+    S28 --> S34[Stage 34: Hierarchical Leiden Wiki (93)]
+    S33 --> S35[Stage 35: Zero-Trust Hallucination Guard (90)]
+    S34 --> S36[Stage 36: Socratic Audit & Refactor Plans (88)]
+    S35 --> S37[Stage 37: Universal Slash Skill & Context Budget (92)]
+    S36 --> S37
 ```
 
 ### Milestone 1: Knowledge Engine Core (v0.2.0-alpha)
@@ -384,13 +401,127 @@ flowchart LR
 
 ---
 
-## Future Frontiers: Milestone 13 (v0.7.0)
+---
+
+## Milestone 14: Multimodal Ingestion, Living C4 Architecture Wiki & Verified Knowledge Intelligence (v0.7.0 & v0.8.0)
+
+> **Strategic Objective**: Absorb and fundamentally supersede the open-source capabilities of [Graphify](https://github.com/Graphify-Labs/graphify). While Graphify operates as a passive, unverified reader that offloads unsanitized LLM hallucinations into static files, Agtoosa2 delivers an enterprise-grade, mathematically verified, bidirectional knowledge OS connecting unstructured artifacts directly to concrete AST and runtime models.
+
+### Comprehensive Competitive Research: Graphify vs. Agtoosa2
+
+| Capability / Dimension | Graphify Reference Baseline | Agtoosa2 Next Frontier (Milestone 14) |
+|---|---|---|
+| **Input Modalities** | Local files, PDFs, images via raw prompt | **Multi-format Ingester (`agtoosa ingest / add`)**: Native PDF papers, specs, Markdown/Notion workspaces, web URLs (arXiv, RFCs, GitHub issues) |
+| **Diagrams & Visuals** | LLM describes image text/OCR | **Visual Architecture Parser & Drift Verification**: Extracts components from Mermaid, PlantUML, Excalidraw, PNG/SVG diagrams, and whiteboard photos; binds visual boxes and arrows to concrete SQLite AST symbols |
+| **Visual-to-Code Alignment** | ❌ Blind (no code verification) | **Visual-to-Code Drift Engine**: Mathematically checks if diagram connections match AST callgraphs and flags architectural drift |
+| **Community Clustering** | Basic flat Louvain clustering | **Hierarchical Leiden Community Engine**: Multi-tier partitioning (Domains $\to$ Subsystems $\to$ Modules $\to$ Components) |
+| **Architecture Wiki** | Flat markdown files (`graphify-out/wiki/`) | **Living C4 Architecture Wiki (`agtoosa wiki build`)**: Obsidian `[[wikilinks]]`, dynamic C4 container/component diagrams, and Robert C. Martin package metrics ($C_a, C_e, I, A, D$) hosted natively in Studio Web |
+| **Audit & Reporting** | Static text `GRAPH_REPORT.md` | **Actionable Socratic Audit (`agtoosa audit`)**: Computes God nodes and surprising cross-modality links, attaching executable 1-click refactoring blueprints (`CycleDecouplerEngine`) |
+| **Semantic Extraction Safety**| Blind trust of LLM subagent output | **Zero-Trust Hallucination Guard**: Validates agent extracted symbols against SQLite AST index; flags non-existent references as `HALLUCINATED_UNVERIFIED` |
+| **Query & Token Budgeting** | Naive BFS/DFS string truncation | **Topology-Weighted AST Skeleton Pruning**: PageRank-guided context compilation fitting valid syntax skeletons into strict token limits (`--budget 1500`) |
+| **Agent Slash Command** | Single-host Claude Code skill | **Universal Multi-Host Skill**: Drop-in `/agtoosa` skills for Claude Code, Cursor, Gemini CLI, Windsurf, and Antigravity |
+
+---
+
+### Detailed Stage Specifications
+
+- **DEV-033 (Stage 33) — Multimodal Knowledge Ingestion & Visual-to-Code Architecture Drift Verification** [📋 Planned — Rating: 95/100]
+  - **Objective**: Ingest unstructured multimodal knowledge artifacts (PDF papers, specifications, web URLs, architecture diagrams, whiteboard photos) and verify them against the codebase AST to detect visual specification drift.
+  - **Multi-Format Document Parser (`agtoosa/parser/multimodal/`)**:
+    - **PDF Ingestion**: Parses academic papers, RFCs, and product specifications, extracting title, abstract, methodology, sections, formulas, and bibliographic citations.
+    - **Web URL Ingestion (`agtoosa add <url>`)**: Fetches arXiv papers, GitHub issues, RFCs, and technical blog posts, extracting clean Markdown and metadata.
+    - **Markdown / Notion Ingestion**: Discovers frontmatter tags, document cross-references, and requirement tables.
+  - **Visual Diagram & Whiteboard Extractor**:
+    - Parses vector diagrams (Mermaid `.mmd`, PlantUML `.puml`, Excalidraw `.excalidraw`) and raster images (architecture screenshots, whiteboard sketches) via connected assistant vision.
+    - Extracts conceptual nodes (systems, components, databases) and directed relationships (calls, sends, reads, writes).
+  - **Visual-to-Code Drift Engine (`VisualDriftDetector`)**:
+    - Matches visual entities against indexed SQLite AST nodes (`NodeType.ENDPOINT`, `NodeType.CLASS`, `NodeType.SERVICE`).
+    - Flags **Ghost Nodes**: Visual components depicted in diagrams that have no matching implementation in code.
+    - Flags **Path Mismatches**: Diagrams asserting $A \to B$ when the AST proves $A \to C \to B$ or $B \to A$.
+  - **CLI & MCP Tooling**:
+    - CLI: `agtoosa ingest <path|url> [--mode deep] [--tag <domain>] [--json]`.
+    - CLI: `agtoosa add <url> [--author <name>] [--contributor <name>]`.
+    - CLI: `agtoosa graph drift visual [--strict] [--json]`.
+    - MCP Tool: `agtoosa_ingest_multimodal_source`, `agtoosa_check_visual_drift`.
+
+- **DEV-034 (Stage 34) — Hierarchical Leiden Community Clustering & Living C4 Autonomous Wiki** [📋 Planned — Rating: 93/100]
+  - **Objective**: Synthesize a living, browsable, cross-linked codebase documentation wiki powered by hierarchical Leiden community clustering and Robert C. Martin package metrics.
+  - **Hierarchical Leiden Community Engine (`agtoosa/graph/community.py`)**:
+    - Partitions heterogeneous knowledge graphs (code, endpoints, topics, specs, docs) into multi-tier clusters:
+      $$\text{Level 1: Architectural Domains} \longrightarrow \text{Level 2: Subsystems} \longrightarrow \text{Level 3: Component Modules}$$
+    - Computes modularity quality scores to eliminate isolated or degenerate subgraphs.
+  - **Living C4 Architecture Wiki Generator (`agtoosa/graph/wiki.py`)**:
+    - Generates `.agtoosa/wiki/` containing structured Markdown articles for each detected community.
+    - Features Obsidian-compatible `[[wikilinks]]` enabling bidirectional graph browsing in Obsidian and modern Markdown editors.
+    - Embeds dynamic Mermaid C4 container and component diagrams auto-generated for that specific subsystem.
+  - **Robert C. Martin Package Coupling & Distance Metrics**:
+    - Computes Afferent Coupling ($C_a$), Efferent Coupling ($C_e$), Instability ($I = \frac{C_e}{C_a + C_e}$), Abstractness ($A$), and Normalized Distance from the Main Sequence:
+      $$D = |A + I - 1| \quad (D = 0 \text{ is optimal balance; } D \to 1 \text{ is Pain/Uselessness zone})$$
+  - **Native Studio Web Integration**:
+    - Adds a dedicated "Living Wiki" tab to [Agtoosa Studio Web](agtoosa/graph/web/index.html) with full-text search, community navigation, and 1-click links to the C4 visualizer and editor CodeLens.
+  - **CLI & MCP Tooling**:
+    - CLI: `agtoosa wiki build [--output <dir>] [--format obsidian|markdown] [--metrics] [--serve]`.
+    - CLI: `agtoosa wiki metrics [--json]`.
+    - MCP Tool: `agtoosa_get_architecture_wiki`.
+
+- **DEV-035 (Stage 35) — Zero-Trust Hallucination Guard & Subagent Semantic Extraction Engine** [📋 Planned — Rating: 90/100]
+  - **Objective**: Provide parallel agentic semantic extraction for non-code assets with tri-state confidence tagging, guarded by bidirectional AST symbol verification to prevent graph corruption from LLM hallucinations.
+  - **Deterministic AST Baseline First (Zero Token Cost)**:
+    - Never re-extracts code files using LLMs. Code structure, classes, functions, and imports are 100% indexed by native AST parsers.
+  - **Parallel Subagent Extraction Coordinator**:
+    - Batches non-code files (PDFs, docs, images) into balanced chunks (15–20 files) for parallel processing by AI coding agents.
+    - Enforces standardized JSON output schemas matching Agtoosa2's node/edge specification.
+  - **Tri-State Provenance Classification**:
+    - Explicitly tags every relationship: `EXTRACTED` (verifiable syntax/citation), `INFERRED` (reasonable semantic deduction), `AMBIGUOUS` (uncertain connection flagged for review).
+  - **Zero-Trust Bidirectional Grounding (`HallucinationGuard`)**:
+    - Intercepts all semantic edge submissions claiming relations to code symbols.
+    - Queries the SQLite symbol index: If an LLM invents a method `AuthService.verifyJwtToken()` that does not exist in AST records, the edge is flagged as `HALLUCINATED_UNVERIFIED` and suggests the closest Levenshtein fuzzy-match (`AuthService.validate_token`).
+  - **Persistent SHA-256 Incremental Semantic Cache**:
+    - Hashes document contents; re-indexing skips unchanged files with sub-millisecond cache hits stored in `.agtoosa/cache/semantic/`.
+  - **CLI & MCP Tooling**:
+    - CLI: `agtoosa extract semantic [--chunk-size <N>] [--strict-grounding] [--json]`.
+    - MCP Tool: `agtoosa_validate_semantic_graph`.
+
+- **DEV-036 (Stage 36) — Socratic Architecture Audit & 1-Click God-Node Refactoring Blueprints** [📋 Planned — Rating: 88/100]
+  - **Objective**: Elevate passive graph reports into active architectural audits that discover God nodes, cyclic hotspots, and surprising cross-modality connections, attaching actionable 1-click refactoring blueprints.
+  - **Automated Audit Generator (`GRAPH_REPORT.md` / `agtoosa audit`)**:
+    - Synthesizes a structured report in repository root or `.agtoosa/` covering:
+      - **God Nodes**: High-degree and high-betweenness centrality hubs dominating the codebase.
+      - **Cyclic Hotspots**: Tarjan cycles requiring structural decoupling.
+      - **Cross-Modality Latent Couplings**: Uncovers implicit dependencies between PDF requirements/specifications and code modules lacking tests or formal evidence.
+  - **Actionable 1-Click Refactoring Blueprints**:
+    - Connects directly with [CycleDecouplerEngine](agtoosa/refactor/decoupler.py) and [RefactorEngine](agtoosa/refactor/engine.py).
+    - Attaches executable Dependency Inversion (DIP) interface extractions and safe dead-code deletion patches to every reported God node.
+  - **Socratic Coding Agent Prompts**:
+    - Generates tailored inquiry prompts for AI coding agents (Claude, Cursor, Antigravity) that highlight unverified assumptions before sprint execution.
+  - **CLI & MCP Tooling**:
+    - CLI: `agtoosa audit [--output <path>] [--format markdown|json] [--generate-blueprints]`.
+    - MCP Tool: `agtoosa_get_socratic_audit`.
+
+- **DEV-037 (Stage 37) — Universal Agent Slash Command Skill & Token-Budgeted Topology Traversal** [📋 Planned — Rating: 92/100]
+  - **Objective**: Deliver a unified drop-in slash command skill across all major AI agent hosts with topology-weighted context pruning under strict token budgets.
+  - **Universal Multi-Host Skill Packaging**:
+    - Provides pre-configured skill bundles for:
+      - **Claude Code**: `~/.claude/skills/agtoosa/SKILL.md`
+      - **Antigravity / Gemini CLI**: `.agents/skills/agtoosa/SKILL.md`
+      - **Cursor & Windsurf**: Rules and native MCP bindings
+    - Commands: `/agtoosa ingest`, `/agtoosa query`, `/agtoosa path`, `/agtoosa explain`, `/agtoosa wiki`, `/agtoosa audit`.
+  - **Token-Budgeted AST Context Pruning (`TopologyContextCompiler`)**:
+    - Supports strict token constraints (`--budget <N>`, e.g., 1500 tokens).
+    - Uses PageRank centrality and edge weight prioritization (`CALLS` > `IMPORTS` > `REFERENCES`) to prune ASTs into valid, compilable code skeletons (classes, signatures, type hints, docstrings) instead of naive character slicing.
+  - **CLI & MCP Tooling**:
+    - CLI: `agtoosa skill install [--target all|claude|cursor|gemini|antigravity]`.
+    - CLI: `agtoosa query "<question>" [--budget <tokens>] [--strategy bfs|dfs|pagerank|hybrid] [--json]`.
+    - MCP Tool: `agtoosa_budgeted_query`.
+
+---
+
+## Future Frontiers: Milestone 15 (v0.9.0)
 
 | Rank | Cycle ID | Title | Rating | Target Milestone | Strategic Value & Architectural Impact |
 |:---:|---|---|:---:|---|---|
-| 🥇 | **DEV-031** | AI Automated PR Repair & Code Review Agent | **79 / 100** | Milestone 13 (v0.7.0) [✅ Done] | **Autonomous Code Healing**: Generates automated PR branch commits with refactor fixes directly resolving detected architectural drift and breaking schema changes. |
-| 🥈 | **DEV-032** | Continuous Performance Regression Benchmarking CI | **74 / 100** | Milestone 13 (v0.7.0) [✅ Done] | **Zero-Regression CI**: Automated AST benchmark harness comparing pull request runtime latency against baseline telemetry. |
-| 🥉 | **DEV-033** | Zero-Knowledge Architecture Cryptographic Attestation | **70 / 100** | Milestone 13 (v0.7.0) | **Cryptographic Security Proofs**: Produces cryptographically signed architectural attestations verifying compliance with layer boundary invariants without exposing proprietary source code. |
+| 🥇 | **DEV-038** | Zero-Knowledge Architecture Cryptographic Attestation | **70 / 100** | Milestone 15 (v0.9.0) | **Cryptographic Security Proofs**: Produces cryptographically signed architectural attestations verifying compliance with layer boundary invariants without exposing proprietary source code. |
+| 🥈 | **DEV-039** | Autonomous Cross-Language Microservice Synthesis | **68 / 100** | Milestone 15 (v0.9.0) | **Multi-Language Generation**: Generates strongly-typed gRPC and OpenAPI client/server adapters directly from federated multi-repo graph models. |
 
 
 
