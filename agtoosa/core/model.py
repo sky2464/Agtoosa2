@@ -48,6 +48,7 @@ class EdgeType(str, Enum):
     VERIFIES = "verifies"
     EVIDENCED_BY = "evidenced_by"
     DEPENDS_ON = "depends_on"
+    TYPE_DEPENDS_ON = "type_depends_on"
     REFERENCES = "references"
 
     # Runtime Framework & Semantic Edges

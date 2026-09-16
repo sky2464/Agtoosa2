@@ -163,7 +163,7 @@ flowchart TD
     end
 
     subgraph Parser ["2. AST Parser & Ingestion"]
-        TS["Tree-sitter & Python AST"]
+        TS["Python AST & Polyglot Parsers"]
         EXT["Entity & Edge Extractor"]
     end
 
@@ -195,8 +195,8 @@ flowchart TD
     NX --> MCP_SRV
 ```
 
-1. **Abstract Syntax Tree (AST) Parsing:**  
-   Instead of unreliable regular expressions, Agtoosa uses real AST parsers (Python AST + Tree-sitter) to extract true semantic entities (`File`, `Class`, `Function`, `Route`) and relations (`CALLS`, `IMPORTS`, `DEFINES`).
+1. **Abstract Syntax Tree (AST) & Polyglot Parsing:**  
+   Agtoosa parses Python using standard-library AST and extracts entities and dependencies across JavaScript, TypeScript, Go, Rust, Java, C/C++, C#, Shell, SQL DDL, and Dockerfiles with specialized language extraction engines, mapping true semantic entities (`File`, `Class`, `Function`, `Route`) and relations (`CALLS`, `IMPORTS`, `DEFINES`).
 2. **Deterministic Graph Topology:**  
    In-memory graph processing uses directed multigraphs (`NetworkX`) to calculate graph centrality (PageRank), cycle bisection (Feedback Arc Set), and topological paths in milliseconds.
 3. **SQLite FTS5 + Hybrid Retrieval:**  
@@ -222,9 +222,15 @@ cd Agtoosa2
 python3 -m venv .venv
 source .venv/bin/activate
 
-# Install in editable mode
+# Upgrade pip and install in editable mode
+pip install --upgrade pip
 pip install -e '.[full]'
 ```
+
+> ⚡ **Fast Alternative:** If you use [uv](https://github.com/astral-sh/uv), installation is instantaneous:
+> ```bash
+> uv pip install -e '.[full]'
+> ```
 
 ### 3. Build Your First Graph
 Index your current repository into `.agtoosa/graph.db` with one command:

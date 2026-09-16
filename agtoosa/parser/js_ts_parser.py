@@ -11,9 +11,9 @@ from agtoosa.parser.base import BaseParser
 class JavaScriptTypeScriptParser(BaseParser):
     """Extracts classes, functions, and import/export statements from JS/TS code."""
 
-    # Imports: import { x } from 'y'; import x from 'y'; const x = require('y')
+    # Imports: import { x } from 'y'; import type { x } from 'y'; import x from 'y'; const x = require('y')
     IMPORT_ESM_REGEX = re.compile(
-        r"""import\s+(?:(?:(?:\*\s+as\s+\w+|[\w$]+|{[^}]*})\s+from\s+)|)['"]([^'"]+)['"]""",
+        r"""import\s+(?:(?:(type)\s+)?(?:(?:\*\s+as\s+\w+|[\w$]+|{[^}]*})\s+from\s+)|)['"]([^'"]+)['"]""",
         re.MULTILINE
     )
     IMPORT_CJS_REGEX = re.compile(
@@ -69,7 +69,8 @@ class JavaScriptTypeScriptParser(BaseParser):
 
         # 1. Extract ESM Imports
         for match in self.IMPORT_ESM_REGEX.finditer(content):
-            target_module = match.group(1)
+            is_type = bool(match.group(1)) or match.group(0).startswith("import type")
+            target_module = match.group(2)
             import_id = f"import:{rel_path}:{target_module}"
             line_idx = content[: match.start()].count("\n") + 1
             nodes.append(
@@ -78,14 +79,16 @@ class JavaScriptTypeScriptParser(BaseParser):
                     name=target_module,
                     node_type=NodeType.IMPORT,
                     path=rel_path,
-                    start_line=line_idx
+                    start_line=line_idx,
+                    metadata={"is_type_only": is_type}
                 )
             )
             edges.append(
                 Edge(
                     source_id=file_node_id,
                     target_id=import_id,
-                    edge_type=EdgeType.IMPORTS
+                    edge_type=EdgeType.TYPE_DEPENDS_ON if is_type else EdgeType.IMPORTS,
+                    metadata={"type_only": is_type}
                 )
             )
 

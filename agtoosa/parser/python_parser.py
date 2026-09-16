@@ -54,6 +54,20 @@ class PythonASTParser(BaseParser):
             def __init__(self):
                 self.current_parent_id = file_node_id
                 self.scope_prefix = rel_path.replace("/", ".").removesuffix(".py")
+                self.in_type_checking = False
+
+            def visit_If(self, node: ast.If):
+                is_type_checking = False
+                if isinstance(node.test, ast.Name) and node.test.id == "TYPE_CHECKING":
+                    is_type_checking = True
+                elif isinstance(node.test, ast.Attribute) and node.test.attr == "TYPE_CHECKING":
+                    is_type_checking = True
+
+                prev = self.in_type_checking
+                if is_type_checking:
+                    self.in_type_checking = True
+                self.generic_visit(node)
+                self.in_type_checking = prev
 
             def visit_Import(self, node: ast.Import):
                 for alias in node.names:
@@ -66,14 +80,16 @@ class PythonASTParser(BaseParser):
                             path=rel_path,
                             start_line=node.lineno,
                             end_line=getattr(node, "end_lineno", node.lineno),
-                            metadata={"asname": alias.asname}
+                            metadata={"asname": alias.asname, "type_checking": self.in_type_checking}
                         )
                     )
+                    etype = EdgeType.TYPE_DEPENDS_ON if self.in_type_checking else EdgeType.IMPORTS
                     edges.append(
                         Edge(
                             source_id=file_node_id,
                             target_id=import_id,
-                            edge_type=EdgeType.IMPORTS
+                            edge_type=etype,
+                            metadata={"type_checking": self.in_type_checking}
                         )
                     )
                 self.generic_visit(node)
@@ -91,14 +107,16 @@ class PythonASTParser(BaseParser):
                             path=rel_path,
                             start_line=node.lineno,
                             end_line=getattr(node, "end_lineno", node.lineno),
-                            metadata={"module": mod, "name": alias.name, "asname": alias.asname}
+                            metadata={"module": mod, "name": alias.name, "asname": alias.asname, "type_checking": self.in_type_checking}
                         )
                     )
+                    etype = EdgeType.TYPE_DEPENDS_ON if self.in_type_checking else EdgeType.IMPORTS
                     edges.append(
                         Edge(
                             source_id=file_node_id,
                             target_id=import_id,
-                            edge_type=EdgeType.IMPORTS
+                            edge_type=etype,
+                            metadata={"type_checking": self.in_type_checking}
                         )
                     )
                 self.generic_visit(node)

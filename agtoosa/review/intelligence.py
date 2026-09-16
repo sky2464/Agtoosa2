@@ -147,15 +147,20 @@ class ReviewIntelligenceEngine:
                 continue
 
             impact_res = compute_impact(self.store, file_node["id"], max_depth=3)
-            if impact_res and impact_res["impacted_count"] >= max_impact_threshold:
-                top_callers = [f"{c['node_type'].upper()} {c['name']} ({c['path']})" for c in impact_res["impacted"][:3]]
-                callers_summary = ", ".join(top_callers)
-                findings.append(DriftFinding(
-                    severity="WARNING",
-                    category="BLAST_RADIUS",
-                    message=f"High Blast Radius: Modifying '{fpath}' impacts {impact_res['impacted_count']} upstream dependents (e.g. {callers_summary}). Ensure regression tests verify these callers.",
-                    symbol_or_path=fpath
-                ))
+            if impact_res:
+                code_impacted = [
+                    c for c in impact_res["impacted"]
+                    if c.get("node_type") not in ("doc", "adr", "story", "criterion", "task")
+                ]
+                if len(code_impacted) >= max_impact_threshold:
+                    top_callers = [f"{c['node_type'].upper()} {c['name']} ({c['path']})" for c in code_impacted[:3]]
+                    callers_summary = ", ".join(top_callers)
+                    findings.append(DriftFinding(
+                        severity="WARNING",
+                        category="BLAST_RADIUS",
+                        message=f"High Blast Radius: Modifying '{fpath}' impacts {len(code_impacted)} upstream dependents (e.g. {callers_summary}). Ensure regression tests verify these callers.",
+                        symbol_or_path=fpath
+                    ))
 
         return findings
 
@@ -163,9 +168,23 @@ class ReviewIntelligenceEngine:
         """Detect unindexed files or public symbols lacking documentation."""
         findings: List[DriftFinding] = []
 
+        from agtoosa.parser.scanner import (
+            DEFAULT_IGNORE_DIRS,
+            DEFAULT_IGNORE_EXTENSIONS,
+            DEFAULT_IGNORE_FILENAMES,
+        )
+
         for fpath in modified_files:
             # Skip hidden files or configuration files in hidden directories (e.g. .github, .gitignore)
             if fpath.startswith(".") or "/." in fpath:
+                continue
+
+            p = Path(fpath)
+            if (
+                p.name.lower() in DEFAULT_IGNORE_FILENAMES
+                or p.suffix.lower() in DEFAULT_IGNORE_EXTENSIONS
+                or any(part in DEFAULT_IGNORE_DIRS for part in p.parts)
+            ):
                 continue
 
             file_node = self.store.get_node(f"file:{fpath}")

@@ -57,11 +57,61 @@ class ResolutionResult:
         }
 
 
+def load_path_aliases(workspace_root: Optional[Path]) -> Dict[str, str]:
+    """Parse tsconfig.json or jsconfig.json paths into a prefix replacement map."""
+    if not workspace_root:
+        return {}
+
+    for config_name in ("tsconfig.json", "jsconfig.json"):
+        config_path = workspace_root / config_name
+        if config_path.is_file():
+            try:
+                raw = config_path.read_text(encoding="utf-8", errors="replace")
+                clean_lines = []
+                for line in raw.splitlines():
+                    striped = line.strip()
+                    if striped.startswith("//") or striped.startswith("/*"):
+                        continue
+                    clean_lines.append(line)
+                data = json.loads("\n".join(clean_lines))
+                opts = data.get("compilerOptions", {})
+                paths = opts.get("paths", {})
+                base_url = opts.get("baseUrl", ".")
+
+                alias_map = {}
+                for alias_pattern, target_list in paths.items():
+                    if target_list and isinstance(target_list, list):
+                        target_pattern = target_list[0]
+                        prefix = alias_pattern.rstrip("*").rstrip("/")
+                        target_prefix = target_pattern.rstrip("*").rstrip("/")
+                        if base_url and base_url != ".":
+                            target_prefix = f"{base_url.strip('/')}/{target_prefix}".strip("/")
+                        alias_map[prefix] = target_prefix
+                return alias_map
+            except Exception:
+                pass
+    return {}
+
+
 class SymbolResolver:
     """Resolves cross-file imports and function calls using scoped candidate sets."""
 
-    def __init__(self, store: GraphStore):
+    def __init__(self, store: GraphStore, workspace_root: Optional[Path] = None):
         self.store = store
+        self.workspace_root = workspace_root
+        self.path_aliases = load_path_aliases(workspace_root)
+
+    def resolve_alias(self, import_name: str) -> str:
+        """Resolve path aliases (e.g. '@/components/Nav' -> 'src/components/Nav')."""
+        sorted_aliases = sorted(self.path_aliases.items(), key=lambda x: len(x[0]), reverse=True)
+        for prefix, target in sorted_aliases:
+            if import_name == prefix:
+                return target
+            clean_prefix = prefix.rstrip("/")
+            if import_name.startswith(f"{clean_prefix}/"):
+                remainder = import_name[len(clean_prefix):].lstrip("/")
+                return f"{target.rstrip('/')}/{remainder}" if remainder else target
+        return import_name
 
     def resolve_all_symbols(self) -> Dict[str, int]:
         """Execute scoped cross-file symbol resolution against the SQLite graph store.
@@ -97,8 +147,9 @@ class SymbolResolver:
             resolution_edges = []
 
             for imp_id, full_import_name, imp_path in import_rows:
-                short_name = full_import_name.split(".")[-1]
-                file_imports[imp_path][short_name] = full_import_name
+                resolved_import_path = self.resolve_alias(full_import_name)
+                short_name = resolved_import_path.split(".")[-1]
+                file_imports[imp_path][short_name] = resolved_import_path
 
                 # Try resolving import to an exact symbol or module
                 cands = candidates_by_name.get(short_name, [])
@@ -145,7 +196,7 @@ class SymbolResolver:
                 resolved_cand = None
                 if caller_path in file_imports and callee_name in file_imports[caller_path]:
                     imported_target = file_imports[caller_path][callee_name]
-                    target_mod = imported_target.replace(".", "/")
+                    target_mod = self.resolve_alias(imported_target).replace(".", "/")
                     # Look up by module and short name
                     for (mod_key, sym_name), cand in scoped_candidates.items():
                         if sym_name == callee_name and (target_mod.endswith(mod_key) or mod_key.endswith(target_mod)):

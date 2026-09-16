@@ -40,12 +40,26 @@ class MetricsEngine:
 
         # 1. PageRank & Hub Centrality
         pagerank = self._compute_pagerank(nodes, adj_out, adj_in)
-        top_hubs = sorted(
+        all_hubs = sorted(
             [{"id": nid, "name": node_map[nid]["name"], "type": node_map[nid]["node_type"], "score": round(score, 4)}
              for nid, score in pagerank.items()],
             key=lambda x: x["score"],
             reverse=True
-        )[:10]
+        )
+        top_hubs = all_hubs[:10]
+
+        # Domain vs Infrastructure Hubs Classification (DEV-057)
+        INFRA_NAMES = {
+            "_get_connection", "logger", "log", "to_dict", "from_dict", "to_json",
+            "from_json", "format", "render", "get_node", "insert_batch", "uuid", "config",
+            "dict", "json", "as_dict", "Node", "Edge", "NodeType", "EdgeType", "format_text"
+        }
+        for h in top_hubs:
+            is_infra = any(p.lower() == h["name"].lower() or p.lower() in h["name"].lower() for p in INFRA_NAMES)
+            h["category"] = "infrastructure" if is_infra else "domain"
+
+        top_domain_hubs = [h for h in all_hubs if not any(p.lower() in h["name"].lower() for p in INFRA_NAMES)][:5]
+        top_infra_hubs = [h for h in all_hubs if any(p.lower() in h["name"].lower() for p in INFRA_NAMES)][:5]
 
         # 2. Cycle Detection (Tarjan's strongly connected components / elementary cycles)
         cycles = self._detect_cycles(nodes, adj_out_dep, node_map)
@@ -88,6 +102,8 @@ class MetricsEngine:
             },
             "health_scorecard": health,
             "top_hubs": top_hubs,
+            "top_domain_hubs": top_domain_hubs,
+            "top_infra_hubs": top_infra_hubs,
             "cycles": cycles,
             "communities": communities,
             "spectral": spectral_data,

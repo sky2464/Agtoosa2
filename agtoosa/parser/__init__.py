@@ -1,7 +1,7 @@
 """Parser subsystem orchestrating AST extractors and file scanning."""
 
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from agtoosa.core.model import Node, Edge, NodeType, GraphStats
 from agtoosa.graph.store import GraphStore
@@ -96,14 +96,14 @@ class ParserEngine:
 
         if all_nodes or all_edges:
             store.insert_batch(all_nodes, all_edges)
-            self._resolve_cross_file_symbols(store)
+            self._resolve_cross_file_symbols(store, workspace_root)
 
         return store.get_stats()
 
-    def _resolve_cross_file_symbols(self, store: GraphStore) -> None:
-        """Link import nodes and function calls to matching defined symbols across files (DEV-041)."""
+    def _resolve_cross_file_symbols(self, store: GraphStore, workspace_root: Optional[Path] = None) -> None:
+        """Link import nodes and function calls to matching defined symbols across files (DEV-041/DEV-057)."""
         from agtoosa.parser.resolver import SymbolResolver
-        resolver = SymbolResolver(store)
+        resolver = SymbolResolver(store, workspace_root=workspace_root)
         resolver.resolve_all_symbols()
 
 
