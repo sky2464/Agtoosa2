@@ -750,19 +750,6 @@ class MCPServer:
         return json.dumps({"error": f"Unknown tool: {name}"})
 
 
-    def notify_resource_updated(self, uri: str) -> None:
-        """Send a JSON-RPC notification to clients when a subscribed resource updates."""
-        if uri in self.subscriptions:
-            notification = {
-                "jsonrpc": "2.0",
-                "method": "notifications/resources/updated",
-                "params": {"uri": uri}
-            }
-            try:
-                sys.stdout.write(json.dumps(notification) + "\n")
-                sys.stdout.flush()
-            except OSError:
-                pass
 
     def handle_message(self, msg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         msg_id = msg.get("id")
