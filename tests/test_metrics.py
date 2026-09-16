@@ -49,7 +49,7 @@ class TestMetrics(unittest.TestCase):
         self.assertEqual(top_hub["name"], "func_c")
 
         # Health scorecard
-        self.assertIn(report["health_scorecard"]["grade"], ("A", "B"))
+        self.assertIn(report["health_scorecard"]["grade"], ("A", "A+", "B"))
 
         # Spectral and curvature invariants
         self.assertIn("spectral", report)
@@ -109,6 +109,36 @@ class TestMetrics(unittest.TestCase):
         md_out = engine.format_markdown(report)
         self.assertIn("# Agtoosa2 Architecture Health", md_out)
         self.assertIn("| **Total Entities** | 1 |", md_out)
+
+    def test_health_scorecard_grade_a_plus_and_test_verification(self):
+        # 6 code nodes
+        nodes = [
+            Node(id=f"func:app.py:f{i}", name=f"f{i}", node_type=NodeType.FUNCTION, path="app.py")
+            for i in range(6)
+        ]
+        # Test node calling code nodes f0 and f1 (>20% verification)
+        test_node = Node(id="func:tests/test_app.py:test_f0", name="test_f0", node_type=NodeType.FUNCTION, path="tests/test_app.py")
+        nodes.append(test_node)
+
+        edges = [
+            Edge(source_id="func:tests/test_app.py:test_f0", target_id="func:app.py:f0", edge_type=EdgeType.VERIFIES),
+            Edge(source_id="func:tests/test_app.py:test_f0", target_id="func:app.py:f1", edge_type=EdgeType.CALLS),
+            Edge(source_id="func:app.py:f0", target_id="func:app.py:f2", edge_type=EdgeType.CALLS),
+            Edge(source_id="func:app.py:f1", target_id="func:app.py:f3", edge_type=EdgeType.CALLS),
+            Edge(source_id="func:app.py:f2", target_id="func:app.py:f4", edge_type=EdgeType.CALLS),
+            Edge(source_id="func:app.py:f3", target_id="func:app.py:f5", edge_type=EdgeType.CALLS),
+        ]
+        self.store.insert_batch(nodes, edges)
+
+        engine = MetricsEngine(self.store)
+        report = engine.compute_all()
+        health = report["health_scorecard"]
+
+        self.assertEqual(health["grade"], "A+")
+        self.assertEqual(health["score"], 100)
+        self.assertEqual(health["isolated_count"], 0)
+        self.assertGreaterEqual(health["verified_units_ratio"], 0.2)
+        self.assertEqual(len(health["warnings"]), 0)
 
 
 if __name__ == "__main__":

@@ -209,4 +209,32 @@ class MarkdownDocParser(BaseParser):
                 )
             )
 
+        # 3. Extract Document References [text](target_link)
+        link_regex = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+        seen_targets = set()
+        for m in link_regex.finditer(content):
+            raw_target = m.group(2).strip()
+            if raw_target.startswith(("http://", "https://", "mailto:", "#")):
+                continue
+            target_path_part = raw_target.split("#")[0].strip()
+            if not target_path_part:
+                continue
+            doc_dir = file_path.parent
+            try:
+                target_file = (doc_dir / target_path_part).resolve()
+                if target_file.is_relative_to(workspace_root):
+                    target_rel = str(target_file.relative_to(workspace_root))
+                    if target_rel not in seen_targets and target_rel != rel_path:
+                        seen_targets.add(target_rel)
+                        edges.append(
+                            Edge(
+                                source_id=file_node_id,
+                                target_id=f"file:{target_rel}",
+                                edge_type=EdgeType.REFERENCES,
+                                provenance="doc_markdown_link"
+                            )
+                        )
+            except (ValueError, OSError, RuntimeError):
+                pass
+
         return nodes, edges

@@ -30,9 +30,9 @@ class TestStudioServer(unittest.TestCase):
         self.target_file = self.workspace / "svc.py"
         self.target_file.write_text("def zombie():\n    return 'dead'\n\ndef keep():\n    return 1\n", encoding="utf-8")
 
-        # Start test HTTP server on an available port
-        self.port = 8991
-        self.server = run_studio_server(self.store, self.workspace, port=self.port)
+        # Start test HTTP server on an ephemeral port
+        self.server = run_studio_server(self.store, self.workspace, port=0)
+        self.port = self.server.server_address[1]
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
         time.sleep(0.1)

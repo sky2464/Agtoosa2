@@ -9,7 +9,7 @@ Exposes two-way interactive studio actions:
 - GET /api/refactor/backups: Lists all rollback snapshots.
 """
 
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import HTTPServer, ThreadingHTTPServer, BaseHTTPRequestHandler
 import json
 from pathlib import Path
 import sys
@@ -238,5 +238,6 @@ def run_studio_server(
         (StudioHTTPHandler,),
         {"store": store, "workspace_root": workspace_root}
     )
-    server = HTTPServer((host, port), handler_cls)
+    server = ThreadingHTTPServer((host, port), handler_cls)
+    server.daemon_threads = True
     return server

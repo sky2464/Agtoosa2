@@ -249,12 +249,28 @@
         netCtx.strokeStyle = n.is_hub ? "#ffffff" : "rgba(255, 255, 255, 0.4)";
         netCtx.stroke();
 
-        // If zoomed in or is hub, draw text label
-        if (netZoom >= 1.1 || n.is_hub || n.highlight || (activeNode && n.id === activeNode.id)) {
-          netCtx.fillStyle = "#f1f5f9";
-          netCtx.font = `${n.is_hub ? 'bold 11px' : '10px'} sans-serif`;
+        // Progressive Disclosure Text Label Rendering (Anti-collision)
+        const isHovered = hoveredNetNode && n.id === hoveredNetNode.id;
+        const isSelected = activeNode && n.id === activeNode.id;
+        const isHighlighted = !!n.highlight;
+        const isProminentHub = n.is_hub && netZoom >= 0.7;
+        const isDeepZoomTarget = netZoom >= 2.2 && n.radius >= 8;
+
+        if (isHovered || isSelected || isHighlighted || isProminentHub || isDeepZoomTarget) {
+          const fontSize = (isHovered || isSelected) ? 12 : (n.is_hub ? 11 : 10);
+          netCtx.font = `${(isHovered || isSelected || n.is_hub) ? 'bold ' : ''}${fontSize}px sans-serif`;
           netCtx.textAlign = "center";
+
+          // Background stroke for crisp contrast against edges
+          netCtx.save();
+          netCtx.shadowColor = "rgba(11, 15, 25, 0.9)";
+          netCtx.shadowBlur = 4;
+          netCtx.lineWidth = 3;
+          netCtx.strokeStyle = "rgba(11, 15, 25, 0.85)";
+          netCtx.strokeText(n.name, n.relX, n.relY + n.radius + 12);
+          netCtx.fillStyle = isHovered ? "#38bdf8" : (isSelected ? "#34d399" : "#f1f5f9");
           netCtx.fillText(n.name, n.relX, n.relY + n.radius + 12);
+          netCtx.restore();
         }
       });
 

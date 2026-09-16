@@ -1,3 +1,14 @@
+    // Risk Radar Sub-navigation (Progressive Disclosure)
+    const radarSubBtns = document.querySelectorAll(".radar-tab-btn");
+    const radarPanes = document.querySelectorAll(".radar-pane");
+    radarSubBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetId = btn.dataset.target;
+        radarSubBtns.forEach(b => b.classList.toggle("active", b === btn));
+        radarPanes.forEach(p => p.classList.toggle("active", p.id === targetId));
+      });
+    });
+
     // 2. Build Governance & Risk Radar Tables
     const hubsBody = document.getElementById("table-hubs-body");
     topHubsData.slice(0, 10).forEach((h, idx) => {

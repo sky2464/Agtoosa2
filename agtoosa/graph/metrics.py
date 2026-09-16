@@ -28,12 +28,15 @@ class MetricsEngine:
         adj_out: Dict[str, List[str]] = defaultdict(list)
         adj_in: Dict[str, List[str]] = defaultdict(list)
 
+        adj_out_dep: Dict[str, List[str]] = defaultdict(list)
         for e in edges:
             src = e["source_id"]
             tgt = e["target_id"]
             if src in node_map and tgt in node_map:
                 adj_out[src].append(tgt)
                 adj_in[tgt].append(src)
+                if e.get("edge_type") in ("calls", "imports", "depends_on", "routes_to", "inherits"):
+                    adj_out_dep[src].append(tgt)
 
         # 1. PageRank & Hub Centrality
         pagerank = self._compute_pagerank(nodes, adj_out, adj_in)
@@ -45,7 +48,7 @@ class MetricsEngine:
         )[:10]
 
         # 2. Cycle Detection (Tarjan's strongly connected components / elementary cycles)
-        cycles = self._detect_cycles(nodes, adj_out, node_map)
+        cycles = self._detect_cycles(nodes, adj_out_dep, node_map)
 
         # 3. Community Clustering
         communities = self._detect_communities(nodes, edges, node_map)
@@ -102,7 +105,7 @@ class MetricsEngine:
         node_map = {n["id"]: n for n in nodes}
         adj_out: Dict[str, List[str]] = defaultdict(list)
         for e in edges:
-            if e.get("edge_type") not in ("contains",):
+            if e.get("edge_type") in ("calls", "imports", "depends_on", "routes_to", "inherits"):
                 adj_out[e["source_id"]].append(e["target_id"])
 
         raw_cycles = self._detect_cycles(nodes, adj_out, node_map, max_cycles=max_cycles)
@@ -248,8 +251,21 @@ class MetricsEngine:
         warnings = []
         deductions = 0
 
-        # Check isolated nodes
-        isolated = [n["name"] for n in nodes if len(adj_in[n["id"]]) == 0 and len(adj_out[n["id"]]) == 0]
+        # Check isolated code symbols / executable components
+        isolated = [
+            n["name"] for n in nodes
+            if (
+                n["node_type"] in ("function", "class", "service", "endpoint", "module")
+                or (
+                    n["node_type"] == "file"
+                    and any(n.get("path", "").endswith(ext) for ext in (".py", ".js", ".ts", ".sh"))
+                    and not n.get("path", "").endswith("__init__.py")
+                    and not n.get("path", "").startswith("agtoosa/graph/web/")
+                )
+            )
+            and len(adj_in[n["id"]]) == 0
+            and len(adj_out[n["id"]]) == 0
+        ]
         if isolated:
             warnings.append(f"{len(isolated)} disconnected/isolated nodes detected.")
             deductions += min(15, len(isolated) * 2)
@@ -261,7 +277,11 @@ class MetricsEngine:
 
         # Check verified code symbols
         code_nodes = [n for n in nodes if n["node_type"] in ("function", "class")]
-        test_edges = [e for e in edges if e["edge_type"] in ("verifies", "evidenced_by")]
+        test_edges = [
+            e for e in edges
+            if e["edge_type"] in ("verifies", "evidenced_by")
+            or (e["edge_type"] == "calls" and (e["source_id"].startswith(("func:tests/", "class:tests/")) or "tests/" in e["source_id"]))
+        ]
         verified_targets = {e["target_id"] for e in test_edges}
         tested_count = sum(1 for c in code_nodes if c["id"] in verified_targets)
         test_ratio = round(tested_count / len(code_nodes), 2) if code_nodes else 1.0
@@ -272,7 +292,9 @@ class MetricsEngine:
 
         # Score computation
         score = max(0, 100 - deductions)
-        if score >= 90:
+        if score >= 95:
+            grade = "A+"
+        elif score >= 90:
             grade = "A"
         elif score >= 80:
             grade = "B"

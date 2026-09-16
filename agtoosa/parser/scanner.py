@@ -40,6 +40,9 @@ DEFAULT_IGNORE_EXTENSIONS = {
     ".jpeg",
     ".gif",
     ".ico",
+    ".svg",
+    ".lock",
+    ".code-workspace",
     ".pdf",
     ".key",
     ".pem",
@@ -61,7 +64,7 @@ def scan_workspace(workspace_root: Path) -> List[Path]:
         dirs[:] = [d for d in dirs if d not in DEFAULT_IGNORE_DIRS and not d.startswith(".")]
 
         for file_name in files:
-            if file_name.startswith(".") and file_name != ".gitignore":
+            if file_name.startswith("."):
                 continue
 
             file_path = root / file_name

@@ -5,22 +5,25 @@
       });
 
       document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
-      if (viewName === "c4") {
-        document.getElementById("view-c4").classList.add("active");
+      if (viewName === "overview") {
+        document.getElementById("view-overview")?.classList.add("active");
+      } else if (viewName === "c4") {
+        document.getElementById("view-c4")?.classList.add("active");
       } else if (viewName === "network") {
-        document.getElementById("view-network").classList.add("active");
+        document.getElementById("view-network")?.classList.add("active");
         setTimeout(() => {
           resizeNetwork();
           if (netPanX === 0 && netPanY === 0) resetNetView();
         }, 40);
       } else if (viewName === "radar") {
-        document.getElementById("view-radar").classList.add("active");
+        document.getElementById("view-radar")?.classList.add("active");
       } else if (viewName === "pipeline") {
-        document.getElementById("view-pipeline").classList.add("active");
+        document.getElementById("view-pipeline")?.classList.add("active");
       } else if (viewName === "blast") {
-        document.getElementById("view-blast").classList.add("active");
+        document.getElementById("view-blast")?.classList.add("active");
       }
     }
+    window.switchView = switchView;
 
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.addEventListener("click", () => switchView(btn.dataset.view));

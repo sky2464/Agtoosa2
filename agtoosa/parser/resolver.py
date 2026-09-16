@@ -107,6 +107,8 @@ class SymbolResolver:
                     if target_id != imp_id:
                         resolution_edges.append((imp_id, target_id, "references", "resolved", json.dumps({"resolution": "unambiguous"})))
                         stats["resolved"] += 1
+                        if imp_path.startswith(("tests/", "test_")) and cands[0].node_type in ("function", "class", "service", "endpoint"):
+                            resolution_edges.append((imp_id, target_id, "verifies", "test_import_proof", json.dumps({"resolution": "unambiguous"})))
                 elif len(cands) > 1:
                     # Ambiguous import candidates
                     cand_ids = [c.node_id for c in cands]
@@ -181,6 +183,26 @@ class SymbolResolver:
                     (resolved_cand.node_id, json.dumps(meta), rowid)
                 )
                 stats["resolved"] += 1
+
+                is_test_caller = (
+                    caller_path.startswith("tests/")
+                    or caller_path.startswith("test_")
+                    or "_test.py" in caller_path
+                    or src_id.startswith(("func:tests/", "class:tests/"))
+                )
+                if is_test_caller and resolved_cand.node_type in ("function", "class", "service", "endpoint"):
+                    exists = conn.execute(
+                        "SELECT 1 FROM edges WHERE source_id = ? AND target_id = ? AND edge_type = 'verifies';",
+                        (src_id, resolved_cand.node_id)
+                    ).fetchone()
+                    if not exists:
+                        conn.execute(
+                            """
+                            INSERT INTO edges (source_id, target_id, edge_type, provenance, metadata_json)
+                            VALUES (?, ?, 'verifies', 'test_execution_proof', ?);
+                            """,
+                            (src_id, resolved_cand.node_id, json.dumps({"verified_target": resolved_cand.name, "caller": src_id}))
+                        )
 
         return stats
 

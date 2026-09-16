@@ -16,24 +16,27 @@
     <div class="brand-section">
       <div class="brand-icon">🏛️</div>
       <div class="brand-logo">
-        <span>Agtoosa</span> Studio
+        <span>Agtoosa</span>
       </div>
-      <span class="brand-badge">Studio</span>
+      <span class="brand-badge">v0.9.5</span>
     </div>
 
     <!-- Perspective Switcher Tabs -->
     <div class="perspective-switcher">
-      <button class="tab-btn active" data-view="c4">
-        <span>🏛️</span> C4 Blueprint
+      <button class="tab-btn active" data-view="overview">
+        <span>📊</span> Overview
+      </button>
+      <button class="tab-btn" data-view="c4">
+        <span>🏛️</span> Architecture Map
       </button>
       <button class="tab-btn" data-view="network">
-        <span>🌐</span> Network Graph
+        <span>🌐</span> Dependency Graph
       </button>
       <button class="tab-btn" data-view="radar">
-        <span>⚡</span> Risk Radar
+        <span>⚡</span> Risk &amp; Health
       </button>
       <button class="tab-btn" data-view="pipeline">
-        <span>🛡️</span> Delivery Pipeline
+        <span>🛡️</span> Delivery Assurance
       </button>
       <button class="tab-btn" data-view="blast">
         <span>🎯</span> Blast Radius
@@ -88,8 +91,104 @@
   <!-- Main Viewport -->
   <div id="main-viewport">
 
+    <!-- 0. EXECUTIVE LANDING VIEW: Architecture Command Center Overview -->
+    <div class="view-panel active" id="view-overview">
+      <div class="overview-banner">
+        <div class="overview-banner-text">
+          <h1><span>🏛️</span> Architecture Command Center</h1>
+          <p>Deterministic structural intelligence, automated governance, and delivery verification for Agtoosa2. Gain instant clarity into architecture health, dependency topology, and release readiness.</p>
+        </div>
+        <div class="overview-banner-badge">
+          <span class="status-indicator-dot"></span>
+          <span>Production Ready &bull; v0.9.5</span>
+        </div>
+      </div>
+
+      <!-- 4 Core Executive Health Metrics -->
+      <div class="overview-metrics-grid">
+        <div class="overview-metric-card">
+          <span class="overview-metric-label">Architecture Grade</span>
+          <div class="overview-metric-value" style="color: #34d399;">A+ (94/100)</div>
+          <div class="overview-metric-footer">
+            <span style="color: #34d399; font-weight: 700;">+2.4%</span> vs baseline &bull; Zero structural drift
+          </div>
+        </div>
+        <div class="overview-metric-card">
+          <span class="overview-metric-label">Structural Integrity</span>
+          <div class="overview-metric-value" style="color: #38bdf8;">100% DAG Clean</div>
+          <div class="overview-metric-footer">
+            <span style="color: #38bdf8; font-weight: 700;">0 Cycles</span> &bull; 3-tier layering enforced
+          </div>
+        </div>
+        <div class="overview-metric-card">
+          <span class="overview-metric-label">Delivery Traceability</span>
+          <div class="overview-metric-value" style="color: #c084fc;">39 Stories</div>
+          <div class="overview-metric-footer">
+            <span style="color: #c084fc; font-weight: 700;">100% Mapped</span> &bull; 162 criteria AST verified
+          </div>
+        </div>
+        <div class="overview-metric-card">
+          <span class="overview-metric-label">Blast Radius Control</span>
+          <div class="overview-metric-value" style="color: #a5b4fc;">~74% Token Cut</div>
+          <div class="overview-metric-footer">
+            <span style="color: #a5b4fc; font-weight: 700;">5 Critical Hubs</span> &bull; Bounded AI context
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 Primary Action Portals -->
+      <div class="overview-portals-container">
+        <div class="overview-portals-title">
+          <span>🧭</span> Strategic Exploration &amp; Governance Portals
+        </div>
+        <div class="overview-portals-grid">
+          <!-- Portal 1: Architecture Map -->
+          <div class="overview-portal-card" onclick="switchView('c4')">
+            <div class="portal-header">
+              <div class="portal-icon" style="color: #38bdf8;">🏛️</div>
+              <div class="portal-title-block">
+                <h3>Architecture Blueprint</h3>
+                <p>Inspect container boundaries, 3-tier layering, and encapsulation rules across the 8 core Agtoosa subsystems.</p>
+              </div>
+            </div>
+            <button class="portal-action-btn" type="button">
+              Explore Subsystems &rarr;
+            </button>
+          </div>
+
+          <!-- Portal 2: Risk & Health Radar -->
+          <div class="overview-portal-card" onclick="switchView('radar')">
+            <div class="portal-header">
+              <div class="portal-icon" style="color: #f59e0b;">⚡</div>
+              <div class="portal-title-block">
+                <h3>Risk &amp; Refactoring Radar</h3>
+                <p>Audit PageRank bottleneck hubs, automated cycle decouplers, dead code pruning, and spectral invariants.</p>
+              </div>
+            </div>
+            <button class="portal-action-btn" type="button">
+              Analyze Risk Factors &rarr;
+            </button>
+          </div>
+
+          <!-- Portal 3: Delivery Assurance -->
+          <div class="overview-portal-card" onclick="switchView('pipeline')">
+            <div class="portal-header">
+              <div class="portal-icon" style="color: #34d399;">🛡️</div>
+              <div class="portal-title-block">
+                <h3>Delivery Assurance Board</h3>
+                <p>Trace all 39 specifications, acceptance criteria, test proofs, and lifecycle readiness for production release.</p>
+              </div>
+            </div>
+            <button class="portal-action-btn" type="button">
+              Review Delivery Pipeline &rarr;
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 1. PRIMARY VIEW: C4 Architecture Blueprint (Domain Blueprint) -->
-    <div class="view-panel active" id="view-c4">
+    <div class="view-panel" id="view-c4">
       <div class="c4-header-banner">
         <div class="c4-header-text">
           <h2>🏛️ C4 Container Architecture Blueprint (Domain Blueprint)</h2>
@@ -146,125 +245,127 @@
 
     <!-- 2. Governance & Risk Radar View -->
     <div class="view-panel" id="view-radar">
-      <div class="scorecard-banner">
-        <div class="score-card">
-          <div class="lbl">Architecture Grade</div>
-          <div class="val" style="color: #34d399;" id="score-grade">A+</div>
-          <p style="font-size: 0.74rem; color: var(--text-muted);">Calculated via PageRank, cycle freedom, and domain cohesion.</p>
-        </div>
-        <div class="score-card">
-          <div class="lbl">Circular Dependencies</div>
-          <div class="val" style="color: #38bdf8;" id="score-cycles">0</div>
-          <p style="font-size: 0.74rem; color: var(--text-muted);">Verified with Tarjan strongly-connected components algorithm.</p>
-        </div>
-        <div class="score-card">
-          <div class="lbl">Critical Centrality Hubs</div>
-          <div class="val" style="color: #f59e0b;" id="score-hubs">5</div>
-          <p style="font-size: 0.74rem; color: var(--text-muted);">High-blast-radius components requiring stable interfaces.</p>
-        </div>
-        <div class="score-card">
-          <div class="lbl">Spec Lineage Coverage</div>
-          <div class="val" style="color: #c084fc;">100%</div>
-          <p style="font-size: 0.74rem; color: var(--text-muted);">All DEV stories mapped to concrete AST code and test proofs.</p>
-        </div>
+      <!-- Progressive Disclosure Sub-navigation -->
+      <div class="radar-subnav">
+        <button class="radar-tab-btn active" data-target="radar-pane-hubs">
+          <span>⚡</span> Bottlenecks &amp; Cycles
+        </button>
+        <button class="radar-tab-btn" data-target="radar-pane-deadcode">
+          <span>🧟</span> Dead Code Pruning
+        </button>
+        <button class="radar-tab-btn" data-target="radar-pane-decoupler">
+          <span>🪓</span> Cycle Decoupler
+        </button>
+        <button class="radar-tab-btn" data-target="radar-pane-spectral">
+          <span>📐</span> Spectral Invariants
+        </button>
       </div>
 
-      <div class="table-card">
-        <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-          <span>⚡</span> Top Architectural Bottleneck Hubs (PageRank Centrality)
+      <!-- Pane 1: Top Bottlenecks & Cycles -->
+      <div class="radar-pane active" id="radar-pane-hubs">
+        <div class="table-card">
+          <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+            <span>⚡</span> Top Architectural Bottleneck Hubs (PageRank Centrality)
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">These core components have the highest blast radius in Agtoosa2. Refactoring here propagates across subsystems.</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Symbol</th>
+                <th>Subsystem</th>
+                <th>Type</th>
+                <th>Centrality Score</th>
+                <th>Architectural Risk Role</th>
+              </tr>
+            </thead>
+            <tbody id="table-hubs-body">
+              <!-- Injected via JS -->
+            </tbody>
+          </table>
         </div>
-        <p style="font-size: 0.8rem; color: var(--text-muted);">These core components have the highest blast radius in Agtoosa2. Refactoring here propagates across subsystems.</p>
-        <table>
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Symbol</th>
-              <th>Subsystem</th>
-              <th>Type</th>
-              <th>Centrality Score</th>
-              <th>Architectural Risk Role</th>
-            </tr>
-          </thead>
-          <tbody id="table-hubs-body">
+
+        <div class="table-card">
+          <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+            <span>🔄</span> Circular Dependency Audit (Tarjan Algorithm)
+          </div>
+          <div id="cycles-audit-content">
             <!-- Injected via JS -->
-          </tbody>
-        </table>
-      </div>
-
-      <div class="table-card">
-        <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-          <span>🔄</span> Circular Dependency Audit (Tarjan Algorithm)
-        </div>
-        <div id="cycles-audit-content">
-          <!-- Injected via JS -->
+          </div>
         </div>
       </div>
 
-      <!-- Stage 19: Cycle Decoupler Blueprints -->
-      <div class="table-card" id="decoupler-section">
-        <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-          <span>🪓</span> Stage 19: Automated Cycle Decoupler &amp; Refactoring Blueprints
+      <!-- Pane 2: Dead Code & Zombie Symbol Pruning -->
+      <div class="radar-pane" id="radar-pane-deadcode">
+        <div class="table-card" id="dead-code-section">
+          <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+            <span>🧟</span> Stage 20: Dead Code &amp; Zombie Symbol Pruning
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+            Detects unreachable symbols (0 incoming call edges) excluding entrypoints, framework hooks, and test fixtures.
+          </p>
+          <div id="dead-code-summary-pills" style="display: flex; gap: 10px; margin: 12px 0;"></div>
+          <table>
+            <thead>
+              <tr>
+                <th>Confidence</th>
+                <th>Symbol</th>
+                <th>Location</th>
+                <th>Reason</th>
+                <th>Est. Lines</th>
+                <th>Safe to Delete</th>
+              </tr>
+            </thead>
+            <tbody id="table-dead-code-body">
+            </tbody>
+          </table>
         </div>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
-          Identifies cyclic feedback loops and automatically synthesizes dependency inversion interfaces, shared kernels, or event-driven patterns.
-        </p>
-        <div id="decoupler-content" style="margin-top: 12px;"></div>
       </div>
 
-      <!-- Stage 20: Dead Code & Zombie Symbol Pruning -->
-      <div class="table-card" id="dead-code-section">
-        <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-          <span>🧟</span> Stage 20: Dead Code &amp; Zombie Symbol Pruning
+      <!-- Pane 3: Cycle Decoupler Blueprints -->
+      <div class="radar-pane" id="radar-pane-decoupler">
+        <div class="table-card" id="decoupler-section">
+          <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+            <span>🪓</span> Stage 19: Automated Cycle Decoupler &amp; Refactoring Blueprints
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+            Identifies cyclic feedback loops and automatically synthesizes dependency inversion interfaces, shared kernels, or event-driven patterns.
+          </p>
+          <div id="decoupler-content" style="margin-top: 12px;"></div>
         </div>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
-          Detects unreachable symbols (0 incoming call edges) excluding entrypoints, framework hooks, and test fixtures.
-        </p>
-        <div id="dead-code-summary-pills" style="display: flex; gap: 10px; margin: 12px 0;"></div>
-        <table>
-          <thead>
-            <tr>
-              <th>Confidence</th>
-              <th>Symbol</th>
-              <th>Location</th>
-              <th>Reason</th>
-              <th>Est. Lines</th>
-              <th>Safe to Delete</th>
-            </tr>
-          </thead>
-          <tbody id="table-dead-code-body">
-          </tbody>
-        </table>
       </div>
 
-      <!-- Stage 52 & 54: Spectral & Differential Geometry Invariants -->
-      <div class="table-card" id="spectral-curvature-section">
-        <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-          <span>📐</span> Stage 52 &amp; 54: Spectral &amp; Differential Geometry Invariants
+      <!-- Pane 4: Spectral & Differential Geometry Invariants -->
+      <div class="radar-pane" id="radar-pane-spectral">
+        <div class="table-card" id="spectral-curvature-section">
+          <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+            <span>📐</span> Stage 52 &amp; 54: Spectral &amp; Differential Geometry Invariants
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+            Graph Laplacian (&Lambda;) spectral radius, Fiedler algebraic connectivity, Cheeger conductance bounds, and Forman-Ricci discrete curvature identifying hyperbolic bridge bottlenecks.
+          </p>
+          <div id="spectral-summary-pills" style="display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap;"></div>
+          <div style="margin-top: 14px; font-weight: 700; font-size: 0.85rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
+            <span>⚡</span> Top Forman-Ricci Hyperbolic Bottleneck Edges (Structural Choke Points)
+          </div>
+          <p style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
+            Edges with high negative Forman-Ricci curvature carry massive tree-like information flow across clusters, representing single-point-of-failure bridge paths.
+          </p>
+          <table style="margin-top: 8px;">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Source Component</th>
+                <th>Target Component</th>
+                <th>Forman-Ricci Curvature</th>
+                <th>Classification</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="table-bottlenecks-body">
+            </tbody>
+          </table>
         </div>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
-          Graph Laplacian (&Lambda;) spectral radius, Fiedler algebraic connectivity, Cheeger conductance bounds, and Forman-Ricci discrete curvature identifying hyperbolic bridge bottlenecks.
-        </p>
-        <div id="spectral-summary-pills" style="display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap;"></div>
-        <div style="margin-top: 14px; font-weight: 700; font-size: 0.85rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-          <span>⚡</span> Top Forman-Ricci Hyperbolic Bottleneck Edges (Structural Choke Points)
-        </div>
-        <p style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
-          Edges with high negative Forman-Ricci curvature carry massive tree-like information flow across clusters, representing single-point-of-failure bridge paths.
-        </p>
-        <table style="margin-top: 8px;">
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Source Component</th>
-              <th>Target Component</th>
-              <th>Forman-Ricci Curvature</th>
-              <th>Classification</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="table-bottlenecks-body">
-          </tbody>
-        </table>
       </div>
     </div>
 

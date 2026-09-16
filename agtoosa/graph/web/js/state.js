@@ -31,16 +31,26 @@
     );
 
     // Update Executive KPIs
-    document.getElementById("kpi-grade").textContent = `Grade ${healthData.grade || 'A+'} (${healthData.score || 94}/100)`;
-    document.getElementById("score-grade").textContent = healthData.grade || 'A+';
-    document.getElementById("kpi-cycles").textContent = `${cycleData.length} Cycles (${cycleData.length === 0 ? 'Clean' : 'Warning'})`;
-    document.getElementById("score-cycles").textContent = `${cycleData.length}`;
-    if (cycleData.length > 0) {
-      document.getElementById("kpi-cycles").style.color = "var(--danger)";
-      document.getElementById("score-cycles").style.color = "var(--danger)";
+    const kpiGrade = document.getElementById("kpi-grade");
+    if (kpiGrade) kpiGrade.textContent = `Grade ${healthData.grade || 'A+'} (${healthData.score || 94}/100)`;
+    const scoreGrade = document.getElementById("score-grade");
+    if (scoreGrade) scoreGrade.textContent = healthData.grade || 'A+';
+
+    const kpiCycles = document.getElementById("kpi-cycles");
+    if (kpiCycles) {
+      kpiCycles.textContent = `${cycleData.length} Cycles (${cycleData.length === 0 ? 'Clean' : 'Warning'})`;
+      if (cycleData.length > 0) kpiCycles.style.color = "var(--danger)";
     }
-    document.getElementById("kpi-hubs").textContent = `${topHubsData.length} Monitored`;
-    document.getElementById("score-hubs").textContent = `${topHubsData.length}`;
+    const scoreCycles = document.getElementById("score-cycles");
+    if (scoreCycles) {
+      scoreCycles.textContent = `${cycleData.length}`;
+      if (cycleData.length > 0) scoreCycles.style.color = "var(--danger)";
+    }
+
+    const kpiHubs = document.getElementById("kpi-hubs");
+    if (kpiHubs) kpiHubs.textContent = `${topHubsData.length} Monitored`;
+    const scoreHubs = document.getElementById("score-hubs");
+    if (scoreHubs) scoreHubs.textContent = `${topHubsData.length}`;
 
     // Map & index elements
     const nodeMap = new Map();
