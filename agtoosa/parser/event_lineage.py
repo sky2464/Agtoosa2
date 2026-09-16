@@ -320,6 +320,45 @@ class PythonEventExtractor:
                         )
                     return
 
+                # 7. AWS SQS send_message / receive_message
+                if method_name in ("send_message", "send_message_batch"):
+                    queue_val = None
+                    for kw in node.keywords:
+                        if kw.arg in ("QueueUrl", "queue_url") and isinstance(kw.value, ast.Constant):
+                            queue_val = str(kw.value.value).rstrip("/").split("/")[-1]
+                    if not queue_val and caller_expr and any(k in caller_expr.lower() for k in ("sqs", "queue")):
+                        queue_val = caller_expr
+                    if queue_val:
+                        topic_id = _get_or_create_topic(queue_val, broker="sqs", line_no=node.lineno)
+                        edges.append(
+                            Edge(
+                                source_id=current_scope,
+                                target_id=topic_id,
+                                edge_type=EdgeType.PUBLISHES,
+                                metadata={"broker": "sqs", "method": method_name}
+                            )
+                        )
+                        return
+
+                if method_name in ("receive_message", "receive_messages"):
+                    queue_val = None
+                    for kw in node.keywords:
+                        if kw.arg in ("QueueUrl", "queue_url") and isinstance(kw.value, ast.Constant):
+                            queue_val = str(kw.value.value).rstrip("/").split("/")[-1]
+                    if not queue_val and caller_expr and any(k in caller_expr.lower() for k in ("sqs", "queue")):
+                        queue_val = caller_expr
+                    if queue_val:
+                        topic_id = _get_or_create_topic(queue_val, broker="sqs", line_no=node.lineno)
+                        edges.append(
+                            Edge(
+                                source_id=current_scope,
+                                target_id=topic_id,
+                                edge_type=EdgeType.SUBSCRIBES,
+                                metadata={"broker": "sqs", "method": method_name}
+                            )
+                        )
+                        return
+
         visitor = EventVisitor()
         visitor.visit(tree)
         return nodes, edges
@@ -369,6 +408,15 @@ class TypeScriptEventExtractor:
     )
     BULLMQ_ADD_REGEX = re.compile(
         r'(\w+)\.add\s*\(\s*[\'"`]([^\'"`]+)[\'"`]',
+        re.MULTILINE
+    )
+
+    SQS_SEND_REGEX = re.compile(
+        r'(?:\.sendMessage|\.sendMessageBatch|new\s+SendMessageCommand)\s*\(\s*\{[^}]*QueueUrl\s*:\s*[\'"`]([^\'"`]+)[\'"`]',
+        re.MULTILINE
+    )
+    SQS_RECEIVE_REGEX = re.compile(
+        r'(?:\.receiveMessage|\.receiveMessages|new\s+ReceiveMessageCommand)\s*\(\s*\{[^}]*QueueUrl\s*:\s*[\'"`]([^\'"`]+)[\'"`]',
         re.MULTILINE
     )
 
@@ -517,6 +565,35 @@ class TypeScriptEventExtractor:
                     target_id=top_id,
                     edge_type=EdgeType.PUBLISHES,
                     metadata={"broker": "bullmq", "queue": True}
+                )
+            )
+
+        # 5. AWS SQS
+        for match in cls.SQS_SEND_REGEX.finditer(content):
+            raw_url = match.group(1)
+            queue_name = raw_url.rstrip("/").split("/")[-1]
+            line = content[: match.start()].count("\n") + 1
+            top_id = _get_or_create_topic(queue_name, broker="sqs", line_no=line)
+            edges.append(
+                Edge(
+                    source_id=file_node_id,
+                    target_id=top_id,
+                    edge_type=EdgeType.PUBLISHES,
+                    metadata={"broker": "sqs", "queue_url": raw_url}
+                )
+            )
+
+        for match in cls.SQS_RECEIVE_REGEX.finditer(content):
+            raw_url = match.group(1)
+            queue_name = raw_url.rstrip("/").split("/")[-1]
+            line = content[: match.start()].count("\n") + 1
+            top_id = _get_or_create_topic(queue_name, broker="sqs", line_no=line)
+            edges.append(
+                Edge(
+                    source_id=file_node_id,
+                    target_id=top_id,
+                    edge_type=EdgeType.SUBSCRIBES,
+                    metadata={"broker": "sqs", "queue_url": raw_url}
                 )
             )
 

@@ -210,13 +210,24 @@ class JavaScriptTypeScriptParser(BaseParser):
         # Extract JS/TS Framework Semantics (Express routes, NestJS controllers & DI)
         from agtoosa.parser.frameworks import TypeScriptFrameworkExtractor
         fw_nodes, fw_edges = TypeScriptFrameworkExtractor.extract(content, rel_path, file_node_id)
-        nodes.extend(fw_nodes)
+        node_id_map = {n.id: n for n in nodes}
+        for fwn in fw_nodes:
+            if fwn.id in node_id_map:
+                node_id_map[fwn.id].metadata.update(fwn.metadata)
+            else:
+                nodes.append(fwn)
+                node_id_map[fwn.id] = fwn
         edges.extend(fw_edges)
 
-        # Extract Event Lineage (Kafka, RabbitMQ, Redis, BullMQ)
+        # Extract Event Lineage (Kafka, RabbitMQ, Redis, BullMQ, SQS)
         from agtoosa.parser.event_lineage import TypeScriptEventExtractor
         ev_nodes, ev_edges = TypeScriptEventExtractor.extract(content, rel_path, file_node_id)
-        nodes.extend(ev_nodes)
+        for evn in ev_nodes:
+            if evn.id in node_id_map:
+                node_id_map[evn.id].metadata.update(evn.metadata)
+            else:
+                nodes.append(evn)
+                node_id_map[evn.id] = evn
         edges.extend(ev_edges)
 
         return nodes, edges

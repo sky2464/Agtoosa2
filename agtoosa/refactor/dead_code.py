@@ -113,6 +113,8 @@ class DeadCodePruner:
         callers_of: Dict[str, Set[str]] = defaultdict(set)
         callees_of: Dict[str, Set[str]] = defaultdict(set)
         contained_by: Dict[str, str] = {}
+        topic_publishers: Dict[str, Set[str]] = defaultdict(set)
+        topic_subscribers: Dict[str, Set[str]] = defaultdict(set)
 
         for e in edges:
             src = e["source_id"]
@@ -121,9 +123,29 @@ class DeadCodePruner:
 
             if etype == "contains":
                 contained_by[tgt] = src
-            elif etype in ("calls", "imports", "uses", "verifies", "evidenced_by"):
+            elif etype in ("calls", "imports", "uses", "verifies", "evidenced_by", "routes_to"):
                 callers_of[tgt].add(src)
                 callees_of[src].add(tgt)
+            elif etype == "injects":
+                # Consumer src injects provider tgt (can be symbol:name or node id)
+                callers_of[tgt].add(src)
+                callees_of[src].add(tgt)
+            elif etype == "publishes":
+                topic_publishers[tgt].add(src)
+                callees_of[src].add(tgt)
+            elif etype == "subscribes":
+                topic_subscribers[tgt].add(src)
+            elif etype == "maps_to":
+                callers_of[src].add(tgt)
+
+        # Connect publishers to subscribers through topics
+        for top_id, subs in topic_subscribers.items():
+            pubs = topic_publishers.get(top_id, set())
+            for sub in subs:
+                if pubs:
+                    callers_of[sub].update(pubs)
+                else:
+                    callers_of[sub].add(top_id)
 
         # Analyze each code symbol
         code_types = {"function", "class", "method"}
@@ -143,8 +165,8 @@ class DeadCodePruner:
             if self._is_entrypoint(name, path, ntype):
                 continue
 
-            # Count non-containment incoming edges (actual callers)
-            incoming_callers = callers_of.get(nid, set())
+            # Count non-containment incoming edges (actual callers + DI consumers)
+            incoming_callers = callers_of.get(nid, set()) | callers_of.get(f"symbol:{name}", set())
 
             if len(incoming_callers) == 0:
                 # If symbol is actively referenced in its own file (e.g. self._init_db()), skip it!
@@ -227,19 +249,25 @@ class DeadCodePruner:
         return False
 
     def _has_workspace_references(self, symbol_name: str, defining_path: str) -> bool:
-        """Check if symbol identifier appears in any other Python source file in workspace."""
+        """Check if symbol identifier appears in any other source file in workspace."""
         pattern = re.compile(r'\b' + re.escape(symbol_name) + r'\b')
-        search_dirs = [self.workspace_root / "agtoosa", self.workspace_root / "tests"]
+        if (self.workspace_root / "agtoosa").exists():
+            search_dirs = [self.workspace_root / "agtoosa", self.workspace_root / "tests"]
+        else:
+            search_dirs = [self.workspace_root]
         for s_dir in search_dirs:
             if not s_dir.exists():
                 continue
-            for f in s_dir.rglob("*.py"):
-                rel = str(f.relative_to(self.workspace_root)).replace("\\", "/")
-                if rel == defining_path:
-                    continue
-                c = self._get_file_content(rel)
-                if c and pattern.search(c):
-                    return True
+            for ext in ("*.py", "*.ts", "*.js"):
+                for f in s_dir.rglob(ext):
+                    if any(p in (".git", ".agtoosa", "node_modules", ".venv", "venv", "__pycache__", "dist", "build") for p in f.parts):
+                        continue
+                    rel = str(f.relative_to(self.workspace_root)).replace("\\", "/")
+                    if rel == defining_path:
+                        continue
+                    c = self._get_file_content(rel)
+                    if c and pattern.search(c):
+                        return True
         return False
 
     def _is_entrypoint(self, name: str, path: str, node_type: str) -> bool:

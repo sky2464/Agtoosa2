@@ -7,8 +7,13 @@ from typing import List, Set
 from agtoosa.core.security import is_safe_path, is_sensitive_filename, load_gitignore_patterns, matches_gitignore
 
 DEFAULT_IGNORE_DIRS = {
+    # Version control & IDE / environment state
     ".git",
     ".agtoosa",
+    ".idea",
+    ".vscode",
+    ".DS_Store",
+    # External package stores (Node, Python, Go, PHP, Ruby, Java, CocoaPods, Carthage)
     "node_modules",
     ".pnpm-store",
     ".yarn",
@@ -16,23 +21,22 @@ DEFAULT_IGNORE_DIRS = {
     ".venv",
     "env",
     ".env",
+    "__pypackages__",
     "vendor",
     ".bundle",
     "Pods",
+    "pods",
     "Carthage",
+    "carthage",
     ".gradle",
-    ".build",
-    "DerivedData",
-    "__pycache__",
-    ".pytest_cache",
-    ".mypy_cache",
-    "coverage",
-    "htmlcov",
-    ".nyc_output",
-    ".tox",
+    ".m2",
+    # Bundlers, compilers & build artifacts
     "dist",
     "build",
+    "out",
     "target",
+    ".build",
+    "DerivedData",
     ".next",
     ".nuxt",
     ".svelte-kit",
@@ -40,12 +44,27 @@ DEFAULT_IGNORE_DIRS = {
     ".turbo",
     ".cache",
     ".parcel-cache",
-    ".idea",
-    ".vscode",
-    ".DS_Store",
+    ".rollup.cache",
+    ".swc",
+    ".docusaurus",
+    # Test & coverage artifacts
+    "coverage",
+    "htmlcov",
+    ".nyc_output",
+    ".tox",
+    ".nox",
+    ".pytest_cache",
+    ".mypy_cache",
+    "__pycache__",
+    # Codegen & snapshot directories
+    "__generated__",
+    "__snapshots__",
 }
 
+DEFAULT_IGNORE_DIRS_LOWER = {d.lower() for d in DEFAULT_IGNORE_DIRS}
+
 DEFAULT_IGNORE_EXTENSIONS = {
+    # Bytecode, compiled binaries & native libraries
     ".pyc",
     ".pyo",
     ".pyd",
@@ -54,6 +73,16 @@ DEFAULT_IGNORE_EXTENSIONS = {
     ".dll",
     ".exe",
     ".bin",
+    ".class",
+    ".jar",
+    ".war",
+    ".ear",
+    ".wasm",
+    ".o",
+    ".obj",
+    ".a",
+    ".lib",
+    # Archives & compressed packages
     ".tar",
     ".gz",
     ".tgz",
@@ -62,6 +91,7 @@ DEFAULT_IGNORE_EXTENSIONS = {
     ".7z",
     ".rar",
     ".zip",
+    # Raster & vector graphics
     ".png",
     ".jpg",
     ".jpeg",
@@ -70,32 +100,66 @@ DEFAULT_IGNORE_EXTENSIONS = {
     ".svg",
     ".webp",
     ".avif",
+    ".bmp",
+    ".tiff",
+    ".tif",
+    # Video & audio assets
     ".mp4",
     ".mov",
     ".webm",
     ".avi",
+    ".mkv",
     ".mp3",
     ".wav",
     ".flac",
+    ".aac",
+    ".ogg",
+    ".m4a",
+    # Typography & web fonts
     ".woff",
     ".woff2",
     ".ttf",
     ".otf",
     ".eot",
+    # Big Data & columnar storage / dumps
     ".parquet",
     ".avro",
     ".orc",
     ".dump",
+    ".arrow",
+    ".feather",
+    # Machine Learning & Deep Learning weights & checkpoints
     ".safetensors",
     ".pt",
     ".pth",
     ".onnx",
     ".tflite",
     ".ckpt",
+    ".h5",
+    ".hdf5",
+    ".pb",
+    ".pkl",
+    ".pickle",
+    ".npy",
+    ".npz",
+    ".gguf",
+    ".ggml",
+    ".mlmodel",
+    # Lockfiles, resolved manifests & dev maps
     ".lock",
+    ".lockb",
+    ".resolved",
     ".map",
     ".code-workspace",
+    # Documents & office binaries
     ".pdf",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".ppt",
+    ".pptx",
+    # Security keys, certificates & stores
     ".key",
     ".pem",
     ".pfx",
@@ -103,16 +167,32 @@ DEFAULT_IGNORE_EXTENSIONS = {
 }
 
 DEFAULT_IGNORE_FILENAMES = {
+    # Node & JavaScript ecosystems
     "package-lock.json",
     "pnpm-lock.yaml",
     "yarn.lock",
     "bun.lockb",
+    "bun.lock",
+    "npm-shrinkwrap.json",
+    # Python ecosystem
     "poetry.lock",
     "pipfile.lock",
+    # Rust & Go ecosystems
     "cargo.lock",
+    "go.sum",
+    "go.work.sum",
+    # PHP & Ruby ecosystems
     "composer.lock",
     "gemfile.lock",
-    "go.sum",
+    # Swift, CocoaPods & Carthage ecosystems
+    "podfile.lock",
+    "cartfile.resolved",
+    "package.resolved",
+    # Other package managers & build tools
+    "pubspec.lock",
+    "mix.lock",
+    "flake.lock",
+    "gradle.lockfile",
 }
 
 MAX_FILE_BYTES = 2 * 1024 * 1024  # 2MB
@@ -126,7 +206,12 @@ def scan_workspace(workspace_root: Path) -> List[Path]:
     for root_str, dirs, files in os.walk(workspace_root):
         root = Path(root_str)
         # Modify dirs in-place to prune ignored directories
-        dirs[:] = [d for d in dirs if d not in DEFAULT_IGNORE_DIRS and not d.startswith(".")]
+        dirs[:] = [
+            d for d in dirs
+            if d not in DEFAULT_IGNORE_DIRS
+            and d.lower() not in DEFAULT_IGNORE_DIRS_LOWER
+            and not d.startswith(".")
+        ]
 
         for file_name in files:
             if file_name.startswith("."):

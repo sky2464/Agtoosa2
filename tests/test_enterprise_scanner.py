@@ -31,18 +31,52 @@ def test_multi_ecosystem_noise_exclusions():
         valid_ts.write_text("export const x = 1;", encoding="utf-8")
 
         # Create noisy directories that must be excluded
-        for noise_dir in ["node_modules", "vendor", "Pods", ".gradle", ".next", ".turbo", "coverage", ".pnpm-store"]:
+        for noise_dir in [
+            "node_modules",
+            "vendor",
+            "Pods",
+            "Carthage",
+            ".gradle",
+            ".next",
+            ".nuxt",
+            ".svelte-kit",
+            ".turbo",
+            "dist",
+            "build",
+            "coverage",
+            ".pnpm-store",
+            "__generated__",
+        ]:
             d = root / noise_dir
             d.mkdir(parents=True)
             (d / "dummy.py").write_text("should be ignored", encoding="utf-8")
 
         # Create lockfiles that must be excluded
-        for lockfile in ["package-lock.json", "pnpm-lock.yaml", "yarn.lock", "poetry.lock", "go.sum", "Cargo.lock"]:
+        for lockfile in [
+            "package-lock.json",
+            "pnpm-lock.yaml",
+            "yarn.lock",
+            "bun.lockb",
+            "poetry.lock",
+            "go.sum",
+            "Cargo.lock",
+            "composer.lock",
+            "Cartfile.resolved",
+        ]:
             lf = root / lockfile
             lf.write_text("lock data", encoding="utf-8")
 
         # Create binary/media/ML asset files that must be excluded
-        for noise_file in ["logo.svg", "banner.webp", "weights.safetensors", "model.onnx", "dataset.parquet", "checkpoint.pt"]:
+        for noise_file in [
+            "logo.svg",
+            "banner.webp",
+            "weights.safetensors",
+            "model.onnx",
+            "dataset.parquet",
+            "dataset.avro",
+            "checkpoint.pt",
+            "model.h5",
+        ]:
             nf = root / "src" / noise_file
             nf.write_text("binary noise data", encoding="utf-8")
 
@@ -58,12 +92,18 @@ def test_multi_ecosystem_noise_exclusions():
             assert not path_str.startswith("node_modules")
             assert not path_str.startswith("vendor")
             assert not path_str.startswith("Pods")
+            assert not path_str.startswith("Carthage")
             assert not path_str.startswith(".gradle")
             assert not path_str.startswith(".next")
+            assert not path_str.startswith(".nuxt")
+            assert not path_str.startswith(".svelte-kit")
             assert not path_str.startswith(".turbo")
+            assert not path_str.startswith("dist")
+            assert not path_str.startswith("build")
             assert not path_str.startswith("coverage")
             assert not path_str.startswith(".pnpm-store")
-            assert not any(path_str.endswith(ext) for ext in [".svg", ".webp", ".safetensors", ".onnx", ".parquet", ".pt"])
+            assert not path_str.startswith("__generated__")
+            assert not any(path_str.endswith(ext) for ext in [".svg", ".webp", ".safetensors", ".onnx", ".parquet", ".avro", ".pt", ".h5"])
             assert Path(path_str).name.lower() not in DEFAULT_IGNORE_FILENAMES
 
 

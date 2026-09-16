@@ -296,6 +296,52 @@ def get_secure_data(auth = Depends(auth_service)):
         self.assertTrue(len(res_di["injected_into_target"]) >= 1)
         self.assertEqual(res_di["injected_into_target"][0]["provider"], "auth_service")
 
+    def test_nestjs_injectable_service(self):
+        """NestJS @Injectable() service classes extracted into knowledge graph."""
+        ts_file = self.workspace / "cats.service.ts"
+        ts_file.write_text(
+            """import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class CatsService {
+    findAll() {
+        return ['cat1', 'cat2'];
+    }
+}
+""",
+            encoding="utf-8"
+        )
+        parser = JavaScriptTypeScriptParser()
+        nodes, edges = parser.parse(ts_file, self.workspace)
+        class_node = next((n for n in nodes if n.node_type == NodeType.CLASS and n.name == "CatsService"), None)
+        self.assertIsNotNone(class_node)
+        self.assertTrue(class_node.metadata.get("injectable"))
+
+    def test_framework_semantics_prevent_false_dead_code(self):
+        """FastAPI route handlers and injected providers are not flagged as dead code."""
+        from agtoosa.refactor.dead_code import DeadCodePruner
+        py_file = self.workspace / "api_live.py"
+        py_file.write_text(
+            """from fastapi import FastAPI, Depends
+
+app = FastAPI()
+
+def get_db():
+    return "session"
+
+@app.get("/users")
+def get_users(db = Depends(get_db)):
+    return []
+""",
+            encoding="utf-8"
+        )
+        self.engine.index_workspace(self.workspace, self.store, clean=True)
+        pruner = DeadCodePruner(self.store, self.workspace)
+        report = pruner.analyze()
+        zombies = [z.name for z in report.zombies]
+        self.assertNotIn("get_users", zombies)
+        self.assertNotIn("get_db", zombies)
+
 
 if __name__ == "__main__":
     unittest.main()

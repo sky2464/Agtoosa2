@@ -242,6 +242,12 @@ class TypeScriptFrameworkExtractor:
         re.MULTILINE
     )
 
+    # NestJS Injectable: @Injectable() class MyService
+    NEST_INJECTABLE_REGEX = re.compile(
+        r"""@Injectable\(\s*\)\s*(?:export\s+)?class\s+([a-zA-Z0-9_$]+)""",
+        re.MULTILINE
+    )
+
     # Constructor injection: constructor(private readonly svc: MyService, ...)
     CONSTRUCTOR_INJECT_REGEX = re.compile(
         r"""constructor\s*\(([^)]*)\)""",
@@ -324,7 +330,21 @@ class TypeScriptFrameworkExtractor:
                     )
                 )
 
-        # 3. NestJS Constructor DI Parameter Injection
+        # 3. NestJS Injectable Provider Services
+        for i_match in cls.NEST_INJECTABLE_REGEX.finditer(content):
+            service_name = i_match.group(1)
+            service_id = f"class:{rel_path}:{service_name}"
+            nodes.append(
+                Node(
+                    id=service_id,
+                    name=service_name,
+                    node_type=NodeType.CLASS,
+                    path=rel_path,
+                    metadata={"framework": "nestjs", "injectable": True}
+                )
+            )
+
+        # 4. NestJS Constructor DI Parameter Injection
         for ctor_match in cls.CONSTRUCTOR_INJECT_REGEX.finditer(content):
             ctor_params = ctor_match.group(1)
             for p_match in cls.PARAM_TYPE_REGEX.finditer(ctor_params):

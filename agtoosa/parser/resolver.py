@@ -5,6 +5,7 @@ scoped resolution, preserving unbound reference facts, and refusing to guess tar
 when queries or references are ambiguous.
 """
 
+import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
@@ -57,12 +58,125 @@ class ResolutionResult:
         }
 
 
+def _discover_monorepo_packages(workspace_root: Path) -> Dict[str, str]:
+    """Discover workspace package aliases from monorepo configs or conventions.
+
+    Returns a mapping of package name to relative directory path:
+    e.g. {'@repo/ui': 'packages/ui', '@repo/core': 'packages/core'}
+    """
+    patterns: List[str] = []
+
+    # 1. pnpm-workspace.yaml
+    pnpm_ws = workspace_root / "pnpm-workspace.yaml"
+    if pnpm_ws.is_file():
+        try:
+            lines = pnpm_ws.read_text(encoding="utf-8", errors="replace").splitlines()
+            in_packages = False
+            for line in lines:
+                s = line.strip()
+                if s.startswith("packages:"):
+                    in_packages = True
+                    continue
+                if in_packages:
+                    if s.startswith("-"):
+                        item = s.lstrip("-").strip().strip("'\"")
+                        if item:
+                            patterns.append(item)
+                    elif s and not s.startswith("#"):
+                        break
+        except Exception:
+            pass
+
+    # 2. Root package.json workspaces
+    root_pkg = workspace_root / "package.json"
+    if root_pkg.is_file():
+        try:
+            raw = root_pkg.read_text(encoding="utf-8", errors="replace")
+            clean_lines = [l for l in raw.splitlines() if not l.strip().startswith(("//", "/*"))]
+            data = json.loads("\n".join(clean_lines))
+            ws = data.get("workspaces")
+            if isinstance(ws, list):
+                patterns.extend(ws)
+            elif isinstance(ws, dict):
+                ws_pkgs = ws.get("packages")
+                if isinstance(ws_pkgs, list):
+                    patterns.extend(ws_pkgs)
+        except Exception:
+            pass
+
+    # 3. lerna.json packages
+    lerna_json = workspace_root / "lerna.json"
+    if lerna_json.is_file():
+        try:
+            raw = lerna_json.read_text(encoding="utf-8", errors="replace")
+            clean_lines = [l for l in raw.splitlines() if not l.strip().startswith(("//", "/*"))]
+            data = json.loads("\n".join(clean_lines))
+            lerna_pkgs = data.get("packages")
+            if isinstance(lerna_pkgs, list):
+                patterns.extend(lerna_pkgs)
+        except Exception:
+            pass
+
+    # 4. Fallback convention patterns
+    convention_patterns = ["packages/*", "apps/*", "libs/*", "modules/*", "services/*"]
+    for conv in convention_patterns:
+        if conv not in patterns:
+            patterns.append(conv)
+
+    # Discover packages
+    package_aliases: Dict[str, str] = {}
+    ignored_parts = {"node_modules", ".git", "dist", "build", ".venv", ".next", "coverage", "__pycache__"}
+
+    for pat in patterns:
+        pat_clean = pat.strip().strip("'\"").rstrip("/")
+        if not pat_clean or pat_clean.startswith("#") or pat_clean.startswith("!"):
+            continue
+
+        if pat_clean.endswith("package.json"):
+            glob_pat = pat_clean
+        else:
+            glob_pat = f"{pat_clean}/package.json"
+
+        try:
+            for manifest_path in workspace_root.glob(glob_pat):
+                if not manifest_path.is_file():
+                    continue
+                if manifest_path.parent == workspace_root:
+                    continue
+                rel_parts = manifest_path.relative_to(workspace_root).parts
+                if any(part in ignored_parts for part in rel_parts):
+                    continue
+
+                try:
+                    m_raw = manifest_path.read_text(encoding="utf-8", errors="replace")
+                    m_lines = [l for l in m_raw.splitlines() if not l.strip().startswith(("//", "/*"))]
+                    m_data = json.loads("\n".join(m_lines))
+                    pkg_name = m_data.get("name")
+                    if pkg_name and isinstance(pkg_name, str):
+                        pkg_name = pkg_name.strip()
+                        if pkg_name:
+                            rel_dir = manifest_path.parent.relative_to(workspace_root).as_posix()
+                            package_aliases[pkg_name] = rel_dir
+                except Exception:
+                    continue
+        except Exception:
+            continue
+
+    return package_aliases
+
+
 def load_path_aliases(workspace_root: Optional[Path]) -> Dict[str, str]:
-    """Parse tsconfig.json or jsconfig.json paths into a prefix replacement map."""
+    """Parse tsconfig.json/jsconfig.json paths and monorepo package manifests into a prefix replacement map."""
     if not workspace_root:
         return {}
 
-    for config_name in ("tsconfig.json", "jsconfig.json"):
+    alias_map: Dict[str, str] = {}
+
+    # 1. Discover monorepo package aliases (e.g. packages/*/package.json name -> rel_dir)
+    alias_map.update(_discover_monorepo_packages(workspace_root))
+
+    # 2. Parse tsconfig.json / jsconfig.json / tsconfig.base.json paths
+    for config_name in ("tsconfig.json", "jsconfig.json", "tsconfig.base.json"):
         config_path = workspace_root / config_name
         if config_path.is_file():
             try:
@@ -73,12 +187,13 @@ def load_path_aliases(workspace_root: Optional[Path]) -> Dict[str, str]:
                     if striped.startswith("//") or striped.startswith("/*"):
                         continue
                     clean_lines.append(line)
-                data = json.loads("\n".join(clean_lines))
+                clean_content = "\n".join(clean_lines)
+                clean_content = re.sub(r",\s*([\]}])", r"\1", clean_content)
+                data = json.loads(clean_content)
                 opts = data.get("compilerOptions", {})
                 paths = opts.get("paths", {})
                 base_url = opts.get("baseUrl", ".")
 
-                alias_map = {}
                 for alias_pattern, target_list in paths.items():
                     if target_list and isinstance(target_list, list):
                         target_pattern = target_list[0]
@@ -86,11 +201,16 @@ def load_path_aliases(workspace_root: Optional[Path]) -> Dict[str, str]:
                         target_prefix = target_pattern.rstrip("*").rstrip("/")
                         if base_url and base_url != ".":
                             target_prefix = f"{base_url.strip('/')}/{target_prefix}".strip("/")
-                        alias_map[prefix] = target_prefix
-                return alias_map
+                        if target_prefix.startswith("./"):
+                            target_prefix = target_prefix[2:]
+                        if not target_prefix:
+                            target_prefix = "."
+                        if prefix:
+                            alias_map[prefix] = target_prefix
             except Exception:
                 pass
-    return {}
+
+    return alias_map
 
 
 class SymbolResolver:
@@ -103,13 +223,14 @@ class SymbolResolver:
 
     def resolve_alias(self, import_name: str) -> str:
         """Resolve path aliases (e.g. '@/components/Nav' -> 'src/components/Nav')."""
+        norm_name = import_name.replace("\\", "/")
         sorted_aliases = sorted(self.path_aliases.items(), key=lambda x: len(x[0]), reverse=True)
         for prefix, target in sorted_aliases:
-            if import_name == prefix:
+            if norm_name == prefix:
                 return target
             clean_prefix = prefix.rstrip("/")
-            if import_name.startswith(f"{clean_prefix}/"):
-                remainder = import_name[len(clean_prefix):].lstrip("/")
+            if norm_name.startswith(f"{clean_prefix}/"):
+                remainder = norm_name[len(clean_prefix):].lstrip("/")
                 return f"{target.rstrip('/')}/{remainder}" if remainder else target
         return import_name
 
@@ -144,6 +265,7 @@ class SymbolResolver:
             ).fetchall()
 
             file_imports: Dict[str, Dict[str, str]] = defaultdict(dict)
+            file_package_imports: Dict[str, List[str]] = defaultdict(list)
             resolution_edges = []
 
             for imp_id, full_import_name, imp_path in import_rows:
@@ -151,8 +273,28 @@ class SymbolResolver:
                 short_name = resolved_import_path.split(".")[-1]
                 file_imports[imp_path][short_name] = resolved_import_path
 
+                # In JS/TS or path-based imports, also record basename and track package import
+                if "/" in resolved_import_path or resolved_import_path in self.path_aliases.values():
+                    path_base = resolved_import_path.rstrip("/").split("/")[-1]
+                    path_base_no_ext = path_base.rsplit(".", 1)[0] if "." in path_base else path_base
+                    file_imports[imp_path][path_base] = resolved_import_path
+                    file_imports[imp_path][path_base_no_ext] = resolved_import_path
+                    file_package_imports[imp_path].append(resolved_import_path)
+
                 # Try resolving import to an exact symbol or module
                 cands = candidates_by_name.get(short_name, [])
+                if not cands and "/" in resolved_import_path:
+                    path_base = resolved_import_path.rstrip("/").split("/")[-1]
+                    path_base_no_ext = path_base.rsplit(".", 1)[0] if "." in path_base else path_base
+                    raw_cands = candidates_by_name.get(path_base_no_ext, [])
+                    filtered = [
+                        c for c in raw_cands
+                        if c.path.replace("\\", "/").startswith(resolved_import_path)
+                        or resolved_import_path.startswith(c.path.replace("\\", "/").rsplit(".", 1)[0])
+                    ]
+                    if len(filtered) == 1:
+                        cands = filtered
+
                 if len(cands) == 1:
                     target_id = cands[0].node_id
                     if target_id != imp_id:
@@ -198,10 +340,48 @@ class SymbolResolver:
                     imported_target = file_imports[caller_path][callee_name]
                     target_mod = self.resolve_alias(imported_target).replace(".", "/")
                     # Look up by module and short name
-                    for (mod_key, sym_name), cand in scoped_candidates.items():
-                        if sym_name == callee_name and (target_mod.endswith(mod_key) or mod_key.endswith(target_mod)):
-                            resolved_cand = cand
-                            break
+                    matching_scoped = [
+                        cand for (mod_key, sym_name), cand in scoped_candidates.items()
+                        if sym_name == callee_name and (
+                            target_mod.endswith(mod_key)
+                            or mod_key.endswith(target_mod)
+                            or mod_key == target_mod
+                            or mod_key.startswith(f"{target_mod}/")
+                            or target_mod.startswith(f"{mod_key}/")
+                        )
+                    ]
+                    if len(matching_scoped) == 1:
+                        resolved_cand = matching_scoped[0]
+                    elif len(matching_scoped) > 1:
+                        meta["resolution_status"] = "ambiguous"
+                        meta["candidates"] = [c.node_id for c in matching_scoped]
+                        conn.execute(
+                            "UPDATE edges SET provenance = 'ambiguous', metadata_json = ? WHERE rowid = ?;",
+                            (json.dumps(meta), rowid)
+                        )
+                        stats["ambiguous"] += 1
+                        continue
+
+                # Check if callee is exported from an imported package in caller file
+                if not resolved_cand and caller_path in file_package_imports:
+                    pkg_cands = []
+                    for pkg_target in file_package_imports[caller_path]:
+                        clean_pkg = pkg_target.rstrip("/")
+                        for (mod_key, sym_name), cand in scoped_candidates.items():
+                            if sym_name == callee_name and (mod_key == clean_pkg or mod_key.startswith(f"{clean_pkg}/")):
+                                if cand not in pkg_cands:
+                                    pkg_cands.append(cand)
+                    if len(pkg_cands) == 1:
+                        resolved_cand = pkg_cands[0]
+                    elif len(pkg_cands) > 1:
+                        meta["resolution_status"] = "ambiguous"
+                        meta["candidates"] = [c.node_id for c in pkg_cands]
+                        conn.execute(
+                            "UPDATE edges SET provenance = 'ambiguous', metadata_json = ? WHERE rowid = ?;",
+                            (json.dumps(meta), rowid)
+                        )
+                        stats["ambiguous"] += 1
+                        continue
 
                 if not resolved_cand:
                     # Fallback to candidate list

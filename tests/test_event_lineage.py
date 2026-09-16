@@ -252,3 +252,79 @@ r.publish("presence", "online")
     assert res["total_topics"] == 1
     assert res["topics"][0]["name"] == "presence"
     assert res["topics"][0]["broker"] == "redis"
+
+
+def test_sqs_event_lineage_python_and_ts(tmp_path: Path):
+    """Test AWS SQS event publisher and subscriber extraction in Python and TS."""
+    py_code = """
+import boto3
+
+def send_sqs():
+    sqs = boto3.client("sqs")
+    sqs.send_message(QueueUrl="https://sqs.us-east-1.amazonaws.com/12345/invoices-queue", MessageBody="inv_1")
+
+def receive_sqs():
+    sqs = boto3.client("sqs")
+    sqs.receive_message(QueueUrl="https://sqs.us-east-1.amazonaws.com/12345/invoices-queue")
+"""
+    ts_code = """
+import { SendMessageCommand, ReceiveMessageCommand } from "@aws-sdk/client-sqs";
+
+async function pushMsg() {
+    new SendMessageCommand({ QueueUrl: "https://sqs.us-east-1.amazonaws.com/12345/audit-log" });
+}
+
+async function pullMsg() {
+    new ReceiveMessageCommand({ QueueUrl: "https://sqs.us-east-1.amazonaws.com/12345/audit-log" });
+}
+"""
+    (tmp_path / "py_sqs.py").write_text(py_code, encoding="utf-8")
+    (tmp_path / "ts_sqs.ts").write_text(ts_code, encoding="utf-8")
+
+    db_path = tmp_path / ".agtoosa" / "graph.db"
+    store = GraphStore(db_path)
+    engine = ParserEngine()
+    engine.index_workspace(tmp_path, store, clean=True)
+
+    ev_inv = query_events(store, topic="invoices-queue")
+    assert ev_inv["total_topics"] == 1
+    assert ev_inv["topics"][0]["broker"] == "sqs"
+    assert len(ev_inv["topics"][0]["publishers"]) == 1
+    assert len(ev_inv["topics"][0]["subscribers"]) == 1
+    assert not ev_inv["topics"][0]["is_orphan"]
+
+    ev_audit = query_events(store, topic="audit-log")
+    assert ev_audit["total_topics"] == 1
+    assert ev_audit["topics"][0]["broker"] == "sqs"
+    assert len(ev_audit["topics"][0]["publishers"]) == 1
+    assert len(ev_audit["topics"][0]["subscribers"]) == 1
+    assert not ev_audit["topics"][0]["is_orphan"]
+
+
+def test_event_lineage_prevents_false_dead_code(tmp_path: Path):
+    """Test that event subscribers connected to publishers are not flagged as dead code."""
+    code = """
+from celery import Celery
+
+app = Celery("app")
+
+@app.task
+def process_background_job(data):
+    return len(data)
+
+def invoke():
+    process_background_job.delay("data")
+"""
+    (tmp_path / "celery_jobs.py").write_text(code, encoding="utf-8")
+    db_path = tmp_path / ".agtoosa" / "graph.db"
+    store = GraphStore(db_path)
+    engine = ParserEngine()
+    engine.index_workspace(tmp_path, store, clean=True)
+
+    from agtoosa.refactor.dead_code import DeadCodePruner
+    pruner = DeadCodePruner(store, tmp_path)
+    report = pruner.analyze()
+
+    zombie_names = [z.name for z in report.zombies]
+    assert "process_background_job" not in zombie_names
+
