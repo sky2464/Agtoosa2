@@ -686,3 +686,29 @@
       border-color: #34d399;
       transform: translateY(-1px);
     }
+
+    .bottleneck-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+    .bottleneck-pill.critical {
+      background: rgba(244, 63, 94, 0.18);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.4);
+    }
+    .bottleneck-pill.warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+    .graph-btn.active {
+      background: rgba(244, 63, 94, 0.25);
+      border-color: #fb7185;
+      color: #fb7185;
+    }

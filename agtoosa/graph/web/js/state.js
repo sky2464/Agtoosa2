@@ -24,6 +24,11 @@
     const telemetryData = DATA.telemetryData || {};
     const decouplerData = DATA.decouplerData || {};
     const deadCodeData = DATA.deadCodeData || {};
+    const spectralData = DATA.spectralData || {};
+    const curvatureData = DATA.curvatureData || {};
+    const bottleneckEdges = new Set(
+      (curvatureData.top_bottlenecks || []).map(b => `${b.source}->${b.target}`)
+    );
 
     // Update Executive KPIs
     document.getElementById("kpi-grade").textContent = `Grade ${healthData.grade || 'A+'} (${healthData.score || 94}/100)`;

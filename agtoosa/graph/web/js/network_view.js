@@ -74,6 +74,16 @@
     let dragStartY = 0;
     let hoveredNetNode = null;
     let selectedNetNode = null;
+    let showBottlenecks = false;
+
+    const btnBottlenecks = document.getElementById("graph-btn-bottlenecks");
+    if (btnBottlenecks) {
+      btnBottlenecks.addEventListener("click", () => {
+        showBottlenecks = !showBottlenecks;
+        btnBottlenecks.classList.toggle("active", showBottlenecks);
+        renderNetwork();
+      });
+    }
 
     function resetNetView() {
       netZoom = 0.82;
@@ -178,6 +188,24 @@
         netCtx.lineWidth = Math.min(6, Math.max(1.5, c.count / 8));
         netCtx.stroke();
       });
+
+      // 2B. Forman-Ricci Hyperbolic Bottleneck Edges Overlay (Stage 54)
+      if (showBottlenecks && typeof bottleneckEdges !== "undefined" && bottleneckEdges.size > 0) {
+        netEdges.forEach(e => {
+          if (!e.source.visible || !e.target.visible) return;
+          const key = `${e.source.id}->${e.target.id}`;
+          if (bottleneckEdges.has(key)) {
+            netCtx.beginPath();
+            netCtx.moveTo(e.source.relX, e.source.relY);
+            netCtx.lineTo(e.target.relX, e.target.relY);
+            netCtx.strokeStyle = "rgba(244, 63, 94, 0.9)";
+            netCtx.lineWidth = 3.5;
+            netCtx.setLineDash([6, 4]);
+            netCtx.stroke();
+            netCtx.setLineDash([]);
+          }
+        });
+      }
 
       // 3. Active micro-edges for selected or hovered node
       const activeNode = hoveredNetNode || selectedNetNode;

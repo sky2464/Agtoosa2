@@ -10,11 +10,11 @@
 |---|---|
 | Product | `Agtoosa2` |
 | Repository | `https://github.com/sky2464/Agtoosa2` |
-| Version | `0.9.0` (Active Frontier) |
+| Version | `0.9.5` (Active Frontier) |
 | Core Engine | Python 3.11+ (SQLite FTS5, Zero-Dependency Standard Library) |
-| Active Milestone | `v0.9.0` — **Milestone 15 (DEV-038 & DEV-039) Delivered & Shipped (100% Complete)** |
+| Active Milestone | `v0.9.5` — **Milestone 18 (DEV-052–DEV-055) Delivered & Shipped (100% Complete)** |
 | Foundation Gate | [**EPIC-001 — Trusted Knowledge Intelligence**](specs/epic-001-trusted-knowledge-intelligence.md) (DEV-040–049) — ✅ **CLEARED & VERIFIED (100% Precision)** |
-| Delivered Milestones | Milestone 1–12, 14, 15, 17 & EPIC-001 (All 51 Stages Delivered & Verified) |
+| Delivered Milestones | Milestone 1–12, 14, 15, 17, 18 & EPIC-001 (All 55 Stages Delivered & Verified) |
 
 ---
 

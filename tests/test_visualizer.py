@@ -46,6 +46,8 @@ class TestVisualizer(unittest.TestCase):
         self.assertIn("sidebar", html)
         self.assertIn("class:Service", html)
         self.assertIn("func:start", html)
+        self.assertIn("spectral-curvature-section", html)
+        self.assertIn("graph-btn-bottlenecks", html)
 
     def test_filter_type(self):
         html_filtered = self.visualizer.generate_html(filter_type="class")

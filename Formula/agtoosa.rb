@@ -4,7 +4,7 @@
 class Agtoosa < Formula
   desc "Unified Graph-Native Engineering Operating System"
   homepage "https://github.com/sky2464/Agtoosa2"
-  version "0.2.1"
+  version "0.9.5"
   license "MIT"
 
   on_macos do

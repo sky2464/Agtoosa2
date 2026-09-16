@@ -131,6 +131,7 @@
           <input type="text" id="graph-search-input" class="search-input-box" placeholder="Filter/highlight nodes..." style="width: 100%;">
         </div>
         <div class="graph-btn-group">
+          <button id="graph-btn-bottlenecks" class="graph-btn" title="Toggle Forman-Ricci Bottleneck Edges">📐 Bottlenecks</button>
           <button id="graph-btn-reset" class="graph-btn" title="Fit to View">🎯 Fit View</button>
           <button id="graph-btn-zoom-in" class="graph-btn" title="Zoom In">➕</button>
           <button id="graph-btn-zoom-out" class="graph-btn" title="Zoom Out">➖</button>
@@ -231,6 +232,37 @@
             </tr>
           </thead>
           <tbody id="table-dead-code-body">
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Stage 52 & 54: Spectral & Differential Geometry Invariants -->
+      <div class="table-card" id="spectral-curvature-section">
+        <div style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <span>📐</span> Stage 52 &amp; 54: Spectral &amp; Differential Geometry Invariants
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+          Graph Laplacian (&Lambda;) spectral radius, Fiedler algebraic connectivity, Cheeger conductance bounds, and Forman-Ricci discrete curvature identifying hyperbolic bridge bottlenecks.
+        </p>
+        <div id="spectral-summary-pills" style="display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap;"></div>
+        <div style="margin-top: 14px; font-weight: 700; font-size: 0.85rem; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
+          <span>⚡</span> Top Forman-Ricci Hyperbolic Bottleneck Edges (Structural Choke Points)
+        </div>
+        <p style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
+          Edges with high negative Forman-Ricci curvature carry massive tree-like information flow across clusters, representing single-point-of-failure bridge paths.
+        </p>
+        <table style="margin-top: 8px;">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Source Component</th>
+              <th>Target Component</th>
+              <th>Forman-Ricci Curvature</th>
+              <th>Classification</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="table-bottlenecks-body">
           </tbody>
         </table>
       </div>

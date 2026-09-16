@@ -1,10 +1,11 @@
 # Agtoosa2 — Capability Matrix & Parity Definition
 
 > **Reference Benchmark:** Graphify Open-Source Capabilities & Enterprise Graph OS.  
-> **Status:** All 51 Stages Delivered & Verified (`v0.9.0`) — 100% Automated Test Pass Rate (285/285 tests passing).  
+> **Status:** All 55 Stages Delivered & Verified (`v0.9.5`) — 100% Automated Test Pass Rate (311/311 tests passing).  
 > **Milestone 14:** Stages 33–37 Delivered: Multimodal Ingestion, Living C4 Architecture Wiki, Zero-Trust Semantic Extraction, Socratic Audit, and Universal Slash Command Skill.  
 > **Milestone 15:** Stages 38–39 Delivered: Zero-Knowledge Architecture Cryptographic Attestation and Autonomous Polyglot Microservice Synthesis.  
 > **Milestone 17:** Stages 50–51 Delivered: Actionable Architecture Hints & Guided Workflows (DEV-050) and Human-Centric Dead-Code CLI with Emergency Rollback (DEV-051).  
+> **Milestone 18:** Stages 52–55 Delivered: Algebraic & Spectral Graph Theory, Submodular Context Optimization, Discrete Differential Geometry, and Causal Architecture Inference.  
 > **Foundation Gate:** [EPIC-001 — Trusted Knowledge Intelligence](specs/epic-001-trusted-knowledge-intelligence.md) (DEV-040–049) ✅ CLEARED with 100% held-out precision benchmark.
 
 ---
@@ -92,6 +93,6 @@ These stories establish that indexed relationships are accurate before the matri
 
 | Item | Status |
 |---|---|
-| Package version vs. roadmap label | ✅ Reconciled: `pyproject.toml`, `agtoosa.__version__`, and VS Code extension aligned to `0.9.0`. |
+| Package version vs. roadmap label | ✅ Reconciled: `pyproject.toml`, `agtoosa.__version__`, and VS Code extension aligned to `0.9.5`. |
 | "Semantic" vector search | ✅ Accurately labelled as token/character n-gram feature hashing in `HashedFeatureEmbeddingEngine` with explicit algorithm metadata (R-08 / DEV-043). |
-| Foundation Gate Invariants | ✅ Cleared: 302 automated tests passing; evaluation runner achieves 100% precision with 0 false concrete guesses. Milestones 14, 15, 17, and 18 unlocked. |
+| Foundation Gate Invariants | ✅ Cleared: 311 automated tests passing; evaluation runner achieves 100% precision with 0 false concrete guesses. Milestones 14, 15, 17, and 18 unlocked. |

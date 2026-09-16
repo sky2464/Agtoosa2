@@ -117,6 +117,59 @@
       `;
     }
 
+    // Stage 52 & 54: Spectral & Differential Geometry Invariants
+    const spectralPills = document.getElementById("spectral-summary-pills");
+    const bottlenecksBody = document.getElementById("table-bottlenecks-body");
+
+    if (spectralPills) {
+      const fiedlerConn = spectralData.algebraic_connectivity !== undefined ? Number(spectralData.algebraic_connectivity).toFixed(4) : "N/A";
+      const specRadius = spectralData.spectral_radius !== undefined ? Number(spectralData.spectral_radius).toFixed(3) : "N/A";
+      const epThresh = spectralData.epidemic_threshold !== undefined ? Number(spectralData.epidemic_threshold).toFixed(4) : "N/A";
+      const entropy = spectralData.von_neumann_entropy !== undefined ? Number(spectralData.von_neumann_entropy).toFixed(3) : "N/A";
+      const avgCurv = curvatureData.average_curvature !== undefined ? Number(curvatureData.average_curvature).toFixed(3) : "N/A";
+      const bottleneckCount = curvatureData.bottleneck_count || (curvatureData.top_bottlenecks || []).length || 0;
+
+      spectralPills.innerHTML = `
+        <div class="metric-chip"><strong>&lambda;₂ = ${fiedlerConn}</strong> Algebraic Connectivity</div>
+        <div class="metric-chip"><strong>&lambda;₁ = ${specRadius}</strong> Spectral Radius (&tau;<sub>c</sub> = ${epThresh})</div>
+        <div class="metric-chip"><strong>S<sub>vN</sub> = ${entropy}</strong> Graph Entropy</div>
+        <div class="metric-chip"><strong style="color: ${Number(avgCurv) < 0 ? '#fb7185' : '#34d399'};">Ric<sub>avg</sub> = ${avgCurv}</strong> Forman-Ricci</div>
+        <div class="metric-chip"><strong style="color: ${bottleneckCount > 0 ? '#f59e0b' : '#34d399'};">${bottleneckCount}</strong> Hyperbolic Choke Points</div>
+      `;
+    }
+
+    if (bottlenecksBody) {
+      const bottlenecks = curvatureData.top_bottlenecks || [];
+      if (bottlenecks.length > 0) {
+        bottlenecksBody.innerHTML = bottlenecks.slice(0, 15).map((b, idx) => {
+          const curvVal = Number(b.curvature).toFixed(2);
+          const isCritical = Number(b.curvature) <= -5.0;
+          return `
+            <tr style="cursor: pointer;" onclick="inspectEntity('${escapeHtml(b.source)}')">
+              <td><strong>#${idx + 1}</strong></td>
+              <td><span style="color: #38bdf8; font-weight: 700; font-family: monospace;">${escapeHtml(b.source)}</span></td>
+              <td><span style="color: #818cf8; font-weight: 700; font-family: monospace;">${escapeHtml(b.target)}</span></td>
+              <td><span class="bottleneck-pill ${isCritical ? 'critical' : 'warning'}">Ric = ${curvVal}</span></td>
+              <td><span class="badge" style="background: ${isCritical ? 'rgba(244, 63, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${isCritical ? '#fb7185' : '#fbbf24'};">${isCritical ? 'Critical Choke Point' : 'Module Bridge'}</span></td>
+              <td>
+                <button class="prune-btn" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" onclick="event.stopPropagation(); inspectEntity('${escapeHtml(b.source)}')">
+                  🔍 Inspect
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        bottlenecksBody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; color: #34d399; padding: 18px; font-size: 0.82rem;">
+              ✨ Zero Fragile Choke Points Detected — Codebase has uniform positive curvature distribution.
+            </td>
+          </tr>
+        `;
+      }
+    }
+
     // Two-Way Interactive Studio Actions (Stage 23)
     window.triggerStudioPrune = async function(nodeId, path, name, startLine, endLine) {
       if (!confirm(`Execute safe dead-code pruning for '${name}' in ${path}:L${startLine}-${endLine}?`)) return;
