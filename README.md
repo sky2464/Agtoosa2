@@ -213,6 +213,8 @@ flowchart TD
 - macOS, Linux, or Windows (WSL / PowerShell).
 
 ### 2. Installation
+
+**Option A — Standard pip:**
 ```bash
 # Clone the repository
 git clone https://github.com/sky2464/Agtoosa2.git
@@ -222,15 +224,22 @@ cd Agtoosa2
 python3 -m venv .venv
 source .venv/bin/activate
 
-# Upgrade pip and install in editable mode (clean, zero-warning install)
+# Upgrade pip and install (clean, zero-warning install)
 pip install --upgrade pip
 pip install --no-cache-dir -e '.[full]'
 ```
 
-> ⚡ **Fast Alternative:** If you use [uv](https://github.com/astral-sh/uv), installation is instantaneous:
-> ```bash
-> uv pip install -e '.[full]'
-> ```
+**Option B — [uv](https://github.com/astral-sh/uv) (sub-second, zero noise):**
+```bash
+# Clone the repository
+git clone https://github.com/sky2464/Agtoosa2.git
+cd Agtoosa2
+
+# Create a virtual environment and install
+uv venv
+uv pip install -e '.[full]'
+source .venv/bin/activate
+```
 
 ### 3. Build Your First Graph
 Index your current repository into `.agtoosa/graph.db` with one command:
