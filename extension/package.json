@@ -4,6 +4,7 @@
   "description": "Zero-dependency architecture intelligence, real-time caller blast radius, drift alarms, and C4 visualizer for VS Code & Cursor.",
   "version": "0.9.5",
   "publisher": "agtoosa",
+  "icon": "resources/icon.svg",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -54,15 +55,18 @@
       "agtoosa-sidebar": [
         {
           "id": "agtoosa.architectureView",
-          "name": "Architecture Tiers & Stories"
+          "name": "Architecture Tiers & Stories",
+          "icon": "resources/icon.svg"
         },
         {
           "id": "agtoosa.blastRadiusView",
-          "name": "Active Blast Radius"
+          "name": "Active Blast Radius",
+          "icon": "resources/hot.svg"
         },
         {
           "id": "agtoosa.driftFindingsView",
-          "name": "Architectural Drift Alarms"
+          "name": "Architectural Drift Alarms",
+          "icon": "resources/error.svg"
         }
       ]
     },
