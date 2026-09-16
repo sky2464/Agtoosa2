@@ -593,6 +593,17 @@ class GraphStore:
                 results.append(d)
             return results
 
+    def get_nodes_by_type(self, node_type: str) -> List[Dict[str, Any]]:
+        """Retrieve all nodes of a specific type with parsed metadata."""
+        with self._get_connection() as conn:
+            rows = conn.execute("SELECT * FROM nodes WHERE node_type = ?;", (node_type,)).fetchall()
+            results = []
+            for r in rows:
+                d = dict(r)
+                d["metadata"] = json.loads(d.pop("metadata_json", "{}") or "{}")
+                results.append(d)
+            return results
+
     def get_all_edges(self) -> List[Dict[str, Any]]:
         """Retrieve all edges from store with parsed metadata."""
         with self._get_connection() as conn:

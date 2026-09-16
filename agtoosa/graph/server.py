@@ -54,7 +54,7 @@ class StudioHTTPHandler(BaseHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
             return
-        elif parsed.path in ("/api/graph", "/api/refactor/backups"):
+        elif parsed.path in ("/api/graph", "/api/refactor/backups", "/api/spectral", "/api/curvature"):
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Access-Control-Allow-Origin", "*")
@@ -98,6 +98,42 @@ class StudioHTTPHandler(BaseHTTPRequestHandler):
             refactor_engine = RefactorEngine(self.workspace_root)
             backups = refactor_engine.list_backups()
             self._send_json({"backups": backups})
+            return
+
+        elif parsed.path == "/api/spectral":
+            nodes = self.store.get_all_nodes()
+            edges = self.store.get_all_edges()
+            from agtoosa.graph.spectral import SpectralEngine
+            engine = SpectralEngine(nodes, edges)
+            fiedler = engine.compute_fiedler_cut()
+            sr = engine.compute_spectral_radius()
+            entropy = engine.compute_von_neumann_entropy()
+            fas = engine.compute_minimum_feedback_arc_set()
+            self._send_json({
+                "algebraic_connectivity": fiedler["algebraic_connectivity"],
+                "is_connected": fiedler["is_connected"],
+                "cheeger_conductance": fiedler["cheeger_conductance"],
+                "cheeger_bounds": [fiedler["cheeger_lower_bound"], fiedler["cheeger_upper_bound"]],
+                "spectral_radius": sr["spectral_radius"],
+                "epidemic_threshold": sr["epidemic_threshold"],
+                "von_neumann_entropy": entropy,
+                "feedback_arc_count": fas["feedback_arc_count"]
+            })
+            return
+
+        elif parsed.path == "/api/curvature":
+            nodes = self.store.get_all_nodes()
+            edges = self.store.get_all_edges()
+            from agtoosa.graph.curvature import CurvatureEngine
+            engine = CurvatureEngine(nodes, edges)
+            ric_res = engine.compute_forman_ricci_curvature()
+            self._send_json({
+                "total_edges": ric_res["total_edges"],
+                "average_curvature": ric_res["average_curvature"],
+                "bottleneck_count": ric_res["bottleneck_count"],
+                "cluster_edge_count": ric_res["cluster_edge_count"],
+                "top_bottlenecks": ric_res["top_bottlenecks"][:20]
+            })
             return
 
         self.send_error(404, "Not Found")

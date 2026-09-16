@@ -1,0 +1,20 @@
+C4Container
+title Container Diagram for Agtoosa Architecture
+
+Person(developer, "Developer", "Uses CLI and Agtoosa Studio")
+Person(ai_agent, "AI Assistant", "Cursor, Windsurf, Claude Code via MCP")
+
+System_Boundary(c1, "Agtoosa Knowledge Engine") {
+    Container(cli, "CLI Subsystem", "Python 3.11+ / argparse", "Unified command-line interface for indexing, reviews, refactoring, and CI gates")
+    Container(mcp, "Native MCP Server", "Python / JSON-RPC 2.0 stdio", "Serves semantic symbol context, blast radius, and tools to AI agents")
+    Container(studio, "Agtoosa Studio Server", "Python HTTP / Vanilla ES Modules", "Interactive architecture explorer and 2-way refactoring UI")
+    ContainerDb(db, "Knowledge Graph Storage", "SQLite / FTS5 Inverted Index", "Transactional persistence for nodes, edges, telemetry, and embeddings")
+}
+
+
+Rel(developer, cli, "Runs agtoosa graph, review, refactor", "Terminal")
+Rel(developer, studio, "Views architecture and triggers safe pruning", "HTTP :8080")
+Rel(ai_agent, mcp, "Queries symbols and blast radius", "stdio")
+Rel(cli, db, "Indexes AST and writes graph entities", "SQLite WAL")
+Rel(mcp, db, "Reads symbol context and blast radius", "SQLite WAL")
+Rel(studio, db, "Fetches graph datasets and executes refactorings", "SQLite WAL")

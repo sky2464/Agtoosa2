@@ -2,8 +2,8 @@
 
 > **Story ID:** DEV-046  
 > **Parent Epic:** [EPIC-001 — Trusted Knowledge Intelligence](epic-001-trusted-knowledge-intelligence.md)  
-> **Milestone:** Foundation Gate (Epic Release Gate)  
-> **Status:** 📋 Ready for Implementation  
+> **Milestone:** Foundation Gate (Gatekeeper Cycle)  
+> **Status:** ✅ Done  
 > **Impact Rating:** 95 / 100  
 > **Research Basis:** Findings R-01–11 (honest parity ledger, real measurement, version alignment)  
 > **Dependencies:** DEV-040, DEV-041, DEV-042, DEV-043, DEV-044, DEV-045, DEV-047, DEV-048, DEV-049  

@@ -2,7 +2,7 @@
 
 > **Story ID:** DEV-024  
 > **Milestone:** Milestone 9 (Autonomous Code Actions & 2-Way Studio Sync — v0.4.1)  
-> **Status:** 🟡 In Progress  
+> **Status:** ✅ Done  
 > **Impact Rating:** 72 / 100  
 > **Estimate:** M  
 > **Spec Created:** 2026-09-13  

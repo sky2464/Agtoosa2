@@ -1,7 +1,7 @@
 # Specification: DEV-026 Async Message Queue & Event Bus Lineage
 
 ## Status
-Approved / In Progress
+✅ Implemented & Verified
 
 ## Priority Score
 **85 / 100** (High Impact — Bridges the decoupled distributed systems boundary across message brokers, event buses, and asynchronous background tasks)
@@ -17,6 +17,11 @@ Currently, static analyzers lose all call graph edges at the boundary of `produc
 1. **Hidden blast radius**: Changing the payload schema produced to topic `orders.v2` silently breaks consumers in other modules or repositories.
 2. **Dead topics & orphan consumers**: Finding topics that have consumers but no active producers, or published events with no consumers.
 3. **End-to-end async trace**: Tracing an action from an HTTP route -> producer -> topic -> consumer -> database write.
+
+## Acceptance Criteria
+- **AC-1 (Topic & PubSub Extraction)**: WHEN Python or JS/TS code uses Kafka, RabbitMQ, Redis, or Celery, the engine SHALL extract `Topic` nodes and `publishes` / `subscribes` edges.
+- **AC-2 (Lineage Query & CLI)**: WHEN `agtoosa graph events` is executed, the CLI SHALL display producers, consumers, and detect orphan topics.
+- **AC-3 (MCP Event Lineage Tool)**: WHEN `agtoosa_get_event_lineage` is invoked, the MCP server SHALL return the dynamic async event lineage and blast radius.
 
 ## Objectives
 1. **Core Domain Ontology Extension**:

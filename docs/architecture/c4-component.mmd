@@ -1,0 +1,18 @@
+C4Component
+title Component Diagram for Agtoosa Knowledge Engine Core
+
+Container_Boundary(core, "Agtoosa Core Processing Engine") {
+    Component(parser, "AST Parser Subsystem", "Python / AST & Framework Extractors", "Parses polyglot ASTs, framework routes (FastAPI/Express), and event topics")
+    Component(compiler, "Context Compiler", "Python / Graph RAG", "Compiles bounded prompt packs and evidence proof graphs")
+    Component(lifecycle, "Lifecycle & Guard Engine", "Python", "Enforces story criteria, pre-push drift invariants, and PR review bot")
+    Component(refactor, "Autonomous Refactor Engine", "Python / AST Rewriter", "Executes automated dead code pruning and cyclic dependency decoupling")
+    Component(observability, "Observability & Trace Ingester", "Python / OTLP Parser", "Ingests OpenTelemetry traces and computes dynamic service topologies")
+}
+
+ContainerDb(db, "SQLite Graph Store", "SQLite / FTS5", "Local transactional graph database")
+
+Rel(parser, db, "Writes AST nodes and dependency edges", "insert_batch")
+Rel(compiler, db, "Traverses upstream/downstream subgraphs", "SQL / FTS5")
+Rel(lifecycle, db, "Validates invariants and drift rules", "SQL CTE")
+Rel(refactor, db, "Queries dead code candidates and cycles", "MetricsEngine")
+Rel(observability, db, "Stores runtime telemetry & service topology", "insert_batch")

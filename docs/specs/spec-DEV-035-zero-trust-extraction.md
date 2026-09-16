@@ -1,13 +1,18 @@
 # DEV-035: Zero-Trust Multi-Agent Semantic Extraction & Hallucination Guard
 
 ## Status
-- **Status:** Approved
+- **Status:** ✅ Implemented & Verified
 - **Cycle ID:** DEV-035
 - **Layer:** Semantic / Extraction / Security Boundary
 - **Dependencies:** DEV-040, DEV-041, DEV-043, DEV-049
 
 ## Context & Problem Statement
 In contrast to codebases where AST parsers provide ground truth, extracting concepts and entity relationships from non-code artifacts (requirements, RFCs, PDFs, architectural ADRs, meeting notes) introduces the hazard of LLM hallucinations. If an extraction agent asserts that `Requirement-42` relates to a non-existent method `AuthService.verifyJwtToken()`, the knowledge graph is polluted with zombie references.
+
+## Acceptance Criteria
+- **AC-1 (Deterministic Ground-Truth Baseline)**: WHEN extracting relationships, AST code parsers SHALL remain the sole authority, with zero LLM re-extraction of code symbols.
+- **AC-2 (Zero-Trust Hallucination Guard)**: WHEN semantic non-code extraction asserts links to code, the `HallucinationGuard` SHALL reject or remediate ungrounded entity references.
+- **AC-3 (Persistent Semantic Cache & Gateway)**: WHEN non-code documents are processed, extraction results SHALL be cached content-addressably and bounded by `SemanticGateway`.
 
 ## Architectural Decision & Invariants
 1. **Deterministic Code Baseline First (Zero LLM Re-Extraction)**:

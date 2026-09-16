@@ -301,6 +301,91 @@ class MCPServer:
                         "output_dir": {"type": "string", "description": "Optional output directory to write artifacts to"}
                     }
                 }
+            },
+            {
+                "name": "agtoosa_list_specs",
+                "description": "Inspect engineering specifications, criteria, and lifecycle tasks tracked in the Agtoosa knowledge graph (DEV-003).",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "target": {"type": "string", "description": "Story ID (e.g. DEV-001) or 'all' to list all specifications", "default": "all"}
+                    }
+                }
+            },
+            {
+                "name": "agtoosa_spectral_analysis",
+                "description": "Execute algebraic and spectral graph theory analysis (DEV-052): graph Laplacian, Fiedler vector, Cheeger conductance bounds, spectral radius, minimum feedback arc set (FAS), transitive reduction, and Von Neumann graph entropy.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "mode": {
+                            "type": "string",
+                            "description": "Spectral analysis mode: 'all', 'cut' (Fiedler & Cheeger), 'radius' (Perron-Frobenius), 'fas' (Minimum Feedback Arc Set), 'transitive' (Transitive reduction / Hasse)",
+                            "default": "all"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "agtoosa_submodular_context",
+                "description": "Compile a provably bounded, near-optimal prompt pack using information-theoretic submodular knapsack optimization with (1 - 1/e) approximation ratio (DEV-053).",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "target": {
+                            "type": "string",
+                            "description": "Target story ID (e.g. DEV-001), task ID, or symbol name"
+                        },
+                        "budget_tokens": {
+                            "type": "integer",
+                            "description": "Token budget constraint for the prompt pack",
+                            "default": 2000
+                        }
+                    },
+                    "required": ["target"]
+                }
+            },
+            {
+                "name": "agtoosa_curvature_audit",
+                "description": "Audit discrete differential geometry invariants (DEV-054): Forman-Ricci edge curvature identifying architectural choke points and Gromov delta-hyperbolicity measuring tree-likeness.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "top": {
+                            "type": "integer",
+                            "description": "Top N fragile negative-curvature choke points to return",
+                            "default": 20
+                        },
+                        "hyperbolic": {
+                            "type": "boolean",
+                            "description": "Compute Gromov 4-point delta-hyperbolicity",
+                            "default": True
+                        }
+                    }
+                }
+            },
+            {
+                "name": "agtoosa_causal_effect",
+                "description": "Evaluate Structural Causal Models and Pearl's Do-Calculus (DEV-055): identify back-door paths, minimal adjustment sets, and compute Average Causal Effect (ACE) to unconfound correlation from causation.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "source": {
+                            "type": "string",
+                            "description": "Cause / treatment variable (symbol or node ID)"
+                        },
+                        "target": {
+                            "type": "string",
+                            "description": "Effect / outcome variable (symbol or node ID)"
+                        },
+                        "contingency_data": {
+                            "type": "array",
+                            "description": "Optional empirical observational records list: [{'var1': 0/1, 'var2': 0/1, ...}, ...]",
+                            "items": {"type": "object"}
+                        }
+                    },
+                    "required": ["source", "target"]
+                }
             }
         ]
 
@@ -558,6 +643,109 @@ class MCPServer:
                 "schemas_count": len(schemas),
                 "files": files
             }, indent=2)
+
+        elif name == "agtoosa_list_specs":
+            import argparse
+            import io
+            from contextlib import redirect_stdout
+            from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_spec
+
+            target = args.get("target", "all")
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                cmd_lifecycle_spec(argparse.Namespace(target=target, json=True), self.workspace_root)
+            return buf.getvalue().strip()
+
+        elif name == "agtoosa_spectral_analysis":
+            from agtoosa.graph.spectral import SpectralEngine
+            nodes = self.store.get_all_nodes()
+            edges = self.store.get_all_edges()
+            engine = SpectralEngine(nodes, edges)
+            mode = args.get("mode", "all")
+            res: Dict[str, Any] = {}
+            if mode in ("all", "cut"):
+                res["cheeger_cut"] = engine.compute_fiedler_cut()
+            if mode in ("all", "radius"):
+                res["spectral_radius"] = engine.compute_spectral_radius()
+            if mode in ("all", "fas"):
+                res["feedback_arc_set"] = engine.compute_minimum_feedback_arc_set()
+            if mode in ("all", "transitive"):
+                res["transitive_reduction"] = engine.compute_transitive_reduction()
+            if mode == "all":
+                res["von_neumann_entropy"] = engine.compute_von_neumann_entropy()
+            return json.dumps(res, indent=2)
+
+        elif name == "agtoosa_submodular_context":
+            from agtoosa.graph.query import resolve_node
+            from agtoosa.core.submodular import SubmodularContextOptimizer
+            target = args.get("target", "")
+            budget = int(args.get("budget_tokens", 2000))
+            target_node = resolve_node(self.store, target)
+            if not target_node:
+                return json.dumps({"error": f"Target '{target}' not found in knowledge graph"}, indent=2)
+
+            pack_md = self.compiler.compile_context(target, hybrid=True)
+
+            neighbors = self.store.get_neighbors(target_node["id"], direction="both")
+            candidates = [n for n in neighbors if n["id"] != target_node["id"]]
+            if not candidates:
+                candidates = self.store.query_fts(target_node["name"], limit=25)
+            seeds = [{"id": target_node["id"], "name": target_node["name"], "docstring": target_node.get("docstring", ""), "weight": 2.0}]
+            optimizer = SubmodularContextOptimizer(seeds, candidates)
+            opt_report = optimizer.optimize(budget_tokens=budget)
+            opt_report["target"] = target_node["id"]
+            opt_report["prompt_pack"] = pack_md
+            return json.dumps(opt_report, indent=2)
+
+        elif name == "agtoosa_curvature_audit":
+            from agtoosa.graph.curvature import CurvatureEngine
+            nodes = self.store.get_all_nodes()
+            edges = self.store.get_all_edges()
+            engine = CurvatureEngine(nodes, edges)
+            top_k = int(args.get("top", 20))
+            check_hyp = bool(args.get("hyperbolic", True))
+            ric_res = engine.compute_forman_ricci_curvature()
+            res = {
+                "total_edges": ric_res["total_edges"],
+                "average_curvature": ric_res["average_curvature"],
+                "bottleneck_count": ric_res["bottleneck_count"],
+                "cluster_edge_count": ric_res["cluster_edge_count"],
+                "top_bottlenecks": ric_res["top_bottlenecks"][:top_k]
+            }
+            if check_hyp:
+                res["hyperbolicity"] = engine.compute_gromov_hyperbolicity()
+            return json.dumps(res, indent=2)
+
+        elif name == "agtoosa_causal_effect":
+            from agtoosa.observability.causal import CausalEngine
+            from agtoosa.graph.query import resolve_node
+            src_str = args.get("source", "")
+            tgt_str = args.get("target", "")
+            src_node = resolve_node(self.store, src_str)
+            tgt_node = resolve_node(self.store, tgt_str)
+            src_id = src_node["id"] if src_node else src_str
+            tgt_id = tgt_node["id"] if tgt_node else tgt_str
+
+            nodes = self.store.get_all_nodes()
+            edges = self.store.get_all_edges()
+            causal_eng = CausalEngine(nodes, edges)
+            adj_set = causal_eng.find_minimal_adjustment_set(src_id, tgt_id)
+            is_admissible, msg = causal_eng.is_backdoor_admissible(src_id, tgt_id, adj_set or set())
+            obs_data = args.get("contingency_data") or []
+            causal_res = causal_eng.compute_causal_effect(src_id, tgt_id, obs_data) if obs_data else None
+
+            res = {
+                "source": src_id,
+                "source_name": src_node["name"] if src_node else src_id,
+                "target": tgt_id,
+                "target_name": tgt_node["name"] if tgt_node else tgt_id,
+                "is_admissible": is_admissible,
+                "minimal_adjustment_set": list(adj_set) if adj_set else [],
+                "status_message": msg
+            }
+            if causal_res:
+                res["causal_effect"] = causal_res
+            return json.dumps(res, indent=2)
 
         return json.dumps({"error": f"Unknown tool: {name}"})
 

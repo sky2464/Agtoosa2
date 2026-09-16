@@ -2,7 +2,7 @@
 
 > **Cycle:** DEV-038  
 > **Milestone:** Milestone 15 (v0.9.0)  
-> **Status:** Implemented & Verified  
+> **Status:** ✅ Implemented & Verified  
 > **Type:** Security & Trust Architecture  
 
 ---
@@ -17,6 +17,11 @@ In enterprise ecosystems, regulated industries, vendor audits, and multi-team co
 However, organizations cannot share proprietary source code, internal file paths, or symbol identifiers with external auditors, customers, or untrusted CI environments.
 
 A **Zero-Knowledge Architecture Cryptographic Attestation** allows a prover (the codebase owner) to generate a mathematically verifiable, tamper-evident attestation certificate that proves compliance with all architectural invariants, while keeping file paths, symbol names, and source logic completely confidential.
+
+## Acceptance Criteria
+- **AC-1 (Salted Blind Commitments & Merkle Proofs)**: WHEN generating attestation, the engine SHALL blind symbol names and file paths while building a deterministic SHA-256 Merkle tree.
+- **AC-2 (Zero-Knowledge Invariant Proofs)**: WHEN verifying certificates, the engine SHALL mathematically prove tier boundary conformity and acyclicity with zero disclosure of confidential identifiers.
+- **AC-3 (Attestation CLI & Verification)**: WHEN `agtoosa attest generate` and `agtoosa attest verify` are executed, the CLI SHALL produce and validate cryptographic certificates.
 
 ---
 

@@ -100,6 +100,22 @@ class ContextCompiler:
                         node_copy["match_source"] = item.get("match_source")
                         symbols.append(node_copy)
                 if symbols:
+                    if len(symbols) > 3:
+                        try:
+                            from agtoosa.core.submodular import SubmodularContextOptimizer
+                            seeds = []
+                            if story:
+                                seeds.append({"id": story["id"], "name": story["name"], "docstring": story.get("docstring", ""), "weight": 2.0})
+                            for c in criteria:
+                                seeds.append({"id": c["id"], "name": c["name"], "docstring": c.get("docstring", ""), "weight": 1.5})
+                            if not seeds:
+                                seeds = symbols[:1]
+                            opt = SubmodularContextOptimizer(seeds, symbols)
+                            opt_res = opt.optimize(budget_tokens=1500)
+                            if opt_res["selected"]:
+                                return opt_res["selected"]
+                        except Exception:
+                            pass
                     return symbols[:10]
             except Exception:
                 pass

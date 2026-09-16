@@ -3,7 +3,7 @@
 > **Story ID:** DEV-041  
 > **Parent Epic:** [EPIC-001 — Trusted Knowledge Intelligence](epic-001-trusted-knowledge-intelligence.md)  
 > **Milestone:** Foundation Gate  
-> **Status:** 📋 In Progress  
+> **Status:** ✅ Done  
 > **Impact Rating:** 94 / 100  
 > **Research Basis:** Findings R-02 (name collisions produce wrong links), R-03 (hidden query ambiguity), R-05  
 > **Dependencies:** DEV-040  

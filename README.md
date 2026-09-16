@@ -1,78 +1,287 @@
 # Agtoosa2 🚀
 
-**The Graph-Native Engineering Operating System for AI Coding Agents and Developers.**
+**The Intelligent Codebase Map for Developers and AI Agents.**
 
-Agtoosa2 unifies code comprehension, project planning, and delivery assurance into a single, queryable local knowledge graph. Built from the ground up to replace legacy template generators, Agtoosa2 provides zero-bloat, cross-platform engineering intelligence.
+*Like a live GPS and structural blueprint for your code — know what breaks before you touch a line, slash AI token costs by >70%, and ship verified software with zero guesswork.*
 
-## Why Agtoosa2?
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Storage: SQLite FTS5](https://img.shields.io/badge/storage-SQLite%20FTS5-green.svg)](https://sqlite.org/)
+[![Protocol: MCP Ready](https://img.shields.io/badge/protocol-Model%20Context%20Protocol-purple.svg)](https://modelcontextprotocol.io/)
+[![Zero Daemons](https://img.shields.io/badge/architecture-100%25%20Local%20%7C%20Zero%20Daemons-success.svg)](https://github.com/sky2464/Agtoosa2)
 
-Grep and "find references" show you where a symbol appears. Agtoosa2 gives your codebase — and your AI agent — an actual model of it, so these stop being manual work:
+---
 
-- **Know the blast radius before you touch code.** `agtoosa graph impact <symbol>` traces the real call/import graph across code, specs, and tests — not just text matches.
-- **Prove a change is done, not just merged.** Delivery gates (`Spec → Build → Review → Ship`) are backed by graph edges (`IMPLEMENTS`, `VERIFIES`, `EVIDENCED_BY`), so `agtoosa ship verify` checks a story has passing tests and evidence behind it — no manual checklist.
-- **Stop paying for context your agent doesn't need.** Context Compilation v2 hands AI agents a bounded, precision subgraph instead of whole files, targeting >70% token reduction.
-- **One MCP server, any agent.** `agtoosa mcp` exposes graph search, impact analysis, and task context as MCP tools that Claude Code, Cursor, Windsurf, Copilot, and Gemini CLI can all call directly, instead of scraping terminal output.
-- **Cross-repo impact in microservice setups.** `agtoosa graph federate` links repos via OpenAPI/gRPC/GraphQL contracts so impact analysis crosses service boundaries.
-- **Catches drift in CI, not in prod.** The bundled GitHub Action posts impact comments and can block merges on graph-verified architectural drift.
-- **Zero infrastructure.** Everything lives in one local SQLite file (`.agtoosa/graph.db`) — no vector DB, no daemon, no cloud dependency to stand up.
+## 💡 What is Agtoosa2? (The 30-Second Explanation)
 
-**The short version:** your AI agent stops guessing about your codebase because it now has a queryable, provable model of it.
+Imagine remodeling a house. You wouldn't swing a sledgehammer into a wall without checking the blueprint to see if it's load-bearing, right?
 
-## Core Capabilities
+Yet in software development, engineers and AI coding assistants do that every single day:
+- **Blind edits:** You rename or update a function in one file, only to find out hours later that it quietly broke three payment endpoints and an invoice report in completely different folders.
+- **AI token waste & hallucinations:** You feed an AI assistant (like Claude, Cursor, or Copilot) entire folders of code. The AI gets overwhelmed, burns through expensive API tokens, hallucinates, or misses the real issue.
+- **Unverified releases:** Teams merge code based on "looks good to me" PR reviews, but nobody can prove whether the new code actually satisfies the original feature requirements.
 
-- 🧠 **Unified Knowledge Graph**: Connects code AST symbols, specifications (Stories & Criteria), tasks, and test evidence in a transactional SQLite store.
-- ⚡ **Zero External Daemons**: Runs locally with SQLite FTS5 and sub-second query latency.
-- 🎯 **Graph Context Compilation v2**: Extracts precision subgraphs for AI coding agents, slashing context bloat by >70%.
-- 🛡️ **Verifiable Delivery Gates**: Enforces `Spec → Build → Review → Ship` transitions with mathematical proof chains.
-- 🔌 **Native Agent Protocols**: Exposes CLI commands and a native Model Context Protocol (MCP) server for modern AI tools.
-- 📊 **Architecture Health & Visualizer**: Generates standalone offline Cytoscape.js HTML viewers, cycle detection, PageRank hub rankings, and Obsidian vaults.
+**Agtoosa2 solves this by building a living, queryable map (a knowledge graph) of your entire project.** 
 
-## Quick Start
+Instead of treating your codebase like a bucket of disconnected text files, Agtoosa parses your real code syntax into connected dots:
+- **Files, classes, functions, and API routes**
+- **User stories and acceptance criteria**
+- **Unit tests and verification evidence**
 
+Everything is stored in a single, lightweight SQLite file (`.agtoosa/graph.db`) right on your computer. **No cloud servers. No monthly SaaS bills. No proprietary code leaving your machine.**
+
+---
+
+## 💼 Why Businesses and Engineering Teams Use Agtoosa2
+
+| The Pain Today | What Agtoosa2 Does | Business & Engineering Impact |
+|---|---|---|
+| **The AI Token Tax**<br>AI coding agents ingest hundreds of raw files blindly. | **Graph Context Compilation**<br>Gives the AI agent *only* the exact functions and types it needs (with token budgeting). | 📉 **Cuts AI API bills by 70%+** and dramatically reduces AI hallucinations. |
+| **The "Blast Radius" Panic**<br>Developers are terrified of refactoring legacy code because they don't know what will break. | **Instant Impact Prediction (`agtoosa graph impact`)**<br>Calculates the exact upstream call chain across code, APIs, and tests before you save. | 🛡️ **Zero accidental outages.** Refactor with total confidence. |
+| **"Did We Actually Ship It?"**<br>PRs get merged, but teams rely on manual Jira checklists and hope tests covered the spec. | **Verifiable Delivery Gates (`agtoosa ship`)**<br>Mathematically verifies: *Story → Implemented Code → Automated Tests → Passing Evidence*. | 🚀 **Guaranteed feature delivery.** No missed criteria, no broken promises in production. |
+| **Privacy & Infrastructure Hassle**<br>Most enterprise code tools require cloud databases, Docker containers, or sending code to 3rd parties. | **100% Local & Zero External Daemons**<br>Runs on standard Python with a local SQLite database and instant FTS5 search. | 🔒 **Zero data leakage.** Full security compliance, instant setup, and zero infrastructure cost. |
+
+---
+
+## 🎬 See It in Action (Everyday Scenarios)
+
+### 1. "What breaks if I touch this?" (Blast Radius Analysis)
+Before you edit or delete `AuthService`, ask Agtoosa who depends on it:
 ```bash
-# Initialize and build the project graph
-python3 -m agtoosa.cli.main graph build
+agtoosa graph impact AuthService
+```
+```text
+🎯 Blast Radius for symbol 'AuthService' (depth: 3):
+   ├── 📁 api/routes/login.py :: handle_login() [CALLS]
+   ├── 📁 api/routes/checkout.py :: process_payment() [CALLS]
+   ├── 📁 workers/audit.py :: record_user_login() [IMPORTS]
+   └── 🧪 tests/test_auth.py :: test_token_refresh() [VERIFIES]
+⚠️  Impact Score: 4 files, 12 callers, 2 critical customer endpoints affected.
+```
+*You instantly know every file, route, and test you need to be aware of before making a single change.*
 
-# Check graph status and indexed metrics
-python3 -m agtoosa.cli.main graph status
+---
 
-# Query symbols, definitions, or architectural concepts
-python3 -m agtoosa.cli.main graph query "UserAuth"
+### 2. "Give my AI agent only what it needs" (Stop Wasting Tokens)
+Instead of feeding 50 full files into Cursor or Claude Code, compile a surgical context pack under a strict token limit:
+```bash
+agtoosa query "PaymentGateway" --budget 1500
+```
+Agtoosa extracts the exact function signatures, dependency types, and relevant docstrings within your 1,500 token limit. Your AI gets immediate clarity without the noise.
 
-# Run architectural health audit, cycle detection, and PageRank report
-python3 -m agtoosa.cli.main graph report
+---
 
-# Generate standalone offline interactive HTML visualizer
-python3 -m agtoosa.cli.main graph view --output .agtoosa/graph_view.html
+### 3. "Clean up the clutter" (Safe Dead Code Pruning)
+Identify zombie functions, orphaned classes, and unused files that slow down your team:
+```bash
+# Preview dead code with confidence scores and safety explanations
+agtoosa refactor dead-code --dry-run --verbose
 
-# Export graph to Obsidian markdown vault, GraphML, Cypher, or DOT
-python3 -m agtoosa.cli.main graph export --format obsidian -o .agtoosa/obsidian_vault
-python3 -m agtoosa.cli.main graph export --format graphml -o .agtoosa/graph.graphml
+# Safely prune dead code with automatic rollback snapshot support
+agtoosa refactor dead-code --apply
+```
+Made a mistake? Every refactor creates an atomic backup snapshot you can revert in one command:
+```bash
+agtoosa refactor rollback <backup_id>
 ```
 
-## Documentation
+---
 
-- [Master Plan](docs/Master-Plan.md): Roadmap and delivery stages.
-- [Master Architecture](docs/Master-Architecture.md): Architecture, C4 diagrams, and quality attributes.
-- [ADR-001](docs/adr/ADR-001-unified-graph-native-architecture.md): Architectural decision record for the Python graph engine.
-- [Capability Matrix](docs/Capability-Matrix.md): Functional parity mapping against reference capabilities.
-- [EPIC-001 — Trusted Knowledge Intelligence](docs/specs/epic-001-trusted-knowledge-intelligence.md): Foundation gate (DEV-040–049) establishing extraction accuracy before breadth.
-- [Graphify parity and graph trust](docs/research/2026-09-13-graphify-parity-and-trust.md): Research findings R-01–14 behind that epic.
-- [DEV-001 Specification](docs/specs/spec-DEV-001-native-graph.md): Stage 1 specification.
-- [DEV-005 Specification](docs/specs/spec-DEV-005-visualizer-and-reports.md): Stage 5 interactive visualizer & report specification.
+### 4. "Is this feature really ready to ship?" (Verifiable Quality Gates)
+Prove that story `DEV-001` is genuinely finished before merging:
+```bash
+agtoosa ship DEV-001
+```
+```text
+🔍 Verifying Delivery Gate for DEV-001:
+   [✓] Spec Defined: User authentication with JWT
+   [✓] Code Implemented: agtoosa.auth.jwt_handler (120 LOC)
+   [✓] Acceptance Criteria: 3/3 satisfied
+   [✓] Test Evidence: tests/test_auth.py (Passed in 0.04s)
+   ==================================================
+   ✅ RELEASE GATE PASSED: DEV-001 is verified and ready to ship!
+```
 
-## Key Engineering Workflows
+---
+
+## 🌐 Interactive Visual Studio: See Your Code Come to Life
+
+Agtoosa comes with a built-in interactive web studio. Explore your codebase in 2D/3D, click on nodes to trace dependencies, and spot architectural bottlenecks visually:
 
 ```bash
-# 1. Inspect architectural health and PageRank hubs
-uv run agtoosa graph report
-
-# 2. Identify unreachable dead code and zombie symbols
-uv run agtoosa refactor dead-code
-
-# 3. Compile token-budgeted context for AI agents
-uv run agtoosa query "GraphStore" --budget 1500
-
-# 4. Trace blast radius before making a change
-uv run agtoosa graph impact "agtoosa.graph.store.GraphStore"
+# Launch Agtoosa Studio on localhost:8080 and open your browser automatically
+agtoosa graph view --serve --open
 ```
+
+- 🔍 **Interactive Graph Explorer:** Search any symbol and watch its call paths light up.
+- 🔄 **Cycle Detection:** Spot circular dependencies (`A imports B imports A`) in red before they cause runtime bugs.
+- 🌟 **Hub Ranking (PageRank):** See which core modules are the most critical foundations of your project.
+
+---
+
+## 🤖 Works With the AI Tools You Already Use (Native MCP)
+
+Agtoosa2 speaks the **Model Context Protocol (MCP)**, the open standard for AI tools. That means your AI assistants in **Claude Code, Cursor, Windsurf, Copilot, or Gemini CLI** can query your project graph directly instead of guessing!
+
+To start the MCP server:
+```bash
+agtoosa mcp
+```
+
+### Connect to Claude Desktop or Claude Code
+Add this to your `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "agtoosa": {
+      "command": "agtoosa",
+      "args": ["mcp"],
+      "cwd": "/path/to/your/project"
+    }
+  }
+}
+```
+
+Now your AI assistant has native tools:
+- `agtoosa_search_graph` — Search all symbols and concepts.
+- `agtoosa_get_symbol` — Inspect exact callers and callees.
+- `agtoosa_query_impact` — Calculate blast radius before writing code.
+- `agtoosa_compile_context` — Read surgical, token-budgeted subgraphs.
+
+---
+
+## 🔬 Under the Hood (For Computer Science & Engineering Minds)
+
+How does Agtoosa achieve sub-second speeds and zero cloud dependency?
+
+```mermaid
+flowchart TD
+    subgraph Input ["1. Source Code & Specs"]
+        SRC["Codebase (.py, .ts, .go)"]
+        SPECS["Specs & Markdown Docs"]
+        TESTS["Test Suites & Results"]
+    end
+
+    subgraph Parser ["2. AST Parser & Ingestion"]
+        TS["Tree-sitter & Python AST"]
+        EXT["Entity & Edge Extractor"]
+    end
+
+    subgraph Store ["3. Local Storage (.agtoosa/graph.db)"]
+        SQLITE[("SQLite Database")]
+        FTS["FTS5 Inverted Search Index"]
+        NX["NetworkX MultiDiGraph Runtime"]
+    end
+
+    subgraph Actions ["4. High-Value Intelligence"]
+        BLAST["Blast Radius & Impact Engine"]
+        RAG["Context Compiler (Submodular RAG)"]
+        PR["PR Review Bot & Drift Guards"]
+        STUDIO["Interactive Studio (Cytoscape.js)"]
+        MCP_SRV["Model Context Protocol (MCP)"]
+    end
+
+    SRC --> TS
+    SPECS --> EXT
+    TESTS --> EXT
+    TS --> EXT
+    EXT --> SQLITE
+    SQLITE <--> FTS
+    SQLITE <--> NX
+    NX --> BLAST
+    NX --> RAG
+    NX --> PR
+    NX --> STUDIO
+    NX --> MCP_SRV
+```
+
+1. **Abstract Syntax Tree (AST) Parsing:**  
+   Instead of unreliable regular expressions, Agtoosa uses real AST parsers (Python AST + Tree-sitter) to extract true semantic entities (`File`, `Class`, `Function`, `Route`) and relations (`CALLS`, `IMPORTS`, `DEFINES`).
+2. **Deterministic Graph Topology:**  
+   In-memory graph processing uses directed multigraphs (`NetworkX`) to calculate graph centrality (PageRank), cycle bisection (Feedback Arc Set), and topological paths in milliseconds.
+3. **SQLite FTS5 + Hybrid Retrieval:**  
+   All entity metadata, full-text indexes, and delivery state live inside a local transactional SQLite database with FTS5 lexical ranking and optional dense vector embeddings.
+4. **Token-Budgeted Submodular Optimization:**  
+   When compiling context for AI agents, Agtoosa selects maximum-information subgraphs that strictly fit within your target token budget (e.g., 1,500 tokens), preventing prompt dilution.
+
+---
+
+## ⚡ Quick Start (Up and Running in 60 Seconds)
+
+### 1. Requirements
+- Python 3.11 or newer.
+- macOS, Linux, or Windows (WSL / PowerShell).
+
+### 2. Installation
+```bash
+# Clone the repository
+git clone https://github.com/sky2464/Agtoosa2.git
+cd Agtoosa2
+
+# Create and activate a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install in editable mode
+pip install -e '.[full]'
+```
+
+### 3. Build Your First Graph
+Index your current repository into `.agtoosa/graph.db` with one command:
+```bash
+agtoosa graph build
+```
+
+### 4. Check Health and Launch Studio
+```bash
+# Check graph stats (number of files, symbols, and connections)
+agtoosa graph status
+
+# View the architectural health report (cycles, bottlenecks, hotspots)
+agtoosa graph report
+
+# Launch the visual web studio in your browser
+agtoosa graph view --serve --open
+```
+
+---
+
+## 🛠️ Essential Command Cheat Sheet
+
+| Task | Command |
+|---|---|
+| **Build/rebuild graph** | `agtoosa graph build [--clean]` |
+| **Check graph status** | `agtoosa graph status` |
+| **Search symbols & concepts** | `agtoosa graph query "AuthToken"` |
+| **Inspect symbol callers/callees** | `agtoosa graph explain <symbol>` |
+| **Trace path between two components** | `agtoosa graph path <Source> <Destination>` |
+| **Check blast radius before editing** | `agtoosa graph impact <symbol>` |
+| **Find dead code / zombie functions** | `agtoosa refactor dead-code` |
+| **Compile AI context pack under budget** | `agtoosa query "<target>" --budget 1500` |
+| **Verify readiness & delivery gate** | `agtoosa ship [DEV-XXX]` |
+| **Run local visual web studio** | `agtoosa graph view --serve --open` |
+| **Start background pre-push guard** | `agtoosa guard --daemon` |
+| **Launch native MCP server** | `agtoosa mcp` |
+
+---
+
+## 📚 Deep Dive Documentation
+
+For detailed architectural specifications and design decisions, check out:
+
+- 🗺️ **[Master Plan](docs/Master-Plan.md):** Complete project roadmap, delivery stages, and milestones.
+- 🏛️ **[Master Architecture](docs/Master-Architecture.md):** Formal C4 diagrams, container boundaries, and data schemas.
+- 📝 **[ADR-001: Unified Graph-Native Architecture](docs/adr/ADR-001-unified-graph-native-architecture.md):** Design record behind the Python graph engine.
+- 📊 **[Capability Matrix](docs/Capability-Matrix.md):** Complete feature parity and reference capabilities.
+- 🛡️ **[EPIC-001: Trusted Knowledge Intelligence](docs/specs/epic-001-trusted-knowledge-intelligence.md):** Specification for extraction precision and graph truth.
+- 🔬 **[Graphify Parity & Graph Trust](docs/research/2026-09-13-graphify-parity-and-trust.md):** Research findings behind knowledge extraction accuracy.
+- ⚙️ **[DEV-001 Specification](docs/specs/spec-DEV-001-native-graph.md):** Native graph store and query engine.
+- 🎨 **[DEV-005 Specification](docs/specs/spec-DEV-005-visualizer-and-reports.md):** Interactive visualizer, reporting, and studio.
+
+---
+
+## 🤝 Contributing & License
+
+We welcome contributions! Please review [AGENTS.md](AGENTS.md) for codebase guidelines, coding standards, and testing workflows.
+
+Agtoosa2 is open-source software licensed under the **[MIT License](LICENSE)**.

@@ -53,6 +53,30 @@ class MetricsEngine:
         # 4. Architecture Health Scorecard
         health = self._compute_health_scorecard(nodes, edges, adj_in, adj_out, cycles)
 
+        # 5. Spectral & Algebraic Invariants
+        from agtoosa.graph.spectral import SpectralEngine
+        from agtoosa.graph.curvature import CurvatureEngine
+
+        spectral_eng = SpectralEngine(nodes, edges)
+        fiedler = spectral_eng.compute_fiedler_cut()
+        sr = spectral_eng.compute_spectral_radius()
+        entropy = spectral_eng.compute_von_neumann_entropy()
+
+        spectral_data = {
+            "algebraic_connectivity": fiedler["algebraic_connectivity"],
+            "cheeger_conductance": fiedler["cheeger_conductance"],
+            "cheeger_lower_bound": fiedler["cheeger_lower_bound"],
+            "cheeger_upper_bound": fiedler["cheeger_upper_bound"],
+            "spectral_radius": sr["spectral_radius"],
+            "epidemic_threshold": sr["epidemic_threshold"],
+            "von_neumann_entropy": entropy,
+            "is_connected": fiedler["is_connected"]
+        }
+
+        # 6. Discrete Differential Geometry & Forman-Ricci Curvature
+        curvature_eng = CurvatureEngine(nodes, edges)
+        curvature_data = curvature_eng.compute_forman_ricci_curvature()
+
         return {
             "stats": {
                 "total_nodes": len(nodes),
@@ -62,7 +86,13 @@ class MetricsEngine:
             "health_scorecard": health,
             "top_hubs": top_hubs,
             "cycles": cycles,
-            "communities": communities
+            "communities": communities,
+            "spectral": spectral_data,
+            "curvature": {
+                "average_curvature": curvature_data["average_curvature"],
+                "bottleneck_count": curvature_data["bottleneck_count"],
+                "top_bottlenecks": curvature_data["top_bottlenecks"]
+            }
         }
 
     def detect_cycles(self, max_cycles: int = 15) -> List[Dict[str, Any]]:
@@ -304,6 +334,20 @@ class MetricsEngine:
             members = ", ".join(comm["sample_members"][:3])
             lines.append(f"   • Community #{comm['community_id']} ({comm['size']} nodes): {members}...")
 
+        if "spectral" in report:
+            spec = report["spectral"]
+            lines.append("\n📐 Spectral & Geometric Invariants:")
+            lines.append(f"   • Algebraic Connectivity (λ₂): {spec['algebraic_connectivity']} ({'Robust' if spec['is_connected'] else 'Disconnected/Fragile'})")
+            lines.append(f"   • Cheeger Conductance Cut: h(G) = {spec['cheeger_conductance']} (Bounds: [{spec['cheeger_lower_bound']}, {spec['cheeger_upper_bound']}])")
+            lines.append(f"   • Von Neumann Graph Entropy: {spec['von_neumann_entropy']} bits")
+            lines.append(f"   • Spectral Radius: λ₁(A) = {spec['spectral_radius']} (Epidemic Threshold τ_c = {spec['epidemic_threshold']})")
+
+        if "curvature" in report:
+            curv = report["curvature"]
+            lines.append(f"   • Forman-Ricci Geometric Bottlenecks: {curv['bottleneck_count']} fragile edge bridge(s) (Avg Curvature: {curv['average_curvature']})")
+            for b in curv.get("top_bottlenecks", [])[:3]:
+                lines.append(f"     - Choke Point: {b['source_name']} <-> {b['target_name']} (Curvature: {b['curvature']})")
+
         lines.append("\n💡 What This Means & Actionable Next Steps:")
         if health.get("isolated_count", 0) > 0:
             lines.append(f"   • 🧹 Prune Dead Code: Run 'agtoosa refactor dead-code --dry-run' to safely inspect {health['isolated_count']} candidate(s).")
@@ -372,5 +416,23 @@ class MetricsEngine:
         for comm in report["communities"]:
             samples = ", ".join([f"`{m}`" for m in comm["sample_members"][:4]])
             md.append(f"| #{comm['community_id']} | {comm['size']} | {samples} |")
+
+        if "spectral" in report or "curvature" in report:
+            md.extend([
+                "",
+                "## 5. Spectral & Geometric Invariants",
+                "",
+                "| Invariant | Mathematical Value | Interpretation |",
+                "|---|---|---|"
+            ])
+            if "spectral" in report:
+                s = report["spectral"]
+                md.append(f"| **Algebraic Connectivity ($\\lambda_2$)** | `{s['algebraic_connectivity']}` | {'Connected & structurally robust' if s['is_connected'] else 'Fragile / contains disconnected components'} |")
+                md.append(f"| **Cheeger Conductance Cut ($h(G)$)** | `{s['cheeger_conductance']}` | Optimal bisection conductance (Bounds: `[{s['cheeger_lower_bound']}, {s['cheeger_upper_bound']}]`) |")
+                md.append(f"| **Von Neumann Graph Entropy** | `{s['von_neumann_entropy']}` bits | Topological complexity and disorder |")
+                md.append(f"| **Perron-Frobenius Spectral Radius ($\\lambda_1$)** | `{s['spectral_radius']}` | Epidemic percolation threshold: $\\tau_c = {s['epidemic_threshold']}$ |")
+            if "curvature" in report:
+                c = report["curvature"]
+                md.append(f"| **Forman-Ricci Choke Points** | `{c['bottleneck_count']}` edges | Negative curvature bridges prone to failure |")
 
         return "\n".join(md)

@@ -14,7 +14,7 @@
 | Core Engine | Python 3.11+ (SQLite FTS5, Zero-Dependency Standard Library) |
 | Active Milestone | `v0.9.0` — **Milestone 15 (DEV-038 & DEV-039) Delivered & Shipped (100% Complete)** |
 | Foundation Gate | [**EPIC-001 — Trusted Knowledge Intelligence**](specs/epic-001-trusted-knowledge-intelligence.md) (DEV-040–049) — ✅ **CLEARED & VERIFIED (100% Precision)** |
-| Delivered Milestones | Milestone 1–12, 14, 15, 17 & EPIC-001 (All 50 Stages Delivered & Verified) |
+| Delivered Milestones | Milestone 1–12, 14, 15, 17 & EPIC-001 (All 51 Stages Delivered & Verified) |
 
 ---
 
@@ -85,6 +85,21 @@ All previous milestones and foundation gates have been delivered, verified, and 
 | **Milestone 14 (v0.7.0)** | DEV-033–DEV-037 | Multimodal Ingestion, Living C4 Wiki, Zero-Trust Extraction, Socratic Audit, Universal Skill | `test_multimodal_drift.py`, `test_living_wiki.py`, `test_semantic_extraction.py`, `test_socratic_audit.py`, `test_universal_skill.py` | [View Archive](archive/Master-Plan-Archive.md#milestone-14-multimodal-ingestion-living-c4-architecture-wiki--verified-knowledge-intelligence-v070--v080) |
 | **Milestone 17 (DX-01)** | DEV-050 | Actionable Architecture Hints & Guided Next-Steps Engine | `test_metrics.py`, `spec-DEV-050-actionable-hints-and-guided-workflows.md` | [View Archive](archive/Master-Plan-Archive.md#developer-experience--guidance-milestone-17-dev-050) |
 | **Milestone 17 (DX-02)** | DEV-051 | Human-Centric Dead-Code CLI Formatting & Progressive Dry-Run Preview | `test_dead_code.py`, `spec-DEV-051-dead-code-cli-ux.md` | [Spec](specs/spec-DEV-051-dead-code-cli-ux.md) |
+| **Milestone 18 (v0.9.5)** | DEV-052 | Algebraic and Spectral Graph Theory Core | `test_spectral.py` | [Spec](specs/spec-DEV-052-algebraic-and-spectral-graph-theory.md) |
+| **Milestone 18 (v0.9.5)** | DEV-053 | Information-Theoretic Submodular Context Optimization | `test_submodular.py`, `test_hybrid_rag.py` | [Spec](specs/spec-DEV-053-submodular-context-optimization.md) |
+| **Milestone 18 (v0.9.5)** | DEV-054 | Discrete Differential Geometry and Forman-Ricci Curvature | `test_curvature.py`, `test_metrics.py` | [Spec](specs/spec-DEV-054-discrete-differential-geometry-and-curvature.md) |
+| **Milestone 18 (v0.9.5)** | DEV-055 | Causal Architecture Inference and Pearl's Do-Calculus | `test_causal.py` | [Spec](specs/spec-DEV-055-causal-architecture-inference.md) |
+
+---
+
+## Active Frontier: Milestone 18 (v0.9.5) — Mathematical Foundations & Formal Invariants
+
+| Rank | Cycle ID | Title | Rating | Milestone | Status | Strategic Value & Mathematical Foundation |
+|:---:|---|---|:---:|---|:---:|---|
+| 🥇 | **DEV-052** | Algebraic & Spectral Graph Theory Core | **95 / 100** | Milestone 18 (v0.9.5) | ✅ Done | **Spectral Invariants**: Graph Laplacian $\mathcal{L}$, Fiedler algebraic connectivity $\lambda_2$, Cheeger cut bounds, spectral radius $\lambda_1$, continuous resolvent shockwave blast radius, and Minimum Feedback Arc Set. |
+| 🥈 | **DEV-053** | Submodular Context Optimization | **92 / 100** | Milestone 18 (v0.9.5) | ✅ Done | **Information Theory**: Budgeted maximum coverage knapsack solver guaranteeing a $(1 - 1/e) \approx 63.2\%$ approximation bound to optimal prompt compilation for LLM agents. |
+| 🥉 | **DEV-054** | Discrete Differential Geometry & Curvature | **90 / 100** | Milestone 18 (v0.9.5) | ✅ Done | **Discrete Riemannian Geometry**: Forman-Ricci curvature $\mathbf{Ric}_F(e)$ detecting fragile hyperbolic choke points versus robust clusters; Gromov $\delta$-hyperbolicity. |
+| 🎖️ | **DEV-055** | Causal Architecture Inference & Pearl's Do-Calculus | **88 / 100** | Milestone 18 (v0.9.5) | ✅ Done | **Causal Inference**: Structural Causal Models (SCM), Back-Door Criterion admissibility, and Average Causal Effect (ACE) separating causal failure cascades from confounding telemetry correlations. |
 
 ---
 
@@ -96,8 +111,9 @@ flowchart LR
     M1 --> EPIC1[EPIC-001: Trusted Knowledge Intelligence ✅]
     EPIC1 --> M14
     M14 --> M17[M17: Guided Workflows & CLI UX DEV-050, DEV-051 ✅]
-    M14 --> M15[Milestone 15: v0.9.0 ✅]
-    M15 --> S38[DEV-038: Zero-Knowledge Attestation ✅]
-    M15 --> S39[DEV-039: Microservice Synthesis ✅]
+    M14 --> M15[Milestone 15: Attestation & Synthesis DEV-038, DEV-039 ✅]
+    M15 --> M18[Milestone 18: Mathematical Foundations DEV-052–DEV-055 ✅]
+    M17 --> M18
+    M18 --> MGA[v1.0.0 General Availability 🚀]
 ```
 

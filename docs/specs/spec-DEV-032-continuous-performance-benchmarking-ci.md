@@ -1,5 +1,8 @@
 # Specification: DEV-032 Continuous Performance Regression Benchmarking CI
 
+## Status
+✅ Implemented & Verified
+
 ## 1. Problem Statement
 Architectural quality gates (DEV-024, DEV-029) guard static invariants such as circular dependencies, layer boundary leaks, and production blast radius. However, silent runtime latency and memory throughput regressions often slip through code reviews:
 - Inefficient $O(N^2)$ algorithm changes in utility functions or data parsing loops.
@@ -7,6 +10,11 @@ Architectural quality gates (DEV-024, DEV-029) guard static invariants such as c
 - Unmonitored memory footprint expansion in AST compilers and graph queries.
 
 Existing benchmark tools (e.g. pytest-benchmark) are disconnected from the architectural knowledge graph, lack integration with runtime telemetry, and require manual benchmark harness authoring for every function.
+
+## Acceptance Criteria
+- **AC-1 (AST-Targeted Benchmark Discovery)**: WHEN a PR git diff is analyzed, the engine SHALL identify modified callable functions and execute calibrated micro-benchmarks with warmup iterations.
+- **AC-2 (Dual-Baseline Strategy)**: WHEN evaluating performance, the engine SHALL compare current latency/memory against tagged snapshot baselines or runtime telemetry fallback.
+- **AC-3 (Statistical Regression & CI Circuit Breaker)**: WHEN p95 latency regresses beyond configured thresholds, the engine SHALL fail the benchmark CI gate and report findings.
 
 ## 2. Architecture & Design
 

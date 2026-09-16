@@ -3,7 +3,7 @@
 > **Story ID:** DEV-049  
 > **Parent Epic:** [EPIC-001 — Trusted Knowledge Intelligence](epic-001-trusted-knowledge-intelligence.md)  
 > **Milestone:** Foundation Gate  
-> **Status:** 📋 Ready for Implementation  
+> **Status:** ✅ Done  
 > **Impact Rating:** 92 / 100  
 > **Research Basis:** Finding R-14 (stated semantic-provider policy has no implementation or owner; no transport, redaction boundary, budget ceiling, or cache)  
 > **Dependencies:** DEV-043; gates all semantic consumers (DEV-033, DEV-035, DEV-036)  

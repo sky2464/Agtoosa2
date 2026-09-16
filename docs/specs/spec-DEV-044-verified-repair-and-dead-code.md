@@ -3,7 +3,7 @@
 > **Story ID:** DEV-044  
 > **Parent Epic:** [EPIC-001 — Trusted Knowledge Intelligence](epic-001-trusted-knowledge-intelligence.md)  
 > **Milestone:** Foundation Gate  
-> **Status:** 📋 Ready for Implementation  
+> **Status:** ✅ Done  
 > **Impact Rating:** 93 / 100  
 > **Research Basis:** Finding R-10 (repair verification overstates evidence; dry runs claimed verified; missing reindex & project checks)  
 > **Dependencies:** DEV-043  

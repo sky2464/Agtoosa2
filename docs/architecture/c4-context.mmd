@@ -1,0 +1,16 @@
+C4Context
+title System Context Diagram for Agtoosa Knowledge Engine
+
+Person(developer, "Developer / Engineer", "Writes code, inspects architecture, and ships features")
+Person(ai_agent, "AI Coding Assistant", "Uses MCP tools for bounded context, blast radius, and refactoring")
+
+Enterprise_Boundary(b0, "Local Engineering Environment") {
+    System(agtoosa, "Agtoosa Knowledge Engine", "Autonomous software architecture knowledge engine, AST graph storage, and review intelligence")
+}
+
+System_Ext(github, "GitHub / Git Remote", "Houses repositories, PR diffs, CI/CD actions, and git hooks")
+
+Rel(developer, agtoosa, "Invokes CLI commands and explores Studio", "CLI / HTTP")
+Rel(developer, github, "Pushes commits and opens PRs", "Git")
+Rel(ai_agent, agtoosa, "Queries symbol context and blast radius", "MCP JSON-RPC")
+Rel(agtoosa, github, "Analyzes PR blast radius and posts sticky review comments", "REST API")

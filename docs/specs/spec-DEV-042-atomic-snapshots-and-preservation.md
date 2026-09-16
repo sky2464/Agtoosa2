@@ -3,7 +3,7 @@
 > **Story ID:** DEV-042  
 > **Parent Epic:** [EPIC-001 — Trusted Knowledge Intelligence](epic-001-trusted-knowledge-intelligence.md)  
 > **Milestone:** Foundation Gate  
-> **Status:** 📋 In Progress  
+> **Status:** ✅ Done  
 > **Impact Rating:** 93 / 100  
 > **Research Basis:** Findings R-04 (non-atomic indexing), R-05 (lost relationships from target edits), R-06 (clean rebuild conflates derived and manual records)  
 > **Dependencies:** DEV-040, DEV-041  

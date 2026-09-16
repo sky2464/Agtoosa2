@@ -1,7 +1,7 @@
 # Specification: DEV-029 PR Blast Radius & Breaking Schema Review Bot
 
 ## Status
-Approved / In Progress
+✅ Implemented & Verified
 
 ## Priority Score
 **91 / 100** (Highest Team & PR Governance Impact — Automates Architectural Review, Breaking Schema Detection, and Production Risk Tiering Directly in Pull Requests)
@@ -14,6 +14,11 @@ When developers submit pull requests, manual code reviews cannot easily determin
 4. **Production Traffic Exposure**: Reviewers cannot distinguish between edits touching a dormant debug script vs. a critical P0 payment endpoint handling 100,000 requests/minute.
 
 Currently, Agtoosa has local CLI commands (`agtoosa review`, `agtoosa graph impact`, `agtoosa graph routes`, `agtoosa graph events`), but reviewers must manually pull the branch and run them.
+
+## Acceptance Criteria
+- **AC-1 (PR Diff & Blast Radius Analysis)**: WHEN given a PR git diff against `base_ref`, the engine SHALL compute directly modified symbols, upstream callers, and high-risk impact chains.
+- **AC-2 (API & Event Schema Drift Detection)**: WHEN a PR modifies API routes or event topics, the bot SHALL flag contract changes, breaking payload modifications, and decoupled consumers.
+- **AC-3 (Automated GitHub PR Commenting)**: WHEN `agtoosa ci pr-bot` executes in CI, it SHALL generate an interactive GitHub markdown comment summarizing risk, telemetry hotspots, and architectural drift.
 
 ## Objectives
 1. **Unified PR Impact & Risk Analyzer (`PRReviewEngine`)**:

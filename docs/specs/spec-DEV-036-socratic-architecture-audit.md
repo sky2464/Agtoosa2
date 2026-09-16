@@ -1,13 +1,18 @@
 # DEV-036: Socratic Architecture Audit & 1-Click God-Node Refactoring Blueprints
 
 ## Status
-- **Status:** Approved
+- **Status:** ✅ Implemented & Verified
 - **Cycle ID:** DEV-036
 - **Layer:** Architecture Review / Refactoring / Verification
 - **Dependencies:** DEV-044, DEV-048, DEV-033, DEV-034
 
 ## Context & Problem Statement
 Static analysis tools typically dump static metrics (cyclomatic complexity, line counts) without providing actionable refactoring pathways or identifying cross-modal architectural inconsistencies (e.g. architecture diagrams specifying microservice boundaries that code violates, or God classes accumulating unsustainable efferent/afferent coupling). Furthermore, AI coding agents entering a codebase often jump straight to code edits without realizing the architectural blast radius of God nodes.
+
+## Acceptance Criteria
+- **AC-1 (God-Node & Centrality Identification)**: WHEN auditing architecture, the engine SHALL compute centrality metrics and structural coupling to identify architectural God nodes.
+- **AC-2 (Cyclic Hotspots & Cross-Modal Consistency)**: WHEN cycles or unverified doc claims exist, the audit SHALL pinpoint exact SCC cycles and ungrounded claims.
+- **AC-3 (Refactoring Blueprints & Audit CLI)**: WHEN `agtoosa audit` is executed, the engine SHALL generate structured refactoring blueprints and remediation plans.
 
 ## Architectural Invariants
 1. **Multi-Faceted Centrality & God Node Identification**:

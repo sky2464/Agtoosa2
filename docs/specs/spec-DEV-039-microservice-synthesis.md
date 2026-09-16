@@ -2,7 +2,7 @@
 
 > **Cycle:** DEV-039  
 > **Milestone:** Milestone 15 (v0.9.0)  
-> **Status:** Implemented & Verified  
+> **Status:** ✅ Implemented & Verified  
 > **Type:** Federation & Multi-Language Generation  
 
 ---
@@ -15,6 +15,11 @@ Modern microservice architectures are distributed across polyglot codebases (Pyt
 3. **Cross-Service Drift**: Federated dependencies between services (DEV-015) drift out of sync when backend endpoints change without updating consumer adapters.
 
 Agtoosa2's knowledge graph already extracts and indexes framework routes (FastAPI, Flask, Express, NestJS in DEV-025), gRPC definitions (DEV-015), and schema models. **DEV-039** transforms this rich architectural graph into an autonomous code generation engine that synthesizes strongly-typed gRPC `.proto` contracts, OpenAPI 3.0 specifications, and cross-language client/server boilerplate in Python, TypeScript, and Go.
+
+## Acceptance Criteria
+- **AC-1 (Service Endpoint & Schema Extraction)**: WHEN synthesizing microservices, the engine SHALL extract endpoint signatures, HTTP routes, gRPC methods, and request/response models.
+- **AC-2 (Protobuf & OpenAPI Synthesis)**: WHEN generating service contracts, the engine SHALL emit valid Protobuf v3 (`.proto`) and OpenAPI 3.0 (`openapi.json`) specifications.
+- **AC-3 (Polyglot Client & Server Generation)**: WHEN target languages are specified, the engine SHALL synthesize idiomatic client SDKs and server mux routers across Python, TypeScript, and Go.
 
 ---
 

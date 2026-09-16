@@ -130,6 +130,29 @@ class TestStudioServer(unittest.TestCase):
         self.assertTrue(gen_file.exists())
         self.assertIn("class TestServiceProtocol", gen_file.read_text(encoding="utf-8"))
 
+    def test_api_spectral_and_curvature(self):
+        # 1. GET /api/spectral
+        status, spectral_res = self._request("/api/spectral")
+        self.assertEqual(status, 200)
+        self.assertIn("algebraic_connectivity", spectral_res)
+        self.assertIn("cheeger_conductance", spectral_res)
+        self.assertIn("spectral_radius", spectral_res)
+        self.assertIn("von_neumann_entropy", spectral_res)
+
+        # 2. GET /api/curvature
+        status, curvature_res = self._request("/api/curvature")
+        self.assertEqual(status, 200)
+        self.assertIn("total_edges", curvature_res)
+        self.assertIn("average_curvature", curvature_res)
+        self.assertIn("bottleneck_count", curvature_res)
+        self.assertIn("top_bottlenecks", curvature_res)
+
+        # 3. Verify visualizer graph data includes spectralData and curvatureData
+        status, graph_json = self._request("/api/graph")
+        self.assertEqual(status, 200)
+        self.assertIn("spectralData", graph_json)
+        self.assertIn("curvatureData", graph_json)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,7 +1,7 @@
 # Specification: DEV-030 Distributed OpenTelemetry Trace Ingestion & Dynamic Topology
 
 ## Status
-Implemented / Ready for Verification
+✅ Implemented & Verified
 
 ## Priority Score
 **87 / 100** (Milestone 12 — Ingests OTLP, Jaeger, and Zipkin spans to map true runtime HTTP/gRPC/RPC call topologies directly alongside static AST callgraphs).
@@ -11,6 +11,11 @@ Static AST analysis provides deep insight into intra-repository function calls, 
 1. **Network Blindspots**: Service $A$ calling Service $B$ over HTTP or gRPC is completely invisible to static AST parsers because the connection occurs across processes and network interfaces.
 2. **Missing Dynamic Telemetry**: Developers cannot determine which remote clients call their endpoints, what the latency distribution ($p50, p95, p99$) looks like across service links, or where cascading network failures originate.
 3. **Decoupled Architecture Drift**: As distributed microservices evolve, unexpected cyclic service dependencies (e.g. Service $A \rightarrow B \rightarrow A$) and uninstrumented external dependencies (Stripe, AWS S3) emerge without notice.
+
+## Acceptance Criteria
+- **AC-1 (Trace Ingestion & Parsing)**: WHEN distributed trace logs (OTLP, Jaeger, Zipkin JSON) are ingested, the engine SHALL extract spans, durations, parent-child relationships, and network attributes.
+- **AC-2 (Service Topology & Dynamic Metrics)**: WHEN traces span multiple services, the engine SHALL construct `Service` nodes, `network_calls` edges, and calculate latency percentiles ($p50, p95, p99$) and error rates.
+- **AC-3 (AST Endpoint Stitching & CLI)**: WHEN trace spans match local routes, the engine SHALL stitch dynamic network edges to static `Endpoint` nodes, queryable via `agtoosa telemetry traces`.
 
 ## Objectives
 1. **Multi-Format Distributed Trace Ingestion Engine (`TraceTopologyEngine`)**:

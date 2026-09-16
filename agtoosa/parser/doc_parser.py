@@ -11,10 +11,19 @@ from agtoosa.parser.base import BaseParser
 class MarkdownDocParser(BaseParser):
     """Extracts Story, Criterion, Task, and ADR entities from documentation."""
 
-    STORY_HEADER_REGEX = re.compile(r"^#\s+Spec:\s+(DEV-\d+)\s+—\s+(.+)$", re.MULTILINE)
-    CRITERION_REGEX = re.compile(r"^-\s+\*\*(AC-\d+)\s*(?:\([^)]+\))?\*\*:\s*(.+)$", re.MULTILINE)
-    TASK_REGEX = re.compile(r"^-\s+\[([ xX])\]\s+\*\*(Task\s+[\d.]+)\*\*:\s*(.+)$", re.MULTILINE)
+    STORY_HEADER_REGEX = re.compile(
+        r"^#\s+(?:(?:Spec(?:ification)?|Story|Epic):\s*|(?:DEV-\d+):\s*|(?:EPIC-\d+):\s*|Epic\s+)?(DEV-\d+|EPIC-\d+)(?:[:\s—\-]+)(.+)$",
+        re.MULTILINE
+    )
+    CRITERION_REGEX = re.compile(r"^-\s+\*\*(AC-?[\d.]+)\s*(?:\([^)]+\))?\*\*:\s*(.+)$", re.MULTILINE)
+    TABLE_CRITERION_REGEX = re.compile(r"^\|\s*(AC-?\d+)\s*\|\s*([^|]+)\s*\|", re.MULTILINE)
+    TASK_REGEX = re.compile(r"^-\s+\[([ xX])\]\s+(?:(?:\*\*(Task\s+[\d.]+)\*\*:\s*(.+))|([^\n]+))$", re.MULTILINE)
     ADR_HEADER_REGEX = re.compile(r"^#\s+\[(ADR-\d+)\]\s+(.+)$", re.MULTILINE)
+    STATUS_REGEX = re.compile(
+        r"(?:(?:^>|\n>|\n|^)\s*\*\*Status:\*\*\s*([^\n]+)|(?:^##\s*Status\s*\n+([^\n]+)))",
+        re.IGNORECASE | re.MULTILINE
+    )
+    MILESTONE_REGEX = re.compile(r"(?:>|\n>)\s*\*\*Milestone:\*\*\s*([^\n]+)", re.IGNORECASE)
 
     def can_parse(self, file_path: Path) -> bool:
         return file_path.suffix.lower() in (".md", ".markdown")
@@ -49,7 +58,19 @@ class MarkdownDocParser(BaseParser):
         if story_match:
             story_id_num = story_match.group(1)  # e.g. DEV-001
             story_title = story_match.group(2).strip()
+            story_title = re.sub(r"^[—\-:\s]+", "", story_title).strip()
             story_node_id = f"story:{story_id_num}"
+
+            # Extract Status & Milestone
+            status_match = self.STATUS_REGEX.search(content)
+            status_val = ""
+            if status_match:
+                raw_stat = (status_match.group(1) or status_match.group(2) or "").strip()
+                s = re.sub(r"^[-*>\s]+", "", raw_stat)
+                status_val = re.sub(r"^(?:\*\*)?Status:(?:\*\*)?\s*", "", s, flags=re.IGNORECASE).strip()
+
+            milestone_match = self.MILESTONE_REGEX.search(content)
+            milestone_val = milestone_match.group(1).strip() if milestone_match else ""
 
             # Story Node
             nodes.append(
@@ -59,7 +80,12 @@ class MarkdownDocParser(BaseParser):
                     node_type=NodeType.STORY,
                     path=rel_path,
                     start_line=1,
-                    metadata={"story_id": story_id_num, "title": story_title}
+                    metadata={
+                        "story_id": story_id_num,
+                        "title": story_title,
+                        "status": status_val,
+                        "milestone": milestone_val,
+                    }
                 )
             )
             edges.append(
@@ -70,10 +96,12 @@ class MarkdownDocParser(BaseParser):
                 )
             )
 
-            # Extract Acceptance Criteria
+            # Extract Acceptance Criteria (Bulleted or Table)
+            crit_seen = set()
             for crit_match in self.CRITERION_REGEX.finditer(content):
                 crit_code = crit_match.group(1)  # e.g. AC-1
                 crit_text = crit_match.group(2).strip()
+                crit_seen.add(crit_code)
                 crit_node_id = f"criterion:{story_id_num}:{crit_code}"
                 line_idx = content[: crit_match.start()].count("\n") + 1
 
@@ -96,11 +124,43 @@ class MarkdownDocParser(BaseParser):
                     )
                 )
 
+            for table_match in self.TABLE_CRITERION_REGEX.finditer(content):
+                crit_code = table_match.group(1)  # e.g. AC-01
+                crit_text = table_match.group(2).strip()
+                if crit_code in crit_seen:
+                    continue
+                crit_seen.add(crit_code)
+                crit_node_id = f"criterion:{story_id_num}:{crit_code}"
+                line_idx = content[: table_match.start()].count("\n") + 1
+
+                nodes.append(
+                    Node(
+                        id=crit_node_id,
+                        name=f"{story_id_num} {crit_code}",
+                        node_type=NodeType.CRITERION,
+                        path=rel_path,
+                        start_line=line_idx,
+                        docstring=crit_text,
+                        metadata={"criterion_code": crit_code}
+                    )
+                )
+                edges.append(
+                    Edge(
+                        source_id=story_node_id,
+                        target_id=crit_node_id,
+                        edge_type=EdgeType.DEFINES
+                    )
+                )
+
             # Extract Tasks
-            for task_match in self.TASK_REGEX.finditer(content):
+            for idx, task_match in enumerate(self.TASK_REGEX.finditer(content), start=1):
                 is_checked = task_match.group(1).lower() == "x"
-                task_code = task_match.group(2).strip()  # e.g. Task 1.1
-                task_desc = task_match.group(3).strip()
+                if task_match.group(2):
+                    task_code = task_match.group(2).strip()  # e.g. Task 1.1
+                    task_desc = (task_match.group(3) or "").strip()
+                else:
+                    task_code = f"Task {idx}"
+                    task_desc = (task_match.group(4) or "").strip()
                 task_node_id = f"task:{story_id_num}:{task_code.replace(' ', '_')}"
                 line_idx = content[: task_match.start()].count("\n") + 1
 

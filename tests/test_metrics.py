@@ -51,6 +51,22 @@ class TestMetrics(unittest.TestCase):
         # Health scorecard
         self.assertIn(report["health_scorecard"]["grade"], ("A", "B"))
 
+        # Spectral and curvature invariants
+        self.assertIn("spectral", report)
+        self.assertIn("curvature", report)
+        self.assertIn("algebraic_connectivity", report["spectral"])
+        self.assertIn("cheeger_conductance", report["spectral"])
+        self.assertIn("von_neumann_entropy", report["spectral"])
+        self.assertIn("bottleneck_count", report["curvature"])
+
+        # Output formatting includes spectral invariants
+        text_out = engine.format_text(report)
+        self.assertIn("Algebraic Connectivity", text_out)
+        self.assertIn("Von Neumann Graph Entropy", text_out)
+
+        md_out = engine.format_markdown(report)
+        self.assertIn("Spectral & Geometric Invariants", md_out)
+
     def test_cycle_detection(self):
         # Circular chain: Module1 -> Module2 -> Module3 -> Module1
         nodes = [

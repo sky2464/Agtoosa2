@@ -344,7 +344,9 @@ class VisualizerEngine:
             "subsystemsData": subsystems_data,
             "telemetryData": telemetry_data,
             "decouplerData": decoupler_data,
-            "deadCodeData": dead_code_data
+            "deadCodeData": dead_code_data,
+            "spectralData": metrics_report.get("spectral", {}),
+            "curvatureData": metrics_report.get("curvature", {})
         }
 
     def generate_html(self, filter_type: Optional[str] = None) -> str:

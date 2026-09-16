@@ -1,13 +1,18 @@
 # DEV-037: Universal Multi-Host Agent Skill & Token-Budgeted Topology Traversal
 
 ## Status
-- **Status:** Approved
+- **Status:** ✅ Implemented & Verified
 - **Cycle ID:** DEV-037
 - **Layer:** Core Agent Integration / Context Compiler / Distribution
 - **Dependencies:** DEV-040, DEV-041, DEV-043, DEV-048, DEV-033, DEV-034, DEV-036
 
 ## Context & Problem Statement
 Modern AI software engineers utilize heterogeneous agent harnesses: Claude Code, Antigravity/Gemini CLI, Cursor, and Windsurf. While standard tools dump excessive file contents into agent context windows, exceeding token limits and inducing attention degradation, graph-guided context compilation can select only the highest-centrality skeleton nodes within a strict token budget. Furthermore, agent developers need a zero-friction CLI installer to equip their agents with Agtoosa2 commands.
+
+## Acceptance Criteria
+- **AC-1 (Universal Skill Bundles)**: WHEN installed, the engine SHALL produce standard agent skill bundles for Claude Code, Antigravity, and Cursor.
+- **AC-2 (Token-Budgeted Context Compiler)**: WHEN compiling context, `TopologyContextCompiler` SHALL enforce strict token budgets while preserving high-centrality symbols and provenance.
+- **AC-3 (Skill Installation CLI)**: WHEN `agtoosa skill install` is executed, the CLI SHALL install skill definitions into target agent host environments.
 
 ## Architectural Decision & Invariants
 1. **Universal Skill Bundles**:

@@ -1,13 +1,18 @@
 # Specification: DEV-027 In-Editor Gutter Lens, 1-Click Refactoring & Marketplace Packaging
 
 ## Status
-Approved / In Progress
+✅ Implemented & Verified
 
 ## Priority Score
 **89 / 100** (High Impact — Direct Developer In-Editor Experience in VS Code & Cursor + Global Marketplace Distribution)
 
 ## Problem Statement
 Developers spend most of their time in the editor (VS Code, Cursor, Windsurf). While Agtoosa provides powerful CLI, MCP, and Studio tools, forcing developers to switch windows or manually query the CLI reduces adoption. Furthermore, without a packaged `.vsix` and automated marketplace pipeline, teams cannot easily install the extension across organizations.
+
+## Acceptance Criteria
+- **AC-1 (Live In-Editor CodeLens & Gutter)**: WHEN source code is open in VS Code / Cursor, the extension SHALL display real-time CodeLens badges (callers, blast radius) and runtime telemetry gutter icons.
+- **AC-2 (1-Click QuickFix Refactoring)**: WHEN architectural drift or dead code is detected, the extension SHALL provide `QuickFix` code actions to safely prune or decouple dependencies.
+- **AC-3 (Extension Packaging & Distribution)**: WHEN `npm run package` is executed, the extension SHALL produce a self-contained `.vsix` bundle ready for marketplace publishing.
 
 ## Objectives
 1. **Live In-Editor CodeLens & Gutter Overlays**:

@@ -1,7 +1,7 @@
 # Specification: DEV-028 Automated C4 Architecture-as-Code & Live Diagram Sync
 
 ## Status
-Implemented / Ready for Verification
+✅ Implemented & Verified
 
 ## Priority Score
 **82 / 100** (Milestone 12 — Living Documentation: Automatically synthesizes and syncs C4 architecture diagrams in Mermaid, PlantUML, and Structurizr DSL directly from the knowledge graph and commits updated diagrams to documentation).
@@ -11,6 +11,11 @@ Software architecture diagrams in software teams suffer from chronic rot:
 1. **Manual Drawing Desynchronization**: Diagrams drawn in Miro, Lucidchart, or Visio become obsolete within weeks as developers add routes, refactor services, or introduce message queues.
 2. **Disconnected Documentation**: Markdown docs in `docs/architecture/` rarely reflect current code reality, leaving new team members and AI coding assistants without a dependable mental model of the system.
 3. **No CI Architecture Drift Enforcement**: CI pipelines test unit tests and lints, but never verify whether architectural documentation accurately reflects system boundaries and containers.
+
+## Acceptance Criteria
+- **AC-1 (Hierarchical C4 Synthesis)**: WHEN `agtoosa c4 export` is invoked, the engine SHALL synthesize Level 1 (Context), Level 2 (Container), and Level 3 (Component) diagrams in Mermaid, PlantUML, or Structurizr DSL.
+- **AC-2 (Live In-Markdown Sync)**: WHEN `agtoosa c4 sync` runs, the engine SHALL update embedded C4 marker blocks in documentation and emit standalone diagram files.
+- **AC-3 (CI Drift Linter Gate)**: WHEN `agtoosa c4 sync --check` runs in CI, the engine SHALL exit non-zero if committed diagrams diverge from code reality.
 
 ## Objectives
 1. **Hierarchical C4 Synthesis Engine (`C4DiagramGenerator`)**:

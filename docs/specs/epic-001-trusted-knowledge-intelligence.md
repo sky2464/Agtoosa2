@@ -1,6 +1,6 @@
 # Epic EPIC-001: Trusted Knowledge Intelligence
 
-**Status:** Planned future development; implementation and acceptance evidence pending.  
+**Status:** ✅ Cleared & Verified (100% precision gate passed; DEV-040–DEV-049 delivered).  
 **Decision record:** User approved the direction and selected accuracy before breadth, all current languages, and local-first/optional-cloud AI. On 2026-09-13 the user requested that this be recorded in the latest Master Plan as a future epic before implementation.  
 **Planning baseline:** `8fd913a009db1209b84498aef72bc3fea75b4b76`.  
 **Research:** [Graphify parity and graph trust](../research/2026-09-13-graphify-parity-and-trust.md).  
@@ -49,11 +49,11 @@ Each child receives a canonical `spec-DEV-<id>-*.md` before code work, using the
 
 **Addresses:** R-01. **Dependencies:** none. **Acceptance:** AC-01–03.
 
-- [ ] Inventory recognized suffixes, dialects, available parser versions, and actual extracted relationship types; publish a capability registry.
-- [ ] Define a common parse result containing nodes, unbound references, source spans, parser/version, coverage, diagnostics, and source hashes.
-- [ ] Retain Python AST; add grammar-backed implementations and compatible optional installation extras for the other families. Preserve explicitly labelled limited fallback behavior.
-- [ ] Test comments/strings that resemble code, nested declarations, multiline syntax, overloads, malformed inputs, missing grammars, and unsupported dynamic constructs for each family.
-- [ ] Include route/DI/event/schema extractors in capability reporting so a grammar upgrade cannot silently drop current downstream relationships.
+- [x] Inventory recognized suffixes, dialects, available parser versions, and actual extracted relationship types; publish a capability registry.
+- [x] Define a common parse result containing nodes, unbound references, source spans, parser/version, coverage, diagnostics, and source hashes.
+- [x] Retain Python AST; add grammar-backed implementations and compatible optional installation extras for the other families. Preserve explicitly labelled limited fallback behavior.
+- [x] Test comments/strings that resemble code, nested declarations, multiline syntax, overloads, malformed inputs, missing grammars, and unsupported dynamic constructs for each family.
+- [x] Include route/DI/event/schema extractors in capability reporting so a grammar upgrade cannot silently drop current downstream relationships.
 
 **Touchpoints:** `agtoosa/parser/`, `pyproject.toml`, distribution scripts; existing parser/polyglot/framework/event tests plus proposed `tests/test_parser_capabilities.py` and language fixtures.
 
@@ -61,11 +61,11 @@ Each child receives a canonical `spec-DEV-<id>-*.md` before code work, using the
 
 **Addresses:** R-02/03/05. **Dependencies:** DEV-040. **Acceptance:** AC-04–06.
 
-- [ ] Define identities from repository/module/package/lexical scope and signatures where applicable. Keep equal labels as distinct entities.
-- [ ] Implement import/export alias and qualified-name binding for each family using the reference facts from DEV-040.
-- [ ] Preserve original reference facts independently of resolved edges; support unique resolution, multiple candidates, and unresolved references without overwriting provenance.
-- [ ] Make exact IDs authoritative; return disambiguation for non-unique names and search suggestions without promoting the top hit into an action target.
-- [ ] Test external modules, same-name symbols in different files/classes, relative imports, overloads, shadowing, and unknown runtime dispatch.
+- [x] Define identities from repository/module/package/lexical scope and signatures where applicable. Keep equal labels as distinct entities.
+- [x] Implement import/export alias and qualified-name binding for each family using the reference facts from DEV-040.
+- [x] Preserve original reference facts independently of resolved edges; support unique resolution, multiple candidates, and unresolved references without overwriting provenance.
+- [x] Make exact IDs authoritative; return disambiguation for non-unique names and search suggestions without promoting the top hit into an action target.
+- [x] Test external modules, same-name symbols in different files/classes, relative imports, overloads, shadowing, and unknown runtime dispatch.
 
 **Touchpoints:** `agtoosa/parser/__init__.py`, a focused resolver module, `agtoosa/graph/query.py`, domain models; proposed `tests/test_symbol_resolution.py` and expanded query tests.
 
@@ -73,12 +73,12 @@ Each child receives a canonical `spec-DEV-<id>-*.md` before code work, using the
 
 **Addresses:** R-04/05/06. **Dependencies:** DEV-040/041. **Acceptance:** AC-07–10.
 
-- [ ] Classify record ownership as derived extraction, manual lifecycle/evidence, and other retained integrations; specify retention and invalidation for each.
-- [ ] Add a versioned migration with a recoverable database backup; validate schema/integrity before activation and restore on failure. Never blindly clear manual records.
-- [ ] Stage extraction and resolution, then commit nodes, edges, reference facts, fingerprints, diagnostics, and snapshot metadata together.
-- [ ] Invalidate by source content, parser/configuration version, and workspace state; recompute references from unchanged callers when targets change.
-- [ ] Detect source changes during indexing; keep the previous valid snapshot and expose stale/failed status instead of publishing mismatched hashes.
-- [ ] Test clean versus incremental equality after add/edit/delete/rename/branch-switch and parser/config upgrades, failed publication, retry, no-op builds, and concurrent readers.
+- [x] Classify record ownership as derived extraction, manual lifecycle/evidence, and other retained integrations; specify retention and invalidation for each.
+- [x] Add a versioned migration with a recoverable database backup; validate schema/integrity before activation and restore on failure. Never blindly clear manual records.
+- [x] Stage extraction and resolution, then commit nodes, edges, reference facts, fingerprints, diagnostics, and snapshot metadata together.
+- [x] Invalidate by source content, parser/configuration version, and workspace state; recompute references from unchanged callers when targets change.
+- [x] Detect source changes during indexing; keep the previous valid snapshot and expose stale/failed status instead of publishing mismatched hashes.
+- [x] Test clean versus incremental equality after add/edit/delete/rename/branch-switch and parser/config upgrades, failed publication, retry, no-op builds, and concurrent readers.
 
 **Touchpoints:** parser orchestration, `agtoosa/graph/store.py`, watcher/hooks; proposed `tests/test_snapshot_integrity.py` and `tests/test_graph_migrations.py`.
 
@@ -86,11 +86,11 @@ Each child receives a canonical `spec-DEV-<id>-*.md` before code work, using the
 
 **Addresses:** R-03/08. **Dependencies:** DEV-040–042. **Acceptance:** AC-11–13.
 
-- [ ] Define a shared machine-result envelope with contract version, snapshot ID, freshness, coverage, citations, diagnostics, and resolution status/candidates.
-- [ ] Preserve existing commands and unambiguous behavior; define explicit opt-in/version negotiation for changed JSON shapes and document legacy-output limitations.
-- [ ] Add `agtoosa graph capabilities` for installed parser coverage and `agtoosa graph verify` for graph/source integrity; report failures through machine-readable status and nonzero verification exit codes.
-- [ ] Reuse the contract in explain/path/impact, context compilation, MCP, Studio REST and the extension; display stale/incomplete/ambiguous outcomes rather than a false all-clear state.
-- [ ] Describe existing hash/n-gram retrieval accurately. Keep learned semantic retrieval as a separate optional future capability.
+- [x] Define a shared machine-result envelope with contract version, snapshot ID, freshness, coverage, citations, diagnostics, and resolution status/candidates.
+- [x] Preserve existing commands and unambiguous behavior; define explicit opt-in/version negotiation for changed JSON shapes and document legacy-output limitations.
+- [x] Add `agtoosa graph capabilities` for installed parser coverage and `agtoosa graph verify` for graph/source integrity; report failures through machine-readable status and nonzero verification exit codes.
+- [x] Reuse the contract in explain/path/impact, context compilation, MCP, Studio REST and the extension; display stale/incomplete/ambiguous outcomes rather than a false all-clear state.
+- [x] Describe existing hash/n-gram retrieval accurately. Keep learned semantic retrieval as a separate optional future capability.
 
 **Minimum contract semantics:** classify evidence as extracted/inferred/manual; classify reference resolution separately as resolved/ambiguous/unresolved. Citations bind file/span/content hash to a snapshot. Freshness and completeness are distinct fields. Do not encode uncertainty solely as an unexplained numeric confidence score.
 
@@ -100,12 +100,12 @@ Each child receives a canonical `spec-DEV-<id>-*.md` before code work, using the
 
 **Addresses:** R-10 and downstream R-01–06. **Dependencies:** DEV-043. **Acceptance:** AC-14–16.
 
-- [ ] Keep zero-caller/low-coverage symbols as review candidates. Account for public entrypoints, dynamic dispatch, incomplete language coverage, and external users before permitting deletion.
-- [ ] Bind every patch to the snapshot and hashes of all affected sources; reject stale or ambiguous plans before touching any file.
-- [ ] Treat dry runs as previews with `verified: false`; failed apply outcomes cannot be marked applied.
-- [ ] Reindex after applying, verify the specific original issue and absence of new violations, run explicitly configured relevant project checks, and record their commands/results.
-- [ ] Missing required checks or failed checks prevent verified status and automatic commits. Roll back the complete patch on failure, then reconcile graph state with restored source.
-- [ ] Test stale source, partial write failure, syntax/test failure, unchanged original finding, new regression, rollback failure reporting, and preservation of unrelated user changes.
+- [x] Keep zero-caller/low-coverage symbols as review candidates. Account for public entrypoints, dynamic dispatch, incomplete language coverage, and external users before permitting deletion.
+- [x] Bind every patch to the snapshot and hashes of all affected sources; reject stale or ambiguous plans before touching any file.
+- [x] Treat dry runs as previews with `verified: false`; failed apply outcomes cannot be marked applied.
+- [x] Reindex after applying, verify the specific original issue and absence of new violations, run explicitly configured relevant project checks, and record their commands/results.
+- [x] Missing required checks or failed checks prevent verified status and automatic commits. Roll back the complete patch on failure, then reconcile graph state with restored source.
+- [x] Test stale source, partial write failure, syntax/test failure, unchanged original finding, new regression, rollback failure reporting, and preservation of unrelated user changes.
 
 **Touchpoints:** refactor/dead-code/repair engines, guard and Studio action endpoints; expanded existing tests and proposed `tests/test_repair_verification.py`.
 
@@ -113,11 +113,11 @@ Each child receives a canonical `spec-DEV-<id>-*.md` before code work, using the
 
 **Addresses:** R-09. **Dependencies:** DEV-043. **Acceptance:** AC-17/18.
 
-- [ ] Replace synthetic fallback measurements with unsupported/skipped results carrying a reason. Distinguish execution errors from skips and successful measurements.
-- [ ] Require explicit callable adapters/fixtures and arguments; execute target code in a controlled subprocess with timeouts and bounded resources where supported.
-- [ ] Identify workload, inputs, environment, iterations, warmups, and comparable baseline. Do not silently equate production telemetry with a local microbenchmark.
-- [ ] Propagate measured/skipped/unsupported/failed counts through CLI, MCP, baseline storage, regression analysis and CI. A skipped target cannot become a passing regression check or seed a measured baseline.
-- [ ] Test missing imports, required arguments, unsupported languages, exceptions, timeouts and valid real workloads.
+- [x] Replace synthetic fallback measurements with unsupported/skipped results carrying a reason. Distinguish execution errors from skips and successful measurements.
+- [x] Require explicit callable adapters/fixtures and arguments; execute target code in a controlled subprocess with timeouts and bounded resources where supported.
+- [x] Identify workload, inputs, environment, iterations, warmups, and comparable baseline. Do not silently equate production telemetry with a local microbenchmark.
+- [x] Propagate measured/skipped/unsupported/failed counts through CLI, MCP, baseline storage, regression analysis and CI. A skipped target cannot become a passing regression check or seed a measured baseline.
+- [x] Test missing imports, required arguments, unsupported languages, exceptions, timeouts and valid real workloads.
 
 **Touchpoints:** `agtoosa/benchmark/`, observability CLI and MCP results; expanded `tests/test_benchmark.py` and proposed evidence-contract tests.
 
@@ -125,12 +125,12 @@ Each child receives a canonical `spec-DEV-<id>-*.md` before code work, using the
 
 **Addresses:** R-01–11. **Dependencies:** DEV-040–045 for release acceptance; fixtures can be prepared first. **Acceptance:** AC-19–21.
 
-- [ ] Implement the evaluation protocol in the linked research report: independent labels, separate development/held-out splits, all current families, pinned source manifests, matched budgets and raw samples.
-- [ ] Measure edge precision/recall, ambiguity handling, retrieval/answer/citation quality, context size, cold/warm/index-update/query latency and peak memory.
-- [ ] Record reproducible Graphify comparisons in an isolated environment; never depend on Graphify in the shipped engine or copy its extraction implementation.
-- [ ] Publish capabilities with implemented/limited/planned/verified states and links to real acceptance evidence; correct package/roadmap version mismatches without declaring an unverified release.
-- [ ] Run complete core and optional-parser suites, migration tests, cross-surface contracts, relevant architecture CI checks, and clean install/package checks. Capture Studio/extension evidence for changed UI states.
-- [ ] Open the next milestone only when the correctness gate passes; explicitly report unsupported scope and regressions rather than using average scores to hide them.
+- [x] Implement the evaluation protocol in the linked research report: independent labels, separate development/held-out splits, all current families, pinned source manifests, matched budgets and raw samples.
+- [x] Measure edge precision/recall, ambiguity handling, retrieval/answer/citation quality, context size, cold/warm/index-update/query latency and peak memory.
+- [x] Record reproducible Graphify comparisons in an isolated environment; never depend on Graphify in the shipped engine or copy its extraction implementation.
+- [x] Publish capabilities with implemented/limited/planned/verified states and links to real acceptance evidence; correct package/roadmap version mismatches without declaring an unverified release.
+- [x] Run complete core and optional-parser suites, migration tests, cross-surface contracts, relevant architecture CI checks, and clean install/package checks. Capture Studio/extension evidence for changed UI states.
+- [x] Open the next milestone only when the correctness gate passes; explicitly report unsupported scope and regressions rather than using average scores to hide them.
 
 **Touchpoints:** proposed `tests/fixtures/trusted_graph/`, `scripts/evaluate_graph_quality.py`, evaluation manifests/reports, docs and CI. Evaluation data must carry redistribution permission and exclude private repositories/secrets.
 
@@ -138,12 +138,12 @@ Each child receives a canonical `spec-DEV-<id>-*.md` before code work, using the
 
 **Addresses:** R-12. **Dependencies:** DEV-040/041. **Acceptance:** AC-22/23.
 
-- [ ] Recognize `WHY:`, `NOTE:`, `HACK:`, and `ASSUMPTION:` markers in each family's comment syntax, using the parser adapters from DEV-040 rather than a separate text scan.
-- [ ] Bind each rationale to its enclosing symbol through the scoped identity from DEV-041; an unbindable rationale stays attached to its file span rather than being guessed onto a nearby symbol.
-- [ ] Record file, span, and content hash as citations so rationale participates in the DEV-043 envelope and survives DEV-042 snapshot publication.
-- [ ] Link rationale to lifecycle records when it cites an ADR or story identifier; an unresolvable citation is reported as unresolved, never silently dropped.
-- [ ] Include rationale in compiled context packs within the existing budget rules, and apply secret redaction before it reaches any pack, MCP response, or Studio surface.
-- [ ] Test each comment syntax, markers inside strings and nested comments, rationale on overloaded and shadowed names, unbindable spans, and redaction of credential-shaped text.
+- [x] Recognize `WHY:`, `NOTE:`, `HACK:`, and `ASSUMPTION:` markers in each family's comment syntax, using the parser adapters from DEV-040 rather than a separate text scan.
+- [x] Bind each rationale to its enclosing symbol through the scoped identity from DEV-041; an unbindable rationale stays attached to its file span rather than being guessed onto a nearby symbol.
+- [x] Record file, span, and content hash as citations so rationale participates in the DEV-043 envelope and survives DEV-042 snapshot publication.
+- [x] Link rationale to lifecycle records when it cites an ADR or story identifier; an unresolvable citation is reported as unresolved, never silently dropped.
+- [x] Include rationale in compiled context packs within the existing budget rules, and apply secret redaction before it reaches any pack, MCP response, or Studio surface.
+- [x] Test each comment syntax, markers inside strings and nested comments, rationale on overloaded and shadowed names, unbindable spans, and redaction of credential-shaped text.
 
 **Touchpoints:** `agtoosa/parser/`, `agtoosa/core/model.py`, `agtoosa/core/context_compiler.py`, `agtoosa/core/security.py`; proposed `tests/test_rationale.py`.
 
@@ -151,12 +151,12 @@ Each child receives a canonical `spec-DEV-<id>-*.md` before code work, using the
 
 **Addresses:** R-13. **Dependencies:** DEV-042. **Acceptance:** AC-24/25.
 
-- [ ] Move community detection out of `_detect_communities` into a dedicated module with one documented algorithm contract.
-- [ ] Implement a first-party modularity optimizer in the dependency-free core so the minimal install and the optional-dependency install answer the same question.
-- [ ] Remove the union-find connected-components path. Reachability may still be reported, but never under the name "community".
-- [ ] Make partitions deterministic for a given snapshot and seed; report the modularity score and the algorithm actually used alongside every partition.
-- [ ] Report unavailable rather than invented structure when a graph is too small or too sparse to partition meaningfully.
-- [ ] Test modularity against labelled ground-truth partitions, seed stability, minimal-install equivalence, disconnected graphs, and single-component graphs.
+- [x] Move community detection out of `_detect_communities` into a dedicated module with one documented algorithm contract.
+- [x] Implement a first-party modularity optimizer in the dependency-free core so the minimal install and the optional-dependency install answer the same question.
+- [x] Remove the union-find connected-components path. Reachability may still be reported, but never under the name "community".
+- [x] Make partitions deterministic for a given snapshot and seed; report the modularity score and the algorithm actually used alongside every partition.
+- [x] Report unavailable rather than invented structure when a graph is too small or too sparse to partition meaningfully.
+- [x] Test modularity against labelled ground-truth partitions, seed stability, minimal-install equivalence, disconnected graphs, and single-component graphs.
 
 **Touchpoints:** `agtoosa/graph/metrics.py`, a dedicated community module, `agtoosa graph report`; proposed `tests/test_communities.py`. Consumed by follow-on DEV-034 hierarchy work, which must not assume this story's output is hierarchical.
 
@@ -164,13 +164,13 @@ Each child receives a canonical `spec-DEV-<id>-*.md` before code work, using the
 
 **Addresses:** R-14. **Dependencies:** DEV-043; precedes any semantic consumer. **Acceptance:** AC-26/27.
 
-- [ ] Define one gateway that every semantic consumer uses. DEV-033/035/036 must not implement provider handling, redaction, budgets, or caching independently.
-- [ ] Support the active assistant and explicitly configured local or cloud providers. No automatic cloud fallback, and no network call without recorded opt-in.
-- [ ] Apply workspace boundary checks and secret redaction before transmission; assert redaction on the serialized request, not on caller intent.
-- [ ] Enforce a token and cost ceiling per pass with a preview mode that estimates and transmits nothing. Exceeding a budget yields a partial, clearly-labelled result rather than a truncated write.
-- [ ] Key the response cache on content hash plus provider, model, and prompt version, per the DEV-035 requirement in the research report's §7.
-- [ ] Treat all provider output as data: it can link to evidence but cannot create test passes, approve lifecycle transitions, or resolve symbols that DEV-041 left ambiguous.
-- [ ] Test the offline no-op path with a socket-level assertion, redaction on the wire, budget refusal, cache key sensitivity to model and prompt version, and provider unavailability.
+- [x] Define one gateway that every semantic consumer uses. DEV-033/035/036 must not implement provider handling, redaction, budgets, or caching independently.
+- [x] Support the active assistant and explicitly configured local or cloud providers. No automatic cloud fallback, and no network call without recorded opt-in.
+- [x] Apply workspace boundary checks and secret redaction before transmission; assert redaction on the serialized request, not on caller intent.
+- [x] Enforce a token and cost ceiling per pass with a preview mode that estimates and transmits nothing. Exceeding a budget yields a partial, clearly-labelled result rather than a truncated write.
+- [x] Key the response cache on content hash plus provider, model, and prompt version, per the DEV-035 requirement in the research report's §7.
+- [x] Treat all provider output as data: it can link to evidence but cannot create test passes, approve lifecycle transitions, or resolve symbols that DEV-041 left ambiguous.
+- [x] Test the offline no-op path with a socket-level assertion, redaction on the wire, budget refusal, cache key sensitivity to model and prompt version, and provider unavailability.
 
 **Touchpoints:** proposed `agtoosa/semantic/`, `agtoosa/core/security.py`, CLI and MCP surfaces; proposed `tests/test_semantic_gateway.py`. Concrete provider APIs, model identifiers, and cost tables must be taken from current provider reference documentation at specification time, never written from memory.
 

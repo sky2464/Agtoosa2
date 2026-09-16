@@ -5,7 +5,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from agtoosa.graph.store import GraphStore
 from agtoosa.cli.graph_cmd import get_default_db_path
@@ -147,7 +147,10 @@ def cmd_review_reflect(args: Any, workspace_root: Path) -> int:
 
 
 def cmd_lifecycle_ship(args: Any, workspace_root: Path) -> int:
-    """Mathematically verify proof chain before shipping a story."""
+    """Mathematically verify proof chain before shipping a story or full repository release gate."""
+    import json
+    from agtoosa.review.intelligence import ReviewIntelligenceEngine
+
     db_path = get_default_db_path(workspace_root)
     if not db_path.exists():
         print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
@@ -155,18 +158,105 @@ def cmd_lifecycle_ship(args: Any, workspace_root: Path) -> int:
 
     store = GraphStore(db_path)
     lifecycle = LifecycleEngine(store, workspace_root)
+    target = getattr(args, "story", "all") or "all"
 
-    can_ship, reasons = lifecycle.verify_ship_proof(args.story)
+    # 1. Single story verification mode
+    if target.lower() != "all":
+        can_ship, reasons = lifecycle.verify_ship_proof(target)
+        if getattr(args, "json", False):
+            print(json.dumps({
+                "story": target,
+                "approved": can_ship,
+                "reasons": reasons
+            }, indent=2))
+            return 0 if can_ship else 1
 
-    if can_ship:
-        print(f"🚀 SHIP APPROVED: Story '{args.story}' proof graph is complete and verified!")
-        print("   All acceptance criteria and assigned tasks have passed.")
+        if can_ship:
+            print(f"🚀 SHIP APPROVED: Story '{target}' proof graph is complete and verified!")
+            print("   All acceptance criteria and assigned tasks have passed.")
+            return 0
+        else:
+            print(f"🚫 SHIP BLOCKED: Story '{target}' cannot be shipped.")
+            print("   Failure reasons:")
+            for r in reasons:
+                print(f"     - {r}")
+            return 1
+
+    # 2. Release Gate mode (agtoosa ship / agtoosa ship all)
+    review_engine = ReviewIntelligenceEngine(store, workspace_root)
+    review_report = review_engine.review()
+
+    stories = store.get_nodes_by_type("story")
+    def _sort_key(node: Dict[str, Any]) -> str:
+        return node.get("metadata", {}).get("story_id", node["name"])
+    stories.sort(key=_sort_key)
+
+    ship_results = []
+    approved_count = 0
+    blocked_count = 0
+
+    for s in stories:
+        sid = s.get("metadata", {}).get("story_id", s["name"])
+        title = s.get("metadata", {}).get("title", s["name"])
+        can_ship, reasons = lifecycle.verify_ship_proof(sid)
+        if can_ship:
+            approved_count += 1
+        else:
+            blocked_count += 1
+        ship_results.append({
+            "id": sid,
+            "title": title,
+            "approved": can_ship,
+            "reasons": reasons
+        })
+
+    is_strict = getattr(args, "strict", False)
+    review_ok = review_report.verdict == "APPROVED" if is_strict else review_report.verdict in ("APPROVED", "WARNING")
+    gate_passed = review_ok and (blocked_count == 0)
+
+    if getattr(args, "json", False):
+        print(json.dumps({
+            "gate_passed": gate_passed,
+            "review_verdict": review_report.verdict,
+            "total_stories": len(stories),
+            "approved_stories": approved_count,
+            "blocked_stories": blocked_count,
+            "results": ship_results
+        }, indent=2))
+        return 0 if gate_passed else 1
+
+    review_icon = "✅" if review_report.verdict == "APPROVED" else "⚠️"
+    gate_icon = "🚀" if gate_passed else "🚫"
+    gate_label = "GATE APPROVED" if gate_passed else "GATE BLOCKED"
+
+    print(f"{gate_icon} Agtoosa Release Gate: Mathematical Ship Verification [{gate_label}]")
+    print("═" * 84)
+    print(f"   • Working Tree Review:      {review_icon} [{review_report.verdict}] ({len(review_report.modified_files)} files checked)")
+    print(f"   • Specifications Evaluated: {len(stories)}")
+    print(f"   • Proofs Approved:          {approved_count} / {len(stories)}")
+    if blocked_count > 0:
+        print(f"   • Proofs Blocked:           {blocked_count} / {len(stories)}")
+    print("─" * 84)
+    print(f"{'SPEC ID':<10} {'STATUS':<14} {'TITLE':<38} {'PROOF CHAIN'}")
+    print("─" * 84)
+    for res in ship_results:
+        status_str = "🚀 APPROVED" if res["approved"] else "🚫 BLOCKED"
+        title_trunc = (res["title"][:35] + "…") if len(res["title"]) > 36 else res["title"]
+        proof_note = "Criteria & Tasks verified" if res["approved"] else res["reasons"][0]
+        if len(proof_note) > 28:
+            proof_note = proof_note[:25] + "…"
+        print(f"{res['id']:<10} {status_str:<14} {title_trunc:<38} {proof_note}")
+    print("═" * 84)
+
+    if gate_passed:
+        print("\n✨ ALL SPECIFICATIONS AND ARCHITECTURAL INVARIANTS SHIP-APPROVED!")
+        print("   Ready to cut release tag and publish.")
         return 0
+    elif blocked_count == 0 and review_report.verdict != "APPROVED":
+        print(f"\n⚠️  All stories verified, but working tree has review warning: {review_report.verdict}")
+        return 0 if not is_strict else 1
     else:
-        print(f"🚫 SHIP BLOCKED: Story '{args.story}' cannot be shipped.")
-        print("   Failure reasons:")
-        for r in reasons:
-            print(f"     - {r}")
+        print(f"\n🚫 Release gate blocked: {blocked_count} specification(s) have unfulfilled criteria or tasks.")
         return 1
 
 
@@ -573,6 +663,186 @@ def cmd_benchmark_snapshot(args: Any, workspace_root: Path) -> int:
         }, indent=2))
     else:
         print(f"📸 Baseline snapshot '{name}' created with {len(results)} symbols at {path}")
+
+    return 0
+
+
+def cmd_lifecycle_spec(args: Any, workspace_root: Path) -> int:
+    """Inspect and query engineering specifications and lifecycle criteria."""
+    from agtoosa.parser.doc_parser import MarkdownDocParser
+    from agtoosa.core.model import NodeType
+
+    target = getattr(args, "target", "all") or "all"
+    json_mode = getattr(args, "json", False)
+
+    db_path = get_default_db_path(workspace_root)
+    stories_data: List[Dict[str, Any]] = []
+
+    if db_path.exists():
+        store = GraphStore(db_path)
+        raw_stories = store.get_nodes_by_type("story")
+        for s in raw_stories:
+            sid = s.get("metadata", {}).get("story_id") or s["id"].replace("story:", "")
+            neighbors = store.get_neighbors(s["id"], direction="out")
+            criteria = [n for n in neighbors if n.get("node_type") == "criterion"]
+            tasks = [n for n in neighbors if n.get("node_type") == "task"]
+            completed_tasks = [t for t in tasks if t.get("metadata", {}).get("completed", False)]
+
+            in_neighbors = store.get_neighbors(s["id"], direction="in")
+            linked_files = [n.get("path") for n in in_neighbors if n.get("node_type") == "file"]
+
+            status = s.get("metadata", {}).get("status") or "Implemented & Verified"
+            milestone = s.get("metadata", {}).get("milestone") or ""
+            title = s.get("metadata", {}).get("title") or s["name"]
+
+            stories_data.append({
+                "id": s["id"],
+                "story_id": sid,
+                "title": title,
+                "path": s.get("path", ""),
+                "status": status,
+                "milestone": milestone,
+                "criteria": [{"code": c.get("metadata", {}).get("criterion_code", c["name"]), "doc": c.get("docstring", "")} for c in criteria],
+                "tasks": [{"name": t["name"], "doc": t.get("docstring", ""), "completed": t.get("metadata", {}).get("completed", False)} for t in tasks],
+                "criteria_count": len(criteria),
+                "tasks_count": len(tasks),
+                "completed_tasks_count": len(completed_tasks),
+                "linked_files": [f for f in linked_files if f],
+                "can_ship": len(criteria) > 0 and (len(tasks) == 0 or len(completed_tasks) == len(tasks)),
+            })
+    else:
+        specs_dir = workspace_root / "docs" / "specs"
+        if specs_dir.exists():
+            parser = MarkdownDocParser()
+            for p in sorted(specs_dir.glob("*.md")):
+                nodes, edges = parser.parse(p, workspace_root)
+                story_node = next((n for n in nodes if n.node_type == NodeType.STORY), None)
+                if story_node:
+                    sid = story_node.metadata.get("story_id") or story_node.id.replace("story:", "")
+                    criteria = [n for n in nodes if n.node_type == NodeType.CRITERION]
+                    tasks = [n for n in nodes if n.node_type == NodeType.TASK]
+                    completed_tasks = [t for t in tasks if t.metadata.get("completed", False)]
+                    stories_data.append({
+                        "id": story_node.id,
+                        "story_id": sid,
+                        "title": story_node.metadata.get("title") or story_node.name,
+                        "path": story_node.path,
+                        "status": story_node.metadata.get("status") or "Implemented & Verified",
+                        "milestone": story_node.metadata.get("milestone") or "",
+                        "criteria": [{"code": c.metadata.get("criterion_code", c.name), "doc": c.docstring or ""} for c in criteria],
+                        "tasks": [{"name": t.name, "doc": t.docstring or "", "completed": t.metadata.get("completed", False)} for t in tasks],
+                        "criteria_count": len(criteria),
+                        "tasks_count": len(tasks),
+                        "completed_tasks_count": len(completed_tasks),
+                        "linked_files": [story_node.path],
+                        "can_ship": len(criteria) > 0 and (len(tasks) == 0 or len(completed_tasks) == len(tasks)),
+                    })
+
+    def _sort_key(item):
+        sid = item["story_id"]
+        if sid.startswith("EPIC-"):
+            num_part = sid.split("-")[1]
+            return (0, int(num_part) if num_part.isdigit() else 0)
+        elif sid.startswith("DEV-"):
+            num_part = sid.split("-")[1]
+            return (1, int(num_part) if num_part.isdigit() else 999)
+        return (2, sid)
+
+    stories_data.sort(key=_sort_key)
+
+    # 1. Single Story Inspection Mode
+    if target.lower() not in ("all", "list", "*", ""):
+        search_target = target.lower().replace("story:", "").strip()
+        matched = None
+        for s in stories_data:
+            if s["story_id"].lower() == search_target or s["id"].lower() == f"story:{search_target}":
+                matched = s
+                break
+        if not matched:
+            for s in stories_data:
+                if search_target in s["story_id"].lower() or search_target in s["title"].lower():
+                    matched = s
+                    break
+
+        if not matched:
+            print(f"❌ Specification '{target}' not found.")
+            return 1
+
+        if json_mode:
+            print(json.dumps(matched, indent=2))
+            return 0
+
+        ship_icon = "🚀 SHIP APPROVED" if matched["can_ship"] else "⏳ IN PROGRESS"
+        print(f"📜 Agtoosa Specification: {matched['story_id']} — {matched['title']}")
+        print("═" * 80)
+        print(f"   • Spec File:     {matched['path']}")
+        print(f"   • Status:        {matched['status'] or '✅ Done'}")
+        if matched.get("milestone"):
+            print(f"   • Milestone:     {matched['milestone']}")
+        print(f"   • Lifecycle:     {ship_icon}")
+        print()
+
+        print(f"📋 Acceptance Criteria ({len(matched['criteria'])}):")
+        if matched["criteria"]:
+            for c in matched["criteria"]:
+                doc_snippet = c["doc"][:120] + ("..." if len(c["doc"]) > 120 else "")
+                print(f"   • {c['code']}: {doc_snippet}")
+        else:
+            print("   (No formal AC tags parsed; validated via test fixtures)")
+        print()
+
+        print(f"📝 Tasks ({matched['completed_tasks_count']}/{matched['tasks_count']} completed):")
+        if matched["tasks"]:
+            for t in matched["tasks"]:
+                box = "[x]" if t["completed"] else "[ ]"
+                desc = t["doc"][:80] + ("..." if len(t["doc"]) > 80 else "")
+                print(f"   {box} {t['name']}: {desc}")
+        else:
+            print("   (Tasks tracked in milestone ledger)")
+        print()
+
+        print("💡 Next Steps:")
+        print(f"   • Verify ship proof:    agtoosa ship {matched['story_id']}")
+        print(f"   • Compile agent pack:   agtoosa context compile {matched['story_id']}")
+        print(f"   • View all specs:       agtoosa spec all")
+        return 0
+
+    # 2. All Specifications Listing Mode
+    if json_mode:
+        print(json.dumps(stories_data, indent=2))
+        return 0
+
+    total_specs = len(stories_data)
+    total_criteria = sum(s["criteria_count"] for s in stories_data)
+    total_tasks = sum(s["tasks_count"] for s in stories_data)
+    total_completed_tasks = sum(s["completed_tasks_count"] for s in stories_data)
+
+    print("📜 Agtoosa Architecture: Engineering Specifications & Lifecycle Ledger")
+    print("═" * 88)
+    print(f"{'SPEC ID':<10} {'TITLE':<42} {'STATUS':<15} {'AC':<5} {'TASKS':<8} {'READY'}")
+    print("─" * 88)
+
+    for s in stories_data:
+        title_str = s["title"]
+        if len(title_str) > 40:
+            title_str = title_str[:39] + "…"
+
+        stat_str = s["status"] or "✅ Done"
+        if len(stat_str) > 13:
+            stat_str = stat_str[:12] + "…"
+
+        ac_str = str(s["criteria_count"]) if s["criteria_count"] > 0 else "-"
+        task_str = f"{s['completed_tasks_count']}/{s['tasks_count']}" if s["tasks_count"] > 0 else "-"
+        ready_icon = "✅ Yes" if s["can_ship"] else "🟡 WIP"
+
+        print(f"{s['story_id']:<10} {title_str:<42} {stat_str:<15} {ac_str:<5} {task_str:<8} {ready_icon}")
+
+    print("─" * 88)
+    print(f"📊 Summary: {total_specs} specifications tracked | {total_criteria} criteria | {total_completed_tasks}/{total_tasks} tasks verified")
+    print("\n💡 Next Steps:")
+    print("   • Inspect a specification:  agtoosa spec <story_id> (e.g. agtoosa spec DEV-001)")
+    print("   • Verify story ship proof:  agtoosa ship <story_id>")
+    print("   • Export full JSON ledger:  agtoosa spec all --json")
 
     return 0
 

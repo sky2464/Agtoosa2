@@ -2,7 +2,7 @@
 
 > **Story ID:** DEV-005  
 > **Epic:** Native Knowledge Engine — Visualization & Parity Breadth  
-> **Status:** 🟡 In Progress  
+> **Status:** ✅ Done  
 > **Estimate:** L  
 > **Clarity:** `ready`  
 > **Spec created:** 2026-09-09  

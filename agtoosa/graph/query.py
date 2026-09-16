@@ -227,12 +227,32 @@ def compute_impact(
             "dormant_callers_count": dormant_callers
         }
 
+    # Continuous resolvent shockwave computation
+    spectral_impact = None
+    try:
+        from agtoosa.graph.spectral import SpectralEngine
+        all_nodes = store.get_all_nodes()
+        all_edges = store.get_all_edges()
+        if len(all_nodes) > 1 and len(all_edges) > 0:
+            spectral_eng = SpectralEngine(all_nodes, all_edges)
+            resolvent_res = spectral_eng.compute_resolvent_impact(target_id)
+            intensity_map = {item["id"]: item["shockwave_intensity"] for item in resolvent_res.get("impacted", [])}
+            for imp in impacted_nodes:
+                imp["shockwave_intensity"] = intensity_map.get(imp["id"], 0.0)
+            spectral_impact = {
+                "alpha": resolvent_res.get("alpha"),
+                "impacted_count": resolvent_res.get("impacted_count", 0)
+            }
+    except Exception:
+        pass
+
     return {
         "target": target_node,
         "impacted_count": len(impacted_nodes),
         "impacted": impacted_nodes,
         "federated_repos_impacted": repos_impacted,
-        "production_blast_radius": prod_summary
+        "production_blast_radius": prod_summary,
+        "spectral_blast_radius": spectral_impact
     }
 
 

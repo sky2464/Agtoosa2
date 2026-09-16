@@ -252,6 +252,25 @@ def main(argv=None) -> int:
     drift_vis_p.add_argument("--strict", action="store_true", help="Exit 1 if drift or ghost nodes are detected")
     drift_vis_p.add_argument("--json", action="store_true", help="Output drift audit as JSON")
 
+    # agtoosa graph spectral (DEV-052)
+    spectral_p = graph_sub.add_parser("spectral", help="Algebraic and spectral graph theory analysis (Laplacian, Fiedler cut, spectral radius, FAS)")
+    spectral_p.add_argument("--cut", action="store_true", help="Compute Cheeger conductance bisection cut")
+    spectral_p.add_argument("--radius", action="store_true", help="Compute Perron-Frobenius spectral radius and epidemic threshold")
+    spectral_p.add_argument("--fas", action="store_true", help="Compute Minimum Feedback Arc Set")
+    spectral_p.add_argument("--transitive", action="store_true", help="Compute Poset Transitive Reduction (Hasse diagram)")
+    spectral_p.add_argument("--json", action="store_true", help="Output spectral analysis as JSON")
+
+    # agtoosa graph curvature (DEV-054)
+    curv_p = graph_sub.add_parser("curvature", help="Discrete differential geometry: Forman-Ricci curvature and Gromov hyperbolicity")
+    curv_p.add_argument("-n", "--top", type=int, default=10, help="Top fragile choke points to display (default: 10)")
+    curv_p.add_argument("--hyperbolic", action="store_true", help="Evaluate Gromov delta-hyperbolicity tree-likeness")
+    curv_p.add_argument("--json", action="store_true", help="Output curvature analysis as JSON")
+
+    # agtoosa build (DEV-003 alias for agtoosa graph build)
+    top_build_p = subparsers.add_parser("build", help="Build and index local knowledge graph (alias for 'agtoosa graph build')")
+    top_build_p.add_argument("--clean", action="store_true", help="Clean rebuild of all graph tables")
+    top_build_p.add_argument("target", nargs="?", default="all", help="Build target (default: all)")
+
     # agtoosa ingest <target> (DEV-033)
     ingest_p = subparsers.add_parser("ingest", help="Ingest multimodal diagram, markdown, or URL")
     ingest_p.add_argument("target", type=str, help="Path to diagram, doc, or URL")
@@ -277,7 +296,7 @@ def main(argv=None) -> int:
     extract_p = subparsers.add_parser("extract", help="Multi-agent semantic extraction and hallucination guard")
     extract_sub = extract_p.add_subparsers(dest="extract_action", required=True)
     extract_sem_p = extract_sub.add_parser("semantic", help="Extract grounded concepts from documentation assets")
-    extract_sem_p.add_argument("-d", "--dir", type=str, help="Documentation directory (default: docs/)")
+    extract_sem_p.add_argument("-d", "--dir", "--docs", dest="dir", type=str, help="Documentation directory (default: docs/)")
     extract_sem_p.add_argument("--chunk-size", type=int, default=15, help="Batch size for parallel/chunk processing (default: 15)")
     extract_sem_p.add_argument("--strict-grounding", action="store_true", help="Reject ungrounded symbols without fuzzy repair")
     extract_sem_p.add_argument("--json", action="store_true", help="Output extraction report as JSON")
@@ -394,9 +413,16 @@ def main(argv=None) -> int:
     version_parser = subparsers.add_parser("version", help="Display version and runtime diagnostic information")
     version_parser.add_argument("--json", action="store_true", help="Output diagnostic information as JSON")
 
-    # agtoosa ship <story>
-    ship_parser = subparsers.add_parser("ship", help="Verify proof graph and ship story")
-    ship_parser.add_argument("story", type=str, help="Target Story ID to verify and ship")
+    # agtoosa spec [target]
+    spec_parser = subparsers.add_parser("spec", help="Inspect and query engineering specifications and lifecycle criteria")
+    spec_parser.add_argument("target", nargs="?", default="all", help="Target story ID (e.g. DEV-001) or 'all' (default: all)")
+    spec_parser.add_argument("--json", action="store_true", help="Output specifications as JSON")
+
+    # agtoosa ship [story]
+    ship_parser = subparsers.add_parser("ship", help="Verify proof graph and ship story or full repository release gate")
+    ship_parser.add_argument("story", nargs="?", default="all", help="Target Story ID to verify and ship or 'all' (default: all)")
+    ship_parser.add_argument("--json", action="store_true", help="Output ship verification as JSON")
+    ship_parser.add_argument("--strict", action="store_true", help="Enforce strict zero-warning policy on shipping")
 
     # agtoosa telemetry ...
     telem_parser = subparsers.add_parser("telemetry", help="Runtime observability, OpenTelemetry ingestion, and heatmaps")
@@ -420,6 +446,15 @@ def main(argv=None) -> int:
     heatmap_p.add_argument("--json", action="store_true", help="Output heatmap data as JSON")
 
     clear_p = telem_sub.add_parser("clear", help="Clear all stored runtime telemetry")
+
+    # agtoosa telemetry causal <source> <target> (DEV-055)
+    causal_p = telem_sub.add_parser("causal", help="Causal architecture inference: Pearl's do-calculus and confounding resolution (DEV-055)")
+    causal_p.add_argument("source", nargs="?", default=None, help="Cause variable / symbol X")
+    causal_p.add_argument("target", nargs="?", default=None, help="Effect variable / symbol Y")
+    causal_p.add_argument("--source", dest="source_flag", type=str, default=None, help="Cause variable / symbol X")
+    causal_p.add_argument("--target", dest="target_flag", type=str, default=None, help="Effect variable / symbol Y")
+    causal_p.add_argument("--data", type=str, help="Optional path to contingency JSON observations")
+    causal_p.add_argument("--json", action="store_true", help="Output causal effect as JSON")
 
     # agtoosa refactor ...
     refactor_parser = subparsers.add_parser("refactor", help="Autonomous architectural refactoring and cycle decoupling")
@@ -577,6 +612,15 @@ def main(argv=None) -> int:
             if args.drift_action == "visual":
                 from agtoosa.cli.graph_cmd import cmd_graph_drift_visual
                 return cmd_graph_drift_visual(args, workspace_root)
+        elif args.graph_action == "spectral":
+            from agtoosa.cli.graph_cmd import cmd_graph_spectral
+            return cmd_graph_spectral(args, workspace_root)
+        elif args.graph_action == "curvature":
+            from agtoosa.cli.graph_cmd import cmd_graph_curvature
+            return cmd_graph_curvature(args, workspace_root)
+    elif args.command == "build":
+        from agtoosa.cli.graph_cmd import cmd_graph_build
+        return cmd_graph_build(args, workspace_root)
     elif args.command == "ingest":
         from agtoosa.cli.graph_cmd import cmd_ingest
         return cmd_ingest(args, workspace_root)
@@ -644,6 +688,9 @@ def main(argv=None) -> int:
         elif args.benchmark_action == "snapshot":
             from agtoosa.cli.lifecycle_cmd import cmd_benchmark_snapshot
             return cmd_benchmark_snapshot(args, workspace_root)
+    elif args.command == "spec":
+        from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_spec
+        return cmd_lifecycle_spec(args, workspace_root)
     elif args.command == "ship":
         from agtoosa.cli.lifecycle_cmd import cmd_lifecycle_ship
         return cmd_lifecycle_ship(args, workspace_root)

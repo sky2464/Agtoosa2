@@ -2,7 +2,7 @@
 
 > **Cycle:** DEV-050  
 > **Milestone:** Milestone 17 (Developer Experience & Contextual Intelligence)  
-> **Status:** Implemented & Verified  
+> **Status:** ✅ Implemented & Verified  
 > **Type:** Feature  
 
 ---
@@ -21,6 +21,11 @@ Without immediate, plain-language guidance, users struggle to answer three criti
 3. **What should I run next?** (What is the exact terminal command or Studio action to resolve or investigate this?)
 
 ---
+
+## Acceptance Criteria
+- **AC-1 (Contextual Diagnosis Banner)**: WHEN diagnostic commands run, the engine SHALL render a human-readable diagnosis banner explaining system health.
+- **AC-2 (Risk & Blast Radius Translation)**: WHEN graph risks exist, the engine SHALL explain the architectural implications of isolated nodes, high PageRank hubs, and cycles.
+- **AC-3 (Actionable Next-Steps Recommendations)**: WHEN any report concludes, the engine SHALL provide a prioritized list of exact executable CLI commands tailored to the findings.
 
 ## 2. Capability Requirements
 

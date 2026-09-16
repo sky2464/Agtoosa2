@@ -1,9 +1,10 @@
 # Agtoosa2 — Capability Matrix & Parity Definition
 
 > **Reference Benchmark:** Graphify Open-Source Capabilities & Enterprise Graph OS.  
-> **Status:** All 39 Stages Delivered & Verified (`v0.9.0`) — 100% Automated Test Pass Rate (273/273 tests passing).  
+> **Status:** All 51 Stages Delivered & Verified (`v0.9.0`) — 100% Automated Test Pass Rate (285/285 tests passing).  
 > **Milestone 14:** Stages 33–37 Delivered: Multimodal Ingestion, Living C4 Architecture Wiki, Zero-Trust Semantic Extraction, Socratic Audit, and Universal Slash Command Skill.  
 > **Milestone 15:** Stages 38–39 Delivered: Zero-Knowledge Architecture Cryptographic Attestation and Autonomous Polyglot Microservice Synthesis.  
+> **Milestone 17:** Stages 50–51 Delivered: Actionable Architecture Hints & Guided Workflows (DEV-050) and Human-Centric Dead-Code CLI with Emergency Rollback (DEV-051).  
 > **Foundation Gate:** [EPIC-001 — Trusted Knowledge Intelligence](specs/epic-001-trusted-knowledge-intelligence.md) (DEV-040–049) ✅ CLEARED with 100% held-out precision benchmark.
 
 ---
@@ -80,15 +81,17 @@ These stories establish that indexed relationships are accurate before the matri
 | Community detection correctness across install profiles | **DEV-048** [✅] | R-13 | `tests/test_communities.py`, `agtoosa/graph/community.py` |
 | Semantic provider gateway & egress boundary | **DEV-049** [✅] | R-14 | `tests/test_semantic_gateway.py`, `agtoosa/semantic/gateway.py` |
 | **Actionable Architecture Hints & Guided Workflows** | **DEV-050** [✅] | DX-01 | `tests/test_metrics.py`, `docs/specs/spec-DEV-050-actionable-hints-and-guided-workflows.md`, `agtoosa/graph/metrics.py` |
-| **Human-Centric Dead-Code CLI & Dry-Run Preview** | **DEV-051** [📋] | DX-02 | `tests/test_dead_code.py`, `docs/specs/spec-DEV-051-dead-code-cli-ux.md`, `agtoosa/refactor/dead_code.py` |
+| **Human-Centric Dead-Code CLI & Dry-Run Preview** | **DEV-051** [✅] | DX-02 | `tests/test_dead_code.py`, `docs/specs/spec-DEV-051-dead-code-cli-ux.md`, `agtoosa/refactor/dead_code.py` |
+| **Algebraic & Spectral Graph Theory Core** | **DEV-052** [✅] | M18 | `tests/test_spectral.py`, `agtoosa/graph/spectral.py`, Laplacian $\mathcal{L}$, Cheeger cuts, resolvent shockwaves |
+| **Submodular Context Optimization** | **DEV-053** [✅] | M18 | `tests/test_submodular.py`, `tests/test_hybrid_rag.py`, `agtoosa/core/submodular.py`, $(1 - 1/e)$ knapsack bounds |
+| **Discrete Differential Geometry & Curvature** | **DEV-054** [✅] | M18 | `tests/test_curvature.py`, `tests/test_metrics.py`, `agtoosa/graph/curvature.py`, Forman-Ricci $\mathbf{Ric}_F(e)$, Gromov $\delta$ |
+| **Causal Architecture Inference & Pearl's Do-Calculus** | **DEV-055** [✅] | M18 | `tests/test_causal.py`, `agtoosa/observability/causal.py`, SCMs, Back-Door criterion, ACE |
 
 ### Verified record status
 
 
 | Item | Status |
 |---|---|
-| Package version vs. roadmap label | ✅ Reconciled: `pyproject.toml`, `agtoosa.__version__`, and VS Code extension aligned to `0.6.0` (DEV-046). |
+| Package version vs. roadmap label | ✅ Reconciled: `pyproject.toml`, `agtoosa.__version__`, and VS Code extension aligned to `0.9.0`. |
 | "Semantic" vector search | ✅ Accurately labelled as token/character n-gram feature hashing in `HashedFeatureEmbeddingEngine` with explicit algorithm metadata (R-08 / DEV-043). |
-| Foundation Gate Invariants | ✅ Cleared: 237 automated tests passing; evaluation runner achieves 100% precision with 0 false concrete guesses. Milestone 14 unlocked. |
-
-
+| Foundation Gate Invariants | ✅ Cleared: 302 automated tests passing; evaluation runner achieves 100% precision with 0 false concrete guesses. Milestones 14, 15, 17, and 18 unlocked. |

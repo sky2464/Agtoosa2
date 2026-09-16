@@ -1,13 +1,18 @@
 # Specification: DEV-031 AI Automated PR Repair & Code Review Agent
 
 ## Status
-Implemented / Ready for Verification
+✅ Implemented & Verified
 
 ## Priority Score
 **79 / 100** (Milestone 13 — Autonomous Code Healing: Generates automated PR branch commits with refactor fixes directly resolving detected architectural drift, circular dependencies, dead code, and breaking schema changes).
 
 ## Problem Statement
 While PR review bots (`DEV-029`) and pre-push daemons (`DEV-024`) detect architectural violations and blast radius regressions, developers still face the friction of manually designing interface protocols, unlinking cyclic dependencies, or safely deleting dead symbols without introducing runtime regressions.
+
+## Acceptance Criteria
+- **AC-1 (Architectural Issue Diagnostics)**: WHEN `PRAgentRepairEngine` inspects a PR diff or working tree, it SHALL diagnose cyclic dependencies, dead code, and tier boundary leaks.
+- **AC-2 (Autonomous AST Patch Synthesis)**: WHEN actionable violations are identified, the engine SHALL synthesize decoupled interface protocols and safe dead-code pruning patches.
+- **AC-3 (Verification & Atomic Rollback)**: WHEN patches are applied, the engine SHALL re-audit graph invariants and atomically rollback all changes if any test or invariant fails.
 
 ## Objectives
 1. **Autonomous Architectural Diagnostics (`PRAgentRepairEngine`)**:

@@ -1284,3 +1284,170 @@ def cmd_skill_install(args: Any, workspace_root: Path) -> int:
         print("=" * 75 + "\n")
 
     return 0
+
+
+def cmd_graph_spectral(args: Any, workspace_root: Path) -> int:
+    """Execute algebraic and spectral graph theory analysis (DEV-052)."""
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print(f"❌ Knowledge graph database not found at {db_path}.")
+        return 1
+
+    store = GraphStore(db_path)
+    nodes = store.get_all_nodes()
+    edges = store.get_all_edges()
+
+    from agtoosa.graph.spectral import SpectralEngine
+    engine = SpectralEngine(nodes, edges)
+
+    as_json = getattr(args, "json", False)
+
+    if getattr(args, "cut", False):
+        res = engine.compute_fiedler_cut()
+        if as_json:
+            print(json.dumps(res, indent=2))
+        else:
+            print("\n📐 Spectral Bisection & Cheeger Conductance Cut (DEV-052)")
+            print("=" * 75)
+            print(f"Algebraic Connectivity (λ₂): {res['algebraic_connectivity']}")
+            print(f"Is Connected:                {res['is_connected']}")
+            print(f"Cheeger Conductance h(G):    {res['cheeger_conductance']}")
+            print(f"Cheeger Bounds:              [{res['cheeger_lower_bound']}, {res['cheeger_upper_bound']}]")
+            print(f"Partition Sizes:             Set A: {len(res['cut_partition'][0])}, Set B: {len(res['cut_partition'][1])}")
+            print("=" * 75 + "\n")
+        return 0
+
+    if getattr(args, "radius", False):
+        res = engine.compute_spectral_radius()
+        if as_json:
+            print(json.dumps(res, indent=2))
+        else:
+            print("\n📐 Perron-Frobenius Spectral Radius & Epidemic Threshold (DEV-052)")
+            print("=" * 75)
+            print(f"Spectral Radius λ₁(A):       {res['spectral_radius']}")
+            print(f"Epidemic Threshold τ_c:      {res['epidemic_threshold']}")
+            print(f"Power Iteration Converged:   {res['is_converged']}")
+            print("=" * 75 + "\n")
+        return 0
+
+    if getattr(args, "fas", False):
+        res = engine.compute_minimum_feedback_arc_set()
+        if as_json:
+            print(json.dumps(res, indent=2))
+        else:
+            print("\n📐 Minimum Feedback Arc Set (FAS) (DEV-052)")
+            print("=" * 75)
+            print(f"Total Directed Edges:        {res['total_edges']}")
+            print(f"Feedback Arcs to Decouple:   {res['feedback_arc_count']}")
+            if res["feedback_arcs"]:
+                print("\n   Feedback Edges Causing Cycles:")
+                for e in res["feedback_arcs"][:15]:
+                    print(f"   • {e['source']} -> {e['target']}")
+                if len(res["feedback_arcs"]) > 15:
+                    print(f"     ... and {len(res['feedback_arcs']) - 15} more")
+            else:
+                print("   ✅ Graph is already a strict Directed Acyclic Graph (DAG) with zero cycles.")
+            print("=" * 75 + "\n")
+        return 0
+
+    if getattr(args, "transitive", False):
+        res = engine.compute_transitive_reduction()
+        if as_json:
+            print(json.dumps(res, indent=2))
+        else:
+            print("\n📐 Poset Transitive Reduction / Hasse Diagram (DEV-052)")
+            print("=" * 75)
+            print(f"Essential Edges:             {res['essential_edge_count']}")
+            print(f"Redundant Transitive Edges:  {res['redundant_edge_count']}")
+            if res["redundant_edges"]:
+                print("\n   Redundant Shortcut Edges (Transitive Chains Exist):")
+                for e in res["redundant_edges"][:15]:
+                    print(f"   • {e['source']} -> {e['target']}")
+            print("=" * 75 + "\n")
+        return 0
+
+    # Default full spectral report
+    fiedler = engine.compute_fiedler_cut()
+    sr = engine.compute_spectral_radius()
+    entropy = engine.compute_von_neumann_entropy()
+    fas = engine.compute_minimum_feedback_arc_set()
+
+    full_res = {
+        "algebraic_connectivity": fiedler["algebraic_connectivity"],
+        "is_connected": fiedler["is_connected"],
+        "cheeger_conductance": fiedler["cheeger_conductance"],
+        "cheeger_bounds": [fiedler["cheeger_lower_bound"], fiedler["cheeger_upper_bound"]],
+        "spectral_radius": sr["spectral_radius"],
+        "epidemic_threshold": sr["epidemic_threshold"],
+        "von_neumann_entropy": entropy,
+        "feedback_arc_count": fas["feedback_arc_count"]
+    }
+
+    if as_json:
+        print(json.dumps(full_res, indent=2))
+    else:
+        print("\n📐 Agtoosa2 Algebraic & Spectral Graph Analysis (DEV-052)")
+        print("=" * 75)
+        print(f"Algebraic Connectivity (λ₂): {full_res['algebraic_connectivity']} ({'Connected' if full_res['is_connected'] else 'Disconnected/Fragile'})")
+        print(f"Cheeger Conductance h(G):    {full_res['cheeger_conductance']} (Bounds: [{fiedler['cheeger_lower_bound']}, {fiedler['cheeger_upper_bound']}])")
+        print(f"Von Neumann Graph Entropy:   {full_res['von_neumann_entropy']} bits")
+        print(f"Spectral Radius λ₁(A):       {full_res['spectral_radius']} (Epidemic Threshold τ_c = {full_res['epidemic_threshold']})")
+        print(f"Feedback Arc Count (Cycles): {full_res['feedback_arc_count']}")
+        print("=" * 75)
+        print("💡 Use flags for deeper views: --cut, --radius, --fas, --transitive, --json\n")
+
+    return 0
+
+
+def cmd_graph_curvature(args: Any, workspace_root: Path) -> int:
+    """Execute Forman-Ricci discrete curvature and differential geometry audit (DEV-054)."""
+    db_path = get_default_db_path(workspace_root)
+    if not db_path.exists():
+        print(f"❌ Knowledge graph database not found at {db_path}.")
+        return 1
+
+    store = GraphStore(db_path)
+    nodes = store.get_all_nodes()
+    edges = store.get_all_edges()
+
+    from agtoosa.graph.curvature import CurvatureEngine
+    engine = CurvatureEngine(nodes, edges)
+
+    top_k = getattr(args, "top", 10)
+    as_json = getattr(args, "json", False)
+    check_hyperbolic = getattr(args, "hyperbolic", False)
+
+    ric_res = engine.compute_forman_ricci_curvature()
+    hyp_res = engine.compute_gromov_hyperbolicity() if check_hyperbolic else None
+
+    result: Dict[str, Any] = {
+        "total_edges": ric_res["total_edges"],
+        "average_curvature": ric_res["average_curvature"],
+        "bottleneck_count": ric_res["bottleneck_count"],
+        "cluster_edge_count": ric_res["cluster_edge_count"],
+        "top_bottlenecks": ric_res["top_bottlenecks"][:top_k]
+    }
+    if hyp_res:
+        result["hyperbolicity"] = hyp_res
+
+    if as_json:
+        print(json.dumps(result, indent=2))
+    else:
+        print("\n🌐 Discrete Differential Geometry: Forman-Ricci Curvature (DEV-054)")
+        print("=" * 75)
+        print(f"Total Edges Analyzed:        {ric_res['total_edges']}")
+        print(f"Average Curvature Ric_F:     {ric_res['average_curvature']}")
+        print(f"Fragile Bridges (Ric_F < 0): {ric_res['bottleneck_count']}")
+        print(f"Cluster Edges (Ric_F > 0):   {ric_res['cluster_edge_count']}")
+
+        if hyp_res:
+            print(f"Gromov δ-Hyperbolicity:      δ = {hyp_res['delta']} ({'Tree-like / Hyperbolic' if hyp_res['is_tree_like'] else 'High-density grid'})")
+
+        print(f"\n⚠️  Top {len(result['top_bottlenecks'])} Fragile Architectural Choke Points:")
+        for idx, b in enumerate(result["top_bottlenecks"], start=1):
+            print(f"   [{idx}] {b['source_name']} <-> {b['target_name']}")
+            print(f"       Curvature: {b['curvature']} | Degrees: ({b['deg_source']}, {b['deg_target']}) | Triangles: {b['triangles']}")
+
+        print("=" * 75 + "\n")
+
+    return 0
