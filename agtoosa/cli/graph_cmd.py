@@ -16,6 +16,23 @@ def get_default_db_path(workspace_root: Path) -> Path:
 
 def cmd_graph_build(args: Any, workspace_root: Path) -> int:
     """Build or rebuild the knowledge graph."""
+    # Check if user is running in the Agtoosa project directory itself
+    # Detection strategy: look for AGENTS.md and agtoosa/core/ directory
+    agents_md_path = workspace_root / "AGENTS.md"
+    agtoosa_dir = workspace_root / "agtoosa"
+    
+    is_agtoosa_project = False
+    
+    # Simple check: look for AGENTS.md and agtoosa/core/ directory
+    if agents_md_path.exists() and agtoosa_dir.exists() and (agtoosa_dir / "core").exists():
+        is_agtoosa_project = True
+    
+    if is_agtoosa_project:
+        print("⚠️  WARNING: You are running 'agtoosa graph build' in the Agtoosa project directory itself.")
+        print("   This will index the Agtoosa source code instead of your own project.")
+        print("   Navigate to your project directory and run the command there to index your code.")
+        print("   Continuing with Agtoosa self-indexing...\n")
+    
     db_path = get_default_db_path(workspace_root)
     store = GraphStore(db_path)
     engine = ParserEngine()

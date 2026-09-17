@@ -241,11 +241,16 @@ uv pip install -e '.[full]'
 source .venv/bin/activate
 ```
 
+**⚠️ Important:** After installation, navigate to your own project directory to use Agtoosa. Do not run Agtoosa commands in the Agtoosa installation directory itself, as this will index the Agtoosa source code instead of your project. If you accidentally run it in the Agtoosa directory, you'll see a warning message.
+
 ### 3. Build Your First Graph
-Index your current repository into `.agtoosa/graph.db` with one command:
+Navigate to your own project directory (not the Agtoosa installation directory) and index your repository into `.agtoosa/graph.db` with one command:
 ```bash
+cd /path/to/your/project
 agtoosa graph build
 ```
+
+**Important:** Always run `agtoosa graph build` in your own project directory, not in the Agtoosa installation directory. Running it in the Agtoosa project directory will index the Agtoosa source code itself, which is not what you want for analyzing your own projects. If you accidentally run it in the Agtoosa directory, you'll see a warning message.
 
 ### 4. Check Health and Launch Studio
 ```bash
