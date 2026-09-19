@@ -28,10 +28,7 @@ def cmd_graph_build(args: Any, workspace_root: Path) -> int:
         is_agtoosa_project = True
     
     if is_agtoosa_project:
-        print("⚠️  WARNING: You are running 'agtoosa graph build' in the Agtoosa project directory itself.")
-        print("   This will index the Agtoosa source code instead of your own project.")
-        print("   Navigate to your project directory and run the command there to index your code.")
-        print("   Continuing with Agtoosa self-indexing...\n")
+        print("ℹ️  Self-indexing Agtoosa2 workspace (to index another project: cd /path/to/project && agtoosa graph build)\n")
     
     db_path = get_default_db_path(workspace_root)
     store = GraphStore(db_path)
