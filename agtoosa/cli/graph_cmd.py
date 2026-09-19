@@ -186,11 +186,21 @@ def cmd_graph_view(args: Any, workspace_root: Path) -> int:
         from agtoosa.graph.server import run_studio_server
         port = getattr(args, "port", 8080) or 8080
         host = getattr(args, "host", "127.0.0.1") or "127.0.0.1"
-        server = run_studio_server(store, workspace_root, port=port, host=host)
-        url = f"http://{host}:{port}/"
-        print(f"🚀 Agtoosa Studio Command Center live at: {url}")
-        print(f"   Two-way interactive refactoring API enabled.")
-        print(f"   Press Ctrl+C to stop.")
+        strict_port = getattr(args, "strict_port", False)
+
+        try:
+            server = run_studio_server(store, workspace_root, port=port, host=host, auto_port=not strict_port)
+        except OSError as exc:
+            print(f"❌ Error starting Agtoosa Studio: port {port} is unavailable ({exc}).")
+            print(f"   Specify a different port using: agtoosa graph view --serve --port <port>")
+            return 1
+
+        actual_port = server.server_address[1]
+        display_host = "127.0.0.1" if host in ("0.0.0.0", "") else host
+        url = f"http://{display_host}:{actual_port}/"
+        print(f"🚀 Agtoosa Studio Command Center live at: {url}", flush=True)
+        print(f"   Two-way interactive refactoring API enabled.", flush=True)
+        print(f"   Press Ctrl+C to stop.", flush=True)
         if open_browser:
             import webbrowser
             webbrowser.open(url)

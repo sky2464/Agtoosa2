@@ -136,6 +136,23 @@ def run_client():
         self.assertEqual(ret_gml, 0)
         self.assertTrue(gml_out.exists())
 
+    def test_cli_view_serve_strict_port_conflict(self):
+        import socket
+        main(["-C", str(self.workspace), "graph", "build"])
+
+        # Bind an ephemeral socket to make port busy
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind(("127.0.0.1", 0))
+        sock.listen(1)
+        busy_port = sock.getsockname()[1]
+
+        try:
+            # Using strict-port should fail cleanly with return code 1
+            ret = main(["-C", str(self.workspace), "graph", "view", "--serve", "--strict-port", "--port", str(busy_port)])
+            self.assertEqual(ret, 1)
+        finally:
+            sock.close()
+
 
 if __name__ == "__main__":
     unittest.main()

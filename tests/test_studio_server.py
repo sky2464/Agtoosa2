@@ -153,6 +153,23 @@ class TestStudioServer(unittest.TestCase):
         self.assertIn("spectralData", graph_json)
         self.assertIn("curvatureData", graph_json)
 
+    def test_auto_port_fallback(self):
+        # self.server is already listening on self.port
+        # Requesting self.port with auto_port=True should bind to a different port
+        fallback_server = run_studio_server(self.store, self.workspace, port=self.port, auto_port=True)
+        try:
+            new_port = fallback_server.server_address[1]
+            self.assertNotEqual(new_port, self.port)
+            self.assertGreater(new_port, self.port)
+        finally:
+            fallback_server.server_close()
+
+    def test_strict_port_raises_on_conflict(self):
+        # self.server is already listening on self.port
+        # Requesting self.port with auto_port=False should raise OSError
+        with self.assertRaises(OSError):
+            run_studio_server(self.store, self.workspace, port=self.port, auto_port=False)
+
 
 if __name__ == "__main__":
     unittest.main()

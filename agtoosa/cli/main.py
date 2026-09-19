@@ -176,6 +176,8 @@ def main(argv=None) -> int:
     view_p.add_argument("--open", action="store_true", help="Automatically open generated visualizer in web browser")
     view_p.add_argument("--serve", action="store_true", help="Start interactive Agtoosa Studio HTTP server with 2-way refactoring actions")
     view_p.add_argument("--port", type=int, default=8080, help="Port for Agtoosa Studio server (default: 8080)")
+    view_p.add_argument("--host", type=str, default="127.0.0.1", help="Host address to bind Agtoosa Studio server (default: 127.0.0.1)")
+    view_p.add_argument("--strict-port", action="store_true", help="Fail if the specified port is in use rather than finding the next available port")
 
     # agtoosa graph report
     report_p = graph_sub.add_parser("report", help="Generate architecture health, cycle detection, and centrality report")

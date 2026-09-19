@@ -9,6 +9,7 @@ Exposes two-way interactive studio actions:
 - GET /api/refactor/backups: Lists all rollback snapshots.
 """
 
+import errno
 from http.server import HTTPServer, ThreadingHTTPServer, BaseHTTPRequestHandler
 import json
 from pathlib import Path
@@ -230,14 +231,42 @@ def run_studio_server(
     store: GraphStore,
     workspace_root: Path,
     port: int = 8080,
-    host: str = "127.0.0.1"
+    host: str = "127.0.0.1",
+    auto_port: bool = True,
+    max_retries: int = 100,
 ) -> HTTPServer:
-    """Create and start the Agtoosa Studio HTTP server."""
+    """Create and start the Agtoosa Studio HTTP server.
+
+    If auto_port is True and the requested port is already in use,
+    automatically probes and binds to the next available port up to max_retries.
+    """
     handler_cls = type(
         "ConfiguredStudioHandler",
         (StudioHTTPHandler,),
         {"store": store, "workspace_root": workspace_root}
     )
-    server = ThreadingHTTPServer((host, port), handler_cls)
-    server.daemon_threads = True
-    return server
+
+    if port == 0:
+        server = ThreadingHTTPServer((host, 0), handler_cls)
+        server.daemon_threads = True
+        return server
+
+    current_port = port
+    attempts = 0
+    while True:
+        try:
+            server = ThreadingHTTPServer((host, current_port), handler_cls)
+            server.daemon_threads = True
+            if current_port != port:
+                print(f"⚠️  Port {port} is already in use. Switched to port {current_port}.", flush=True)
+            return server
+        except OSError as exc:
+            is_addr_in_use = (
+                getattr(exc, "errno", None) in (errno.EADDRINUSE, 48, 98)
+                or "already in use" in str(exc).lower()
+            )
+            if is_addr_in_use and auto_port and attempts < max_retries:
+                attempts += 1
+                current_port += 1
+                continue
+            raise

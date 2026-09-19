@@ -51,10 +51,10 @@ agtoosa graph build
 agtoosa graph view --serve --open
 ```
 
-> 💡 **Tip:** You can also point to any project without `cd`:
-> ```bash
-> agtoosa -C /path/to/your/project graph build
-> ```
+> 💡 **Tips:**
+> - You can index any project from anywhere with `agtoosa -C /path/to/your/project graph build`.
+> - If working inside a virtual environment without activating, prepend `uv run agtoosa ...`.
+> - If port 8080 is already occupied by another service, Agtoosa Studio automatically binds to the next available port (e.g. 8081).
 
 ---
 
@@ -158,7 +158,7 @@ Add this to your `claude_desktop_config.json`:
 |---|---|
 | `agtoosa graph build [--clean]` | Index or re-index the project into local `.agtoosa/graph.db` |
 | `agtoosa graph status` | Check graph stats (files, nodes, connections, freshness) |
-| `agtoosa graph view --serve --open` | Launch the interactive visual web studio on port 8080 |
+| `agtoosa graph view --serve --open` | Launch the interactive visual web studio (port 8080 with auto-port fallback) |
 | `agtoosa graph impact <symbol>` | Calculate blast radius and upstream caller chain |
 | `agtoosa graph query "<query>"` | Search symbols, types, and concepts with FTS5 lexical ranking |
 | `agtoosa query "<target>" --budget 1500` | Compile surgical AI context pack under a token limit |
