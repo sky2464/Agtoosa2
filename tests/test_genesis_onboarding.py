@@ -69,10 +69,10 @@ class TestGenesisOnboarding(unittest.TestCase):
 
             # Verify presence of Engineering Loop and Copilot guidance elements
             self.assertIn("genesis-workflow-section", html)
-            self.assertIn("The Agtoosa Engineering Loop: Develop, Update &amp; Verify", html)
-            self.assertIn("Phase 1: Develop", html)
-            self.assertIn("Phase 2: Update", html)
-            self.assertIn("Phase 3: Verify", html)
+            self.assertIn("How Agtoosa Operates on Autopilot in the Background", html)
+            self.assertIn("Phase 1: Auto-Context", html)
+            self.assertIn("Phase 2: Auto-Sync", html)
+            self.assertIn("Phase 3: Auto-Verify", html)
             self.assertIn("genesis-copilot-card", html)
             self.assertIn("btn-copy-cmd", html)
 

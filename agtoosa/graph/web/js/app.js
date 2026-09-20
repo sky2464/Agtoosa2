@@ -277,27 +277,32 @@
 
       if (genesisMsg) {
         if (!isEnforced) {
-          if (genesisIndicator) genesisIndicator.textContent = "Step 1 of 3: Guard AI Agents";
+          if (genesisIndicator) genesisIndicator.textContent = "⚡ Next: Turn on Autopilot";
           genesisMsg.innerHTML = `
             👋 Welcome to <strong>${escapeHtml(wsName)}</strong>! We found <strong>${docCount} design document(s)</strong> and 0 code files.<br>
-            Before you start writing code, <strong>enforce Agtoosa guardrails on your AI agents</strong> (Antigravity, Claude Code, Cursor, Copilot). This tells them to query subgraphs before making changes and verify zero circular imports.
+            <strong>Next:</strong> Run this command once in your terminal:
+            <div class="step-command-box" style="margin: 8px 0 10px 0;">
+              <code style="font-size: 0.92rem; font-weight: 700; color: #38bdf8;">agtoosa autopilot</code>
+              <button class="btn-copy-cmd primary" data-copy="agtoosa autopilot" type="button">📋 Copy: agtoosa autopilot</button>
+            </div>
+            From now on, <strong>every development you or your AI agents do automatically uses the full benefits of Agtoosa without manual effort</strong>: Claude, Cursor, Antigravity, and Copilot will automatically query subgraphs, maintain your living architecture, and enforce zero circular imports from day one.
           `;
           if (genesisActions) {
             genesisActions.innerHTML = `
-              <button class="btn-copy-cmd primary" data-copy="agtoosa agent-init" type="button">📋 Copy: agtoosa agent-init</button>
-              <button class="btn-copy-cmd" data-copy="touch main.py &amp;&amp; agtoosa graph build" type="button">📋 Copy: touch main.py &amp;&amp; agtoosa graph build</button>
+              <button class="btn-copy-cmd primary" data-copy="agtoosa autopilot" type="button">📋 Copy: agtoosa autopilot</button>
+              <button class="btn-copy-cmd" onclick="document.getElementById('btn-enforce-agents')?.click()" type="button">🤖 1-Click: Enforce on AI Agents</button>
             `;
           }
         } else {
-          if (genesisIndicator) genesisIndicator.textContent = "Step 2 of 3: Start Developing";
+          if (genesisIndicator) genesisIndicator.textContent = "✅ Autopilot Ready: Start Building";
           genesisMsg.innerHTML = `
             🎉 Great job! AI agent guardrails (<code>AGENTS.md</code> &amp; <code>CLAUDE.md</code>) are active in <strong>${escapeHtml(wsName)}</strong>.<br>
-            <strong>Your next step:</strong> Start writing code! Create your first source file (e.g. <code>main.py</code> or <code>index.ts</code>) or prompt your AI agent to implement your first feature. Then run <code>agtoosa graph build</code> to see your architecture live.
+            <strong>You don't need to manually run commands!</strong> Just start writing code or prompt your AI agent to implement your first feature. Agtoosa will automatically index symbols and protect your architecture in the background.
           `;
           if (genesisActions) {
             genesisActions.innerHTML = `
               <button class="btn-copy-cmd primary" data-copy="touch main.py &amp;&amp; agtoosa graph build" type="button">📋 Copy: touch main.py &amp;&amp; agtoosa graph build</button>
-              <button class="btn-copy-cmd" data-copy="agtoosa review" type="button">📋 Copy: agtoosa review</button>
+              <button class="btn-copy-cmd" data-copy="agtoosa status" type="button">📋 Copy: agtoosa status</button>
             `;
           }
         }
@@ -327,23 +332,47 @@
               <button class="btn-copy-cmd" data-copy="agtoosa status" type="button">📋 Copy: agtoosa status</button>
             `;
           }
-        } else {
+        } else if (!isEnforced) {
           if (ovIndicator) {
-            ovIndicator.textContent = `✅ Strict DAG Architecture (${healthData.grade || 'Grade A+'})`;
+            ovIndicator.textContent = "⚡ Next: Turn on Autopilot";
+            ovIndicator.style.background = "rgba(56, 189, 248, 0.15)";
+            ovIndicator.style.borderColor = "rgba(56, 189, 248, 0.35)";
+            ovIndicator.style.color = "#38bdf8";
           }
           ovMsg.innerHTML = `
-            🏛️ Agtoosa is actively monitoring <strong>${codeCount} code file(s)</strong> and <strong>${workspaceMetadata.totalNodeCount || 0} symbols</strong> in <strong>${escapeHtml(wsName)}</strong> with <strong>zero circular dependencies</strong>.<br>
-            <strong>Your continuous engineering loop:</strong><br>
-            • <strong>Develop:</strong> Query bounded context with <code>agtoosa query "&lt;feature&gt;"</code> before prompting AI coding agents.<br>
-            • <strong>Update:</strong> Sync your AST knowledge graph with <code>agtoosa graph build</code> when files change.<br>
-            • <strong>Verify:</strong> Run <code>agtoosa review</code> before committing to enforce layer boundaries.
+            👋 <strong>Put Agtoosa on autopilot in 1 command:</strong><br>
+            Run this command once in your terminal:
+            <div class="step-command-box" style="margin: 8px 0 10px 0;">
+              <code style="font-size: 0.92rem; font-weight: 700; color: #38bdf8;">agtoosa autopilot</code>
+              <button class="btn-copy-cmd primary" data-copy="agtoosa autopilot" type="button">📋 Copy: agtoosa autopilot</button>
+            </div>
+            From now on, <strong>every development you or your AI agents do automatically uses the full benefits of Agtoosa without manual effort</strong>:<br>
+            • 🤖 <strong>AI Agents do the work:</strong> Claude, Cursor, Antigravity &amp; Copilot read <code>AGENTS.md</code> and automatically query context, keep your graph synced, and check architecture boundaries.<br>
+            • 🛡️ <strong>Automated Git Guard:</strong> Pre-commit review catches circular imports and illegal crossings before code is committed.<br>
+            • 🚀 <strong>Zero cognitive load:</strong> You don't have to remember manual commands — you just code, and Agtoosa protects your architecture in the background.
           `;
           if (ovActions) {
             ovActions.innerHTML = `
-              <button class="btn-copy-cmd primary" data-copy="agtoosa review" type="button">📋 Copy: agtoosa review</button>
-              <button class="btn-copy-cmd" data-copy="agtoosa graph build" type="button">📋 Copy: agtoosa graph build</button>
+              <button class="btn-copy-cmd primary" data-copy="agtoosa autopilot" type="button">📋 Copy: agtoosa autopilot</button>
+              <button class="btn-copy-cmd" onclick="document.getElementById('btn-enforce-agents')?.click() || (window.handleFindingAction &amp;&amp; window.handleFindingAction('agent_governance'))" type="button">🤖 1-Click: Enforce on AI Agents</button>
               <button class="btn-copy-cmd" data-copy="agtoosa status" type="button">📋 Copy: agtoosa status</button>
-              <button class="btn-copy-cmd" data-copy='agtoosa query "service"' type="button">📋 Copy: agtoosa query "service"</button>
+            `;
+          }
+        } else {
+          if (ovIndicator) {
+            ovIndicator.textContent = `✅ Autopilot Active (0 Cycles • ${healthData.grade || 'Grade A+'})`;
+          }
+          ovMsg.innerHTML = `
+            🎉 <strong>Agtoosa is operating on autopilot in ${escapeHtml(wsName)}!</strong><br>
+            Agtoosa is actively monitoring <strong>${codeCount} code file(s)</strong> and <strong>${workspaceMetadata.totalNodeCount || 0} symbols</strong> in the background.<br>
+            Your AI coding agents (Claude, Cursor, Antigravity, Copilot) are governed by <code>AGENTS.md</code> &amp; <code>CLAUDE.md</code>. Whenever you prompt an AI agent or write code, Agtoosa automatically maintains your architecture, indexes symbols, and guards against spaghetti code without manual chores.<br>
+            <strong>You don't need to manually run commands</strong> — just write code normally!
+          `;
+          if (ovActions) {
+            ovActions.innerHTML = `
+              <button class="btn-copy-cmd primary" data-copy="agtoosa status" type="button">📋 Copy: agtoosa status</button>
+              <button class="btn-copy-cmd" data-copy="agtoosa review" type="button">📋 Copy: agtoosa review (Manual Check)</button>
+              <button class="btn-copy-cmd" data-copy="agtoosa graph build" type="button">📋 Copy: agtoosa graph build (Manual Sync)</button>
             `;
           }
         }

@@ -404,6 +404,18 @@ def main(argv=None) -> int:
     agent_init_p.add_argument("--no-git-hooks", action="store_true", help="Skip installing git pre-push and pre-commit review hooks")
     agent_init_p.add_argument("--json", action="store_true", help="Output status report as JSON")
 
+    # agtoosa autopilot (alias for agent-init)
+    autopilot_p = subparsers.add_parser("autopilot", help="Turn on zero-friction architecture autopilot for AI agents and git hooks (alias for 'agent-init')")
+    autopilot_p.add_argument("-t", "--target", type=str, default="all", choices=["all", "agents", "claude", "cursor", "windsurf", "copilot"], help="Target AI agent environment (default: all)")
+    autopilot_p.add_argument("--no-git-hooks", action="store_true", help="Skip installing git pre-push and pre-commit review hooks")
+    autopilot_p.add_argument("--json", action="store_true", help="Output status report as JSON")
+
+    # agtoosa setup (alias for agent-init)
+    setup_p = subparsers.add_parser("setup", help="Set up AI agent guardrails and automated git hooks (alias for 'agent-init')")
+    setup_p.add_argument("-t", "--target", type=str, default="all", choices=["all", "agents", "claude", "cursor", "windsurf", "copilot"], help="Target AI agent environment (default: all)")
+    setup_p.add_argument("--no-git-hooks", action="store_true", help="Skip installing git pre-push and pre-commit review hooks")
+    setup_p.add_argument("--json", action="store_true", help="Output status report as JSON")
+
     # agtoosa context compile <target>
     context_parser = subparsers.add_parser("context", help="Context Compilation v2 (Graph RAG for AI Agents)")
     context_sub = context_parser.add_subparsers(dest="context_action", required=True)
@@ -735,7 +747,7 @@ def main(argv=None) -> int:
         if args.skill_action == "install":
             from agtoosa.cli.graph_cmd import cmd_skill_install
             return cmd_skill_install(args, workspace_root)
-    elif args.command == "agent-init":
+    elif args.command in ("agent-init", "autopilot", "setup"):
         from agtoosa.cli.lifecycle_cmd import cmd_agent_init
         return cmd_agent_init(args, workspace_root)
     elif args.command == "context":

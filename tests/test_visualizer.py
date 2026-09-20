@@ -53,7 +53,7 @@ class TestVisualizer(unittest.TestCase):
         self.assertIn("v0.9.10", html)
         self.assertIn('class="view-panel active"', html)
         self.assertIn("overview-copilot-card", html)
-        self.assertIn("The Agtoosa Engineering Loop: Develop, Update", html)
+        self.assertIn("How Agtoosa Operates on Autopilot in the Background", html)
         self.assertNotIn("&bull;", html)
 
     def test_filter_type(self):

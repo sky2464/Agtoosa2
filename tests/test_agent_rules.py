@@ -84,6 +84,17 @@ class TestAgentWorkflowEnforcer(unittest.TestCase):
                 self.assertTrue(data["is_enforced"])
                 self.assertIn("AGENTS.md", data["installed_files"])
                 self.assertIn("CLAUDE.md", data["installed_files"])
+
+                # Test autopilot and setup aliases
+                f2 = io.StringIO()
+                with redirect_stdout(f2):
+                    ret2 = main(["autopilot", "--no-git-hooks", "--json"])
+                self.assertEqual(ret2, 0)
+
+                f3 = io.StringIO()
+                with redirect_stdout(f3):
+                    ret3 = main(["setup", "--no-git-hooks", "--json"])
+                self.assertEqual(ret3, 0)
             finally:
                 os.chdir(orig_cwd)
 

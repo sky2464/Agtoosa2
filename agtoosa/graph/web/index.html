@@ -125,85 +125,85 @@
           </div>
         </div>
 
-        <!-- The 3-Step Lifecycle: Develop, Update & Verify (DEV-058) -->
-        <div class="genesis-workflow-section">
-          <div class="workflow-title-row">
-            <h2><span>🔄</span> The Agtoosa Engineering Loop: Develop, Update &amp; Verify</h2>
-            <p>Agtoosa isn't just a static diagram — it's your active architecture copilot. Here is your daily development cycle:</p>
-          </div>
-
-          <div class="workflow-steps-grid">
-            <!-- Phase 1: Develop -->
-            <div class="workflow-step-card">
-              <div class="step-badge">Phase 1: Develop</div>
-              <div class="step-header">
-                <span style="font-size: 1.4rem;">💻</span>
-                <h3>Develop with Context</h3>
-              </div>
-              <p>Write your code manually or prompt AI coding agents (Claude, Cursor, Antigravity). Query bounded subgraphs instead of feeding bloated repos.</p>
-              <div class="step-command-box">
-                <code>agtoosa query "&lt;feature&gt;"</code>
-                <button class="btn-copy-cmd" data-copy='agtoosa query "auth"' title="Copy command" type="button">📋 Copy</button>
-              </div>
-              <div class="step-explanation">
-                <strong>Why it matters:</strong> Slashes token usage by 70% and gives your AI the exact callers and types needed to avoid hallucinations.
-              </div>
-            </div>
-
-            <!-- Phase 2: Update -->
-            <div class="workflow-step-card">
-              <div class="step-badge">Phase 2: Update</div>
-              <div class="step-header">
-                <span style="font-size: 1.4rem;">🧠</span>
-                <h3>Update Living Graph</h3>
-              </div>
-              <p>Whenever you or your AI agent creates, modifies, or renames files, sync your AST knowledge graph so your architecture map stays 100% current.</p>
-              <div class="step-command-box">
-                <code>agtoosa graph build</code>
-                <button class="btn-copy-cmd" data-copy="agtoosa graph build" title="Copy command" type="button">📋 Copy</button>
-              </div>
-              <div class="step-explanation">
-                <strong>Why it matters:</strong> Completely eliminates manual documentation drift. Symbols, classes, and calls are re-indexed in milliseconds.
-              </div>
-            </div>
-
-            <!-- Phase 3: Verify -->
-            <div class="workflow-step-card">
-              <div class="step-badge">Phase 3: Verify</div>
-              <div class="step-header">
-                <span style="font-size: 1.4rem;">🛡️</span>
-                <h3>Verify Guardrails</h3>
-              </div>
-              <p>Before committing or completing a task, run architectural review. Verify zero circular imports and strict layer boundary invariants.</p>
-              <div class="step-command-box">
-                <code>agtoosa review</code>
-                <button class="btn-copy-cmd" data-copy="agtoosa review" title="Copy command" type="button">📋 Copy</button>
-              </div>
-              <div class="step-explanation">
-                <strong>Why it matters:</strong> Traps architectural debt, circular imports, and unauthorized layer crossing before merging code.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Conversational Copilot Advice Box -->
+        <!-- Conversational Copilot Advice Box (Next Action on Autopilot) -->
         <div class="copilot-advice-box" id="genesis-copilot-card">
           <div class="copilot-icon">💬</div>
           <div class="copilot-content">
             <div class="copilot-title-row">
               <span class="copilot-title" id="copilot-title">Agtoosa Copilot: What to Do Next</span>
-              <span class="copilot-step-indicator" id="copilot-step-indicator">Step 1 of 3: Planning Stage</span>
+              <span class="copilot-step-indicator" id="copilot-step-indicator">1-Command Setup</span>
             </div>
             <div class="copilot-message" id="copilot-message">
               <!-- Dynamically populated based on project state -->
             </div>
             <div class="copilot-quick-actions" id="copilot-quick-actions">
-              <button class="btn-copy-cmd primary" id="btn-copilot-action1" data-copy="touch main.py &amp;&amp; agtoosa graph build" type="button">
-                📋 Copy: touch main.py &amp;&amp; agtoosa graph build
+              <button class="btn-copy-cmd primary" id="btn-copilot-action1" data-copy="agtoosa autopilot" type="button">
+                📋 Copy: agtoosa autopilot
               </button>
-              <button class="btn-copy-cmd" id="btn-copilot-action2" data-copy="agtoosa review" type="button">
-                📋 Copy: agtoosa review
+              <button class="btn-copy-cmd" id="btn-copilot-action2" data-copy="agtoosa status" type="button">
+                📋 Copy: agtoosa status
               </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- How Agtoosa Operates on Autopilot in the Background -->
+        <div class="genesis-workflow-section">
+          <div class="workflow-title-row">
+            <h2><span>🔄</span> How Agtoosa Operates on Autopilot in the Background</h2>
+            <p>Zero manual chores on your shoulders. Once initialized, your AI coding agents and Git hooks execute this loop automatically:</p>
+          </div>
+
+          <div class="workflow-steps-grid">
+            <!-- Phase 1: Auto-Context -->
+            <div class="workflow-step-card">
+              <div class="step-badge">Automated by AI Agents</div>
+              <div class="step-header">
+                <span style="font-size: 1.4rem;">🤖</span>
+                <h3>1. Auto-Context Pre-Flight</h3>
+              </div>
+              <p>When you prompt Claude, Cursor, or Antigravity, they automatically query Agtoosa's bounded subgraphs before writing code. Slashes LLM token waste by 70%+ and eliminates hallucinations.</p>
+              <div class="step-command-box">
+                <code>agtoosa query "&lt;feature&gt;"</code>
+                <button class="btn-copy-cmd" data-copy='agtoosa query "auth"' title="Copy manual shortcut" type="button">📋 Copy Shortcut</button>
+              </div>
+              <div class="step-explanation">
+                <strong>How it's automated:</strong> Handled automatically by AI agents via <code>AGENTS.md</code> instructions.
+              </div>
+            </div>
+
+            <!-- Phase 2: Auto-Sync -->
+            <div class="workflow-step-card">
+              <div class="step-badge">Automated in Background</div>
+              <div class="step-header">
+                <span style="font-size: 1.4rem;">🧠</span>
+                <h3>2. Auto-Graph Synchronization</h3>
+              </div>
+              <p>Whenever you or your AI agent creates, modifies, or renames files, your AST knowledge graph refreshes automatically. Blueprints and blast radius calculations stay 100% current without manual docs.</p>
+              <div class="step-command-box">
+                <code>agtoosa graph build</code>
+                <button class="btn-copy-cmd" data-copy="agtoosa graph build" title="Copy manual shortcut" type="button">📋 Copy Shortcut</button>
+              </div>
+              <div class="step-explanation">
+                <strong>How it's automated:</strong> AI agents and watchers re-index symbols in milliseconds.
+              </div>
+            </div>
+
+            <!-- Phase 3: Auto-Verify -->
+            <div class="workflow-step-card">
+              <div class="step-badge">Automated on Git Commit</div>
+              <div class="step-header">
+                <span style="font-size: 1.4rem;">🛡️</span>
+                <h3>3. Spaghetti-Proof Guardrails</h3>
+              </div>
+              <p>Before committing code or completing a task, Git pre-commit hooks and AI review gates automatically check layer boundaries and verify zero circular imports. Traps architectural debt before merging.</p>
+              <div class="step-command-box">
+                <code>agtoosa review</code>
+                <button class="btn-copy-cmd" data-copy="agtoosa review" title="Copy manual shortcut" type="button">📋 Copy Shortcut</button>
+              </div>
+              <div class="step-explanation">
+                <strong>How it's automated:</strong> Runs automatically on <code>git commit</code> via installed Git hooks.
+              </div>
             </div>
           </div>
         </div>
@@ -292,62 +292,62 @@
         </div>
       </div>
 
-      <!-- The 3-Step Lifecycle: Develop, Update & Verify (DEV-058) -->
+      <!-- How Agtoosa Operates on Autopilot in the Background -->
       <div class="genesis-workflow-section" style="margin-top: 0;">
         <div class="workflow-title-row">
-          <h2><span>🔄</span> The Agtoosa Engineering Loop: Develop, Update &amp; Verify</h2>
-          <p>Maintain 100% architectural health across every change made by you or your AI agents:</p>
+          <h2><span>🔄</span> How Agtoosa Operates on Autopilot in the Background</h2>
+          <p>Zero manual chores on your shoulders. Once initialized, your AI coding agents and Git hooks execute this loop automatically:</p>
         </div>
 
         <div class="workflow-steps-grid">
-          <!-- Phase 1: Develop -->
+          <!-- Phase 1: Auto-Context -->
           <div class="workflow-step-card">
-            <div class="step-badge">Phase 1: Develop</div>
+            <div class="step-badge">Automated by AI Agents</div>
             <div class="step-header">
-              <span style="font-size: 1.4rem;">💻</span>
-              <h3>Develop with Context</h3>
+              <span style="font-size: 1.4rem;">🤖</span>
+              <h3>1. Auto-Context Pre-Flight</h3>
             </div>
-            <p>Write your code manually or prompt AI coding agents (Claude, Cursor, Antigravity). Query bounded subgraphs instead of feeding bloated repos.</p>
+            <p>When you prompt Claude, Cursor, or Antigravity, they automatically query Agtoosa's bounded subgraphs before writing code. Slashes LLM token waste by 70%+ and eliminates hallucinations.</p>
             <div class="step-command-box">
               <code>agtoosa query "&lt;feature&gt;"</code>
-              <button class="btn-copy-cmd" data-copy='agtoosa query "auth"' title="Copy command" type="button">📋 Copy</button>
+              <button class="btn-copy-cmd" data-copy='agtoosa query "auth"' title="Copy manual shortcut" type="button">📋 Copy Shortcut</button>
             </div>
             <div class="step-explanation">
-              <strong>Why it matters:</strong> Slashes token usage by 70% and gives your AI the exact callers and types needed to avoid hallucinations.
+              <strong>How it's automated:</strong> Handled automatically by AI agents via <code>AGENTS.md</code> instructions.
             </div>
           </div>
 
-          <!-- Phase 2: Update -->
+          <!-- Phase 2: Auto-Sync -->
           <div class="workflow-step-card">
-            <div class="step-badge">Phase 2: Update</div>
+            <div class="step-badge">Automated in Background</div>
             <div class="step-header">
               <span style="font-size: 1.4rem;">🧠</span>
-              <h3>Update Living Graph</h3>
+              <h3>2. Auto-Graph Synchronization</h3>
             </div>
-            <p>Whenever you or your AI agent creates, modifies, or renames files, sync your AST knowledge graph so your architecture map stays 100% current.</p>
+            <p>Whenever you or your AI agent creates, modifies, or renames files, your AST knowledge graph refreshes automatically. Blueprints and blast radius calculations stay 100% current without manual docs.</p>
             <div class="step-command-box">
               <code>agtoosa graph build</code>
-              <button class="btn-copy-cmd" data-copy="agtoosa graph build" title="Copy command" type="button">📋 Copy</button>
+              <button class="btn-copy-cmd" data-copy="agtoosa graph build" title="Copy manual shortcut" type="button">📋 Copy Shortcut</button>
             </div>
             <div class="step-explanation">
-              <strong>Why it matters:</strong> Completely eliminates manual documentation drift. Symbols, classes, and calls are re-indexed in milliseconds.
+              <strong>How it's automated:</strong> AI agents and watchers re-index symbols in milliseconds.
             </div>
           </div>
 
-          <!-- Phase 3: Verify -->
+          <!-- Phase 3: Auto-Verify -->
           <div class="workflow-step-card">
-            <div class="step-badge">Phase 3: Verify</div>
+            <div class="step-badge">Automated on Git Commit</div>
             <div class="step-header">
               <span style="font-size: 1.4rem;">🛡️</span>
-              <h3>Verify Guardrails</h3>
+              <h3>3. Spaghetti-Proof Guardrails</h3>
             </div>
-            <p>Before committing or completing a task, run architectural review. Verify zero circular imports and strict layer boundary invariants.</p>
+            <p>Before committing code or completing a task, Git pre-commit hooks and AI review gates automatically check layer boundaries and verify zero circular imports. Traps architectural debt before merging.</p>
             <div class="step-command-box">
               <code>agtoosa review</code>
-              <button class="btn-copy-cmd" data-copy="agtoosa review" title="Copy command" type="button">📋 Copy</button>
+              <button class="btn-copy-cmd" data-copy="agtoosa review" title="Copy manual shortcut" type="button">📋 Copy Shortcut</button>
             </div>
             <div class="step-explanation">
-              <strong>Why it matters:</strong> Traps architectural debt, circular imports, and unauthorized layer crossing before merging code.
+              <strong>How it's automated:</strong> Runs automatically on <code>git commit</code> via installed Git hooks.
             </div>
           </div>
         </div>

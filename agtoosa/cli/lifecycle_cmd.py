@@ -867,7 +867,7 @@ def cmd_agent_init(args: Any, workspace_root: Path) -> int:
         print(json.dumps(res, indent=2))
         return 0
 
-    print(f"\n🤖 Agtoosa2 AI Agent Workflow Enforcement ({workspace_root.name})")
+    print(f"\n🚀 Agtoosa2 Architecture Autopilot ({workspace_root.name})")
     print("═" * 75)
     print("   Installed & Updated Instructions:")
     for f in res["installed_files"]:
@@ -880,7 +880,10 @@ def cmd_agent_init(args: Any, workspace_root: Path) -> int:
             print(f"   • {icon} .git/hooks/{h}")
 
     print("─" * 75)
-    print("✨ AI agents (Cursor, Claude, Copilot, Antigravity) are now governed by Agtoosa2.")
-    print("   They will automatically run 'agtoosa query' and 'agtoosa review' during development.")
+    print("✨ Autopilot Active! You don't need to manually run commands:")
+    print("   • AI agents (Cursor, Claude, Copilot, Antigravity) automatically query context")
+    print("     and sync your AST knowledge graph via AGENTS.md.")
+    print("   • Git hooks automatically prevent circular dependencies before commits.")
+    print("   From now on, every change you make automatically benefits without manual chores.")
     print("═" * 75 + "\n")
     return 0
