@@ -153,6 +153,16 @@ def run_client():
         finally:
             sock.close()
 
+    def test_cli_update_command_dispatch(self):
+        # Verify update and upgrade are registered parsers
+        with self.assertRaises(SystemExit) as cm:
+            main(["update", "--help"])
+        self.assertEqual(cm.exception.code, 0)
+
+        with self.assertRaises(SystemExit) as cm:
+            main(["upgrade", "--help"])
+        self.assertEqual(cm.exception.code, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

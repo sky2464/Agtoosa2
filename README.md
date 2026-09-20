@@ -42,6 +42,15 @@ cd Agtoosa2
 # (Or manually: uv venv && source .venv/bin/activate && uv pip install -e '.[full]')
 ```
 
+**To Update Agtoosa to Latest at Any Time:**
+```bash
+# Built-in self update:
+agtoosa update
+
+# Or re-run the universal installer:
+curl -fsSL https://raw.githubusercontent.com/sky2464/Agtoosa2/main/install.sh | bash
+```
+
 ---
 
 ### 2. Map Any Project
@@ -197,6 +206,7 @@ Add this to your `claude_desktop_config.json`:
 | `agtoosa ship [STORY_ID]` | Verify release delivery gate (Story → Code → Test evidence) |
 | `agtoosa guard --daemon` | Run pre-push drift guard in the background |
 | `agtoosa mcp` | Launch native Model Context Protocol server on stdio |
+| `agtoosa update` | Self-update Agtoosa to the latest version from GitHub |
 
 ---
 

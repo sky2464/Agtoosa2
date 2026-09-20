@@ -1,8 +1,9 @@
 """Main command-line entrypoint for Agtoosa2."""
 
 import argparse
-import sys
 from pathlib import Path
+import sys
+from typing import Any
 
 # Python version guard
 if sys.version_info < (3, 11):
@@ -85,6 +86,58 @@ def cmd_version(args, workspace_root: Path) -> int:
         print(f"   • Knowledge Graph:   Not initialized (run 'agtoosa graph build' in '{workspace_root.name}')")
 
     return 0
+
+
+def cmd_update(args: Any, workspace_root: Path) -> int:
+    """Update Agtoosa2 to the latest release or main branch."""
+    import shutil
+    import subprocess
+    import sys
+
+    print("🚀 Checking for Agtoosa2 updates...")
+    repo_url = "git+https://github.com/sky2464/Agtoosa2.git"
+
+    # 1. Check if running inside local cloned Agtoosa git repo
+    pkg_toml = workspace_root / "pyproject.toml"
+    if pkg_toml.exists() and 'name = "agtoosa"' in pkg_toml.read_text(encoding="utf-8", errors="ignore"):
+        print("   • Detected local repository. Pulling latest commits...")
+        res = subprocess.run(["git", "pull"], cwd=workspace_root)
+        if res.returncode == 0:
+            if shutil.which("uv"):
+                subprocess.run(["uv", "pip", "install", "-e", ".[full]"], cwd=workspace_root)
+            else:
+                subprocess.run([sys.executable, "-m", "pip", "install", "-e", ".[full]"], cwd=workspace_root)
+            print("✅ Agtoosa2 updated successfully from local git repository!")
+            return 0
+
+    # 2. Check if installed via uv tool
+    if shutil.which("uv"):
+        print("   • Updating via uv tool...")
+        res = subprocess.run(["uv", "tool", "install", "--force", repo_url])
+        if res.returncode == 0:
+            print("✅ Agtoosa2 updated successfully to latest version via uv!")
+            return 0
+
+    # 3. Check if installed via pipx
+    if shutil.which("pipx"):
+        print("   • Updating via pipx...")
+        res = subprocess.run(["pipx", "install", "--force", repo_url])
+        if res.returncode == 0:
+            print("✅ Agtoosa2 updated successfully to latest version via pipx!")
+            return 0
+
+    # 4. Fallback to pip
+    print("   • Updating via pip...")
+    res = subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", repo_url])
+    if res.returncode == 0:
+        print("✅ Agtoosa2 updated successfully to latest version via pip!")
+        return 0
+
+    # 5. Last resort: run install.sh
+    print("   • Running universal installer...")
+    install_cmd = "curl -fsSL https://raw.githubusercontent.com/sky2464/Agtoosa2/main/install.sh | bash"
+    res = subprocess.run(install_cmd, shell=True)
+    return res.returncode
 
 
 def main(argv=None) -> int:
@@ -538,6 +591,10 @@ def main(argv=None) -> int:
     # agtoosa mcp
     subparsers.add_parser("mcp", help="Launch native Model Context Protocol (MCP) server on stdio")
 
+    # agtoosa update / upgrade
+    subparsers.add_parser("update", help="Update Agtoosa2 to the latest version from GitHub")
+    subparsers.add_parser("upgrade", help="Alias for update")
+
     args = parser.parse_args(argv)
 
     workspace_root = Path(args.workspace).resolve()
@@ -731,6 +788,8 @@ def main(argv=None) -> int:
         server = MCPServer(workspace_root)
         server.run_stdio()
         return 0
+    elif args.command in ("update", "upgrade"):
+        return cmd_update(args, workspace_root)
 
     parser.print_help()
     return 0
