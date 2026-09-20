@@ -120,8 +120,9 @@ class VisualizerEngine:
         }
     }
 
-    def __init__(self, store: GraphStore):
+    def __init__(self, store: GraphStore, workspace_root: Optional[Path] = None):
         self.store = store
+        self.workspace_root = workspace_root
         self.web_dir = Path(__file__).resolve().parent / "web"
 
     def _assign_domain(self, node: Dict[str, Any]) -> str:
@@ -136,15 +137,15 @@ class VisualizerEngine:
             return "Verification & Quality"
         if ntype in ("adr", "doc", "concept") or path.startswith("docs"):
             return "Decisions & Architecture"
-        if "agtoosa/cli" in path or "bin/" in path:
+        if "/cli" in path or path.startswith("cli/") or "bin/" in path:
             return "CLI Layer"
-        if "agtoosa/parser" in path:
+        if "/parser" in path or path.startswith("parser/"):
             return "AST Parser Subsystem"
-        if "agtoosa/graph" in path:
+        if "/graph" in path or path.startswith("graph/") or "storage" in path:
             return "Knowledge Graph & Storage"
-        if "agtoosa/mcp" in path:
+        if "/mcp" in path or path.startswith("mcp/"):
             return "Native MCP Protocol"
-        if "agtoosa/core" in path:
+        if "/core" in path or path.startswith("core/") or "engine" in path:
             return "Core Engine"
         return "Core Engine"
 
@@ -331,6 +332,114 @@ class VisualizerEngine:
                 "zombies": []
             }
 
+        # Workspace Context & Early-Stage (Genesis) Detection (DEV-058)
+        workspace_root = self.workspace_root or getattr(self.store, "workspace_root", None) or Path.cwd()
+        workspace_name = workspace_root.name
+
+        code_node_types = {"function", "class", "module", "variable", "interface", "method", "enum", "type"}
+        code_nodes = [n for n in nodes if (n.get("node_type") or "").lower() in code_node_types]
+        doc_node_types = {"doc", "adr", "concept", "story", "epic", "criterion", "task"}
+        doc_nodes = [n for n in nodes if (n.get("node_type") or "").lower() in doc_node_types]
+
+        code_files = {n.get("path") for n in code_nodes if n.get("path")}
+        doc_files = {n.get("path") for n in doc_nodes if n.get("path")}
+
+        is_genesis = (len(nodes) < 15 or len(code_nodes) == 0)
+
+        # AI Agent Enforcement Status (AGENTS.md, CLAUDE.md, etc.)
+        try:
+            from agtoosa.core.agent_rules import AgentWorkflowEnforcer
+            enforcer = AgentWorkflowEnforcer(workspace_root)
+            agent_rules_installed = enforcer.is_enforced()
+        except Exception:
+            agent_rules_installed = False
+
+        # Synthesize Plain-English Findings & Next Steps
+        plain_english_findings = []
+        if is_genesis:
+            doc_count = len(doc_files) or len(doc_nodes)
+            plain_english_findings.append({
+                "id": "genesis_stage",
+                "severity": "info",
+                "icon": "🌱",
+                "title": "Project Inception Stage",
+                "description": f"Found {doc_count} design document(s) and 0 code files in '{workspace_name}'. Agtoosa is ready to monitor symbols as you start building.",
+                "action_label": "Create Code File",
+                "action_hint": "Create your first .py, .ts, or .js file and run 'agtoosa graph build'.",
+                "action_command": "touch main.py && agtoosa graph build"
+            })
+        else:
+            plain_english_findings.append({
+                "id": "codebase_active",
+                "severity": "success",
+                "icon": "🏛️",
+                "title": "Architecture Monitored",
+                "description": f"Agtoosa is tracking {len(nodes)} symbols across {len(code_files)} code file(s) with continuous drift alarms.",
+                "action_label": "Verify Architecture",
+                "action_hint": "Run 'agtoosa review' to verify layer boundaries and zero cycles.",
+                "action_command": "agtoosa review"
+            })
+
+        if not agent_rules_installed:
+            plain_english_findings.append({
+                "id": "agent_governance",
+                "severity": "warning",
+                "icon": "🤖",
+                "title": "AI Agent Rules Not Enforced",
+                "description": "AI coding agents (Cursor, Claude, Copilot, Antigravity) are not instructed yet on Agtoosa guardrails.",
+                "action_label": "Enforce on AI Agents",
+                "action_hint": "Click to generate AGENTS.md & CLAUDE.md with zero-drift instructions.",
+                "action_command": "agtoosa agent-init",
+                "action_endpoint": "/api/agent/enforce"
+            })
+        else:
+            plain_english_findings.append({
+                "id": "agent_governance_active",
+                "severity": "success",
+                "icon": "🛡️",
+                "title": "AI Agent Governance Active",
+                "description": "AGENTS.md and CLAUDE.md are actively guarding against unreviewed architectural drift.",
+                "action_label": "View Guidelines",
+                "action_hint": "Inspect AGENTS.md in your repository root.",
+                "action_command": "cat AGENTS.md"
+            })
+
+        if cycles:
+            plain_english_findings.append({
+                "id": "cycles_detected",
+                "severity": "danger",
+                "icon": "🔄",
+                "title": f"{len(cycles)} Circular Dependency Loop(s)",
+                "description": "Modules mutually depend on each other, preventing clean decoupling and bloating AI context.",
+                "action_label": "Decouple Cycles",
+                "action_hint": "Run 'agtoosa refactor decouple' to resolve cycles automatically.",
+                "action_command": "agtoosa refactor decouple"
+            })
+        else:
+            plain_english_findings.append({
+                "id": "cycles_clean",
+                "severity": "success",
+                "icon": "✅",
+                "title": "Strict DAG (0 Cycles)",
+                "description": "Clean dependency architecture with zero circular import loops detected.",
+                "action_label": "Verify Layers",
+                "action_hint": "Run 'agtoosa review' to verify layer compliance.",
+                "action_command": "agtoosa review"
+            })
+
+        if dead_code_data.get("total_dead_candidates", 0) > 0:
+            cnt = dead_code_data["total_dead_candidates"]
+            plain_english_findings.append({
+                "id": "dead_code_tokens",
+                "severity": "warning",
+                "icon": "🧟",
+                "title": f"{cnt} Unused Symbol(s) Detected",
+                "description": f"Found {cnt} unreferenced symbols wasting AI agent context window tokens.",
+                "action_label": "Prune Dead Code",
+                "action_hint": "Run 'agtoosa refactor dead-code' to review candidates safely.",
+                "action_command": "agtoosa refactor dead-code"
+            })
+
         return {
             "graphData": elements_data,
             "graphStats": stats,
@@ -346,7 +455,19 @@ class VisualizerEngine:
             "decouplerData": decoupler_data,
             "deadCodeData": dead_code_data,
             "spectralData": metrics_report.get("spectral", {}),
-            "curvatureData": metrics_report.get("curvature", {})
+            "curvatureData": metrics_report.get("curvature", {}),
+            "workspaceMetadata": {
+                "workspaceName": workspace_name,
+                "isGenesis": is_genesis,
+                "codeFileCount": len(code_files),
+                "docFileCount": len(doc_files) or len(doc_nodes),
+                "totalNodeCount": len(nodes),
+                "totalEdgeCount": len(edges),
+                "agentRulesInstalled": agent_rules_installed,
+                "storyCount": len(story_cards),
+                "subsystemCount": len(subsystems_data)
+            },
+            "plainEnglishFindings": plain_english_findings
         }
 
     def generate_html(self, filter_type: Optional[str] = None) -> str:

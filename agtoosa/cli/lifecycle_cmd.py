@@ -851,5 +851,36 @@ def cmd_lifecycle_spec(args: Any, workspace_root: Path) -> int:
     return 0
 
 
+def cmd_agent_init(args: Any, workspace_root: Path) -> int:
+    """Enforce Agtoosa2 architectural guardrails in AGENTS.md, CLAUDE.md, and agent rules (DEV-058)."""
+    import json
+    from agtoosa.core.agent_rules import AgentWorkflowEnforcer
 
+    target = getattr(args, "target", "all")
+    targets = [target] if target != "all" else ["all"]
+    with_hooks = not getattr(args, "no_git_hooks", False)
 
+    enforcer = AgentWorkflowEnforcer(workspace_root)
+    res = enforcer.install_all(targets=targets, with_git_hooks=with_hooks)
+
+    if getattr(args, "json", False):
+        print(json.dumps(res, indent=2))
+        return 0
+
+    print(f"\n🤖 Agtoosa2 AI Agent Workflow Enforcement ({workspace_root.name})")
+    print("═" * 75)
+    print("   Installed & Updated Instructions:")
+    for f in res["installed_files"]:
+        print(f"   • ✅ {f}")
+
+    if res.get("git_hooks_installed"):
+        print("\n   Git Pre-Push & Review Hooks:")
+        for h, ok in res["git_hooks_installed"].items():
+            icon = "✅" if ok else "⚠️"
+            print(f"   • {icon} .git/hooks/{h}")
+
+    print("─" * 75)
+    print("✨ AI agents (Cursor, Claude, Copilot, Antigravity) are now governed by Agtoosa2.")
+    print("   They will automatically run 'agtoosa query' and 'agtoosa review' during development.")
+    print("═" * 75 + "\n")
+    return 0

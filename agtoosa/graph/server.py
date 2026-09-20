@@ -55,7 +55,7 @@ class StudioHTTPHandler(BaseHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
             return
-        elif parsed.path in ("/api/graph", "/api/refactor/backups", "/api/spectral", "/api/curvature"):
+        elif parsed.path in ("/api/graph", "/api/refactor/backups", "/api/spectral", "/api/curvature", "/api/agent/enforce"):
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Access-Control-Allow-Origin", "*")
@@ -72,7 +72,7 @@ class StudioHTTPHandler(BaseHTTPRequestHandler):
 
         if parsed.path in ("/", "/graph_view.html"):
             try:
-                visualizer = VisualizerEngine(self.store)
+                visualizer = VisualizerEngine(self.store, workspace_root=getattr(self, "workspace_root", None))
                 html = visualizer.generate_html()
                 payload = html.encode("utf-8")
                 self.send_response(200)
@@ -92,7 +92,7 @@ class StudioHTTPHandler(BaseHTTPRequestHandler):
             return
 
         elif parsed.path == "/api/graph":
-            visualizer = VisualizerEngine(self.store)
+            visualizer = VisualizerEngine(self.store, workspace_root=getattr(self, "workspace_root", None))
             data = visualizer.extract_graph_data()
             self._send_json(data)
             return
@@ -220,6 +220,24 @@ class StudioHTTPHandler(BaseHTTPRequestHandler):
             refactor_engine = RefactorEngine(self.workspace_root)
             success = refactor_engine.rollback(backup_id)
             self._send_json({"success": success, "backup_id": backup_id})
+            return
+
+        elif parsed.path == "/api/agent/enforce":
+            from agtoosa.core.agent_rules import AgentWorkflowEnforcer
+            with_hooks = bool(req_data.get("with_git_hooks", True))
+            targets = req_data.get("targets", ["all"])
+            ws_root = getattr(self, "workspace_root", None)
+            enforcer = AgentWorkflowEnforcer(ws_root)
+            result = enforcer.install_all(targets=targets)
+            hooks_status = {}
+            if with_hooks and ws_root:
+                try:
+                    from agtoosa.watcher.hooks import install_git_hooks
+                    hooks_status = install_git_hooks(ws_root)
+                except Exception:
+                    hooks_status = {}
+            result["git_hooks_installed"] = hooks_status
+            self._send_json(result)
             return
 
         self.send_error(404, "Not Found")

@@ -395,6 +395,12 @@ def main(argv=None) -> int:
     skill_inst_p.add_argument("--json", action="store_true", help="Output installation summary as JSON")
 
 
+    # agtoosa agent-init ... (DEV-058)
+    agent_init_p = subparsers.add_parser("agent-init", help="Enforce Agtoosa2 architectural guardrails in AGENTS.md and CLAUDE.md")
+    agent_init_p.add_argument("-t", "--target", type=str, default="all", choices=["all", "agents", "claude", "cursor", "windsurf", "copilot"], help="Target AI agent environment (default: all)")
+    agent_init_p.add_argument("--no-git-hooks", action="store_true", help="Skip installing git pre-push and pre-commit review hooks")
+    agent_init_p.add_argument("--json", action="store_true", help="Output status report as JSON")
+
     # agtoosa context compile <target>
     context_parser = subparsers.add_parser("context", help="Context Compilation v2 (Graph RAG for AI Agents)")
     context_sub = context_parser.add_subparsers(dest="context_action", required=True)
@@ -723,6 +729,9 @@ def main(argv=None) -> int:
         if args.skill_action == "install":
             from agtoosa.cli.graph_cmd import cmd_skill_install
             return cmd_skill_install(args, workspace_root)
+    elif args.command == "agent-init":
+        from agtoosa.cli.lifecycle_cmd import cmd_agent_init
+        return cmd_agent_init(args, workspace_root)
     elif args.command == "context":
 
         from agtoosa.cli.lifecycle_cmd import cmd_context_compile

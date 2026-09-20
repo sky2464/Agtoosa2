@@ -89,6 +89,9 @@ All previous milestones and foundation gates have been delivered, verified, and 
 | **Milestone 18 (v0.9.5)** | DEV-053 | Information-Theoretic Submodular Context Optimization | `test_submodular.py`, `test_hybrid_rag.py` | [Spec](specs/spec-DEV-053-submodular-context-optimization.md) |
 | **Milestone 18 (v0.9.5)** | DEV-054 | Discrete Differential Geometry and Forman-Ricci Curvature | `test_curvature.py`, `test_metrics.py` | [Spec](specs/spec-DEV-054-discrete-differential-geometry-and-curvature.md) |
 | **Milestone 18 (v0.9.5)** | DEV-055 | Causal Architecture Inference and Pearl's Do-Calculus | `test_causal.py` | [Spec](specs/spec-DEV-055-causal-architecture-inference.md) |
+| **Milestone 19 (v0.9.7)** | DEV-056 | Executive Studio Progressive Disclosure & Clean Command Center | `test_visualizer.py` | [Spec](specs/spec-DEV-056-executive-studio-progressive-disclosure.md) |
+| **Milestone 19 (v0.9.7)** | DEV-057 | Enterprise Polyglot Noise Exclusion & Precision Scanning | `test_enterprise_scanner.py` | [Spec](specs/spec-DEV-057-enterprise-codebase-scanning-and-report-fidelity.md) |
+| **Milestone 19 (v0.9.8)** | DEV-058 | Adaptive Onboarding, Genesis Dashboard & Agentic AI Workflow Enforcement | `test_agent_rules.py`, `test_genesis_onboarding.py` | [Spec](specs/spec-DEV-058-adaptive-onboarding-and-progressive-disclosure.md) |
 
 ---
 

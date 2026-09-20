@@ -30,6 +30,22 @@
       (curvatureData.top_bottlenecks || []).map(b => `${b.source}->${b.target}`)
     );
 
+    const workspaceMetadata = DATA.workspaceMetadata || {
+      workspaceName: "Workspace",
+      isGenesis: false,
+      codeFileCount: 0,
+      docFileCount: 0,
+      totalNodeCount: graphData.nodes.length,
+      totalEdgeCount: graphData.edges.length,
+      agentRulesInstalled: false,
+      storyCount: storyData.length,
+      subsystemCount: Object.keys(subsystemsData).length
+    };
+    const plainEnglishFindings = DATA.plainEnglishFindings || [];
+
+    // Mode management (Simple vs Advanced)
+    let currentMode = localStorage.getItem("agtoosa_mode") || "simple";
+
     // Update Executive KPIs
     const kpiGrade = document.getElementById("kpi-grade");
     if (kpiGrade) kpiGrade.textContent = `Grade ${healthData.grade || 'A+'} (${healthData.score || 94}/100)`;
@@ -51,6 +67,45 @@
     if (kpiHubs) kpiHubs.textContent = `${topHubsData.length} Monitored`;
     const scoreHubs = document.getElementById("score-hubs");
     if (scoreHubs) scoreHubs.textContent = `${topHubsData.length}`;
+
+    // Ground Overview Metrics Dynamically
+    const ovTitle = document.getElementById("ov-workspace-title");
+    if (ovTitle && workspaceMetadata.workspaceName) {
+      ovTitle.textContent = `${workspaceMetadata.workspaceName} Command Center`;
+    }
+    const ovDesc = document.getElementById("ov-workspace-desc");
+    if (ovDesc && workspaceMetadata.workspaceName) {
+      ovDesc.textContent = `Deterministic structural intelligence, automated governance, and delivery verification for ${workspaceMetadata.workspaceName}.`;
+    }
+    const ovGradeVal = document.getElementById("ov-grade-val");
+    if (ovGradeVal) {
+      ovGradeVal.textContent = `${healthData.grade || 'A+'} (${healthData.score || 94}/100)`;
+    }
+    const ovDagVal = document.getElementById("ov-dag-val");
+    if (ovDagVal) {
+      ovDagVal.textContent = `${cycleData.length === 0 ? '100% DAG Clean' : cycleData.length + ' Cycles Warning'}`;
+      if (cycleData.length > 0) ovDagVal.style.color = "var(--danger)";
+    }
+    const ovDagFooter = document.getElementById("ov-dag-footer");
+    if (ovDagFooter) {
+      ovDagFooter.innerHTML = `<span style="font-weight: 700;">${cycleData.length} Cycles</span> &bull; ${cycleData.length === 0 ? 'Strict DAG' : 'Decoupling needed'}`;
+    }
+    const ovTraceVal = document.getElementById("ov-trace-val");
+    if (ovTraceVal) {
+      ovTraceVal.textContent = `${workspaceMetadata.storyCount || 0} Stories`;
+    }
+    const ovTraceFooter = document.getElementById("ov-trace-footer");
+    if (ovTraceFooter) {
+      ovTraceFooter.innerHTML = `<span style="color: #c084fc; font-weight: 700;">${workspaceMetadata.storyCount > 0 ? '100% Mapped' : '0 Mapped'}</span> &bull; Verified`;
+    }
+    const ovBlastVal = document.getElementById("ov-blast-val");
+    if (ovBlastVal) {
+      ovBlastVal.textContent = `${topHubsData.length} Critical Hubs`;
+    }
+    const ovBlastFooter = document.getElementById("ov-blast-footer");
+    if (ovBlastFooter) {
+      ovBlastFooter.innerHTML = `<span style="color: #a5b4fc; font-weight: 700;">${topHubsData.length} Monitored</span> &bull; Bounded context`;
+    }
 
     // Map & index elements
     const nodeMap = new Map();

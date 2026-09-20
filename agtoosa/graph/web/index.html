@@ -18,7 +18,7 @@
       <div class="brand-logo">
         <span>Agtoosa</span>
       </div>
-      <span class="brand-badge">v0.9.7</span>
+      <span class="brand-badge">v0.9.8</span>
     </div>
 
     <!-- Perspective Switcher Tabs -->
@@ -32,19 +32,22 @@
       <button class="tab-btn" data-view="network">
         <span>🌐</span> Dependency Graph
       </button>
-      <button class="tab-btn" data-view="radar">
+      <button class="tab-btn advanced-tab" data-view="radar">
         <span>⚡</span> Risk &amp; Health
       </button>
-      <button class="tab-btn" data-view="pipeline">
+      <button class="tab-btn advanced-tab" data-view="pipeline">
         <span>🛡️</span> Delivery Assurance
       </button>
-      <button class="tab-btn" data-view="blast">
+      <button class="tab-btn advanced-tab" data-view="blast">
         <span>🎯</span> Blast Radius
       </button>
     </div>
 
     <!-- Quick Controls & Omni-Search -->
     <div class="controls-bar">
+      <button id="btn-mode-toggle" class="mode-toggle-btn" title="Toggle Simple Mode vs Advanced Mode">
+        <span id="mode-icon">🌿</span> <span id="mode-text">Simple Mode</span>
+      </button>
       <div class="search-wrapper">
         <span class="search-icon">🔍</span>
         <input type="text" id="search-input" class="search-input-box" placeholder="Search symbol, file..." autocomplete="off">
@@ -91,16 +94,69 @@
   <!-- Main Viewport -->
   <div id="main-viewport">
 
-    <!-- 0. EXECUTIVE LANDING VIEW: Architecture Command Center Overview -->
-    <div class="view-panel active" id="view-overview">
+    <!-- 0A. GENESIS LANDING VIEW: Project Inception Launchpad (DEV-058) -->
+    <div class="view-panel" id="view-genesis">
+      <div class="genesis-hero">
+        <div class="genesis-badge">
+          <span class="status-indicator-dot"></span>
+          <span id="genesis-badge-text">🌱 Project Genesis Stage: Ready for Code</span>
+        </div>
+        <h1 id="genesis-title">Welcome to <span id="genesis-workspace-name">Workspace</span></h1>
+        <p class="genesis-subtitle">
+          Agtoosa is actively monitoring your workspace. As you start writing code, your architecture diagrams, AI agent context, and dependency guardrails are maintained automatically with zero manual documentation.
+        </p>
+
+        <!-- 3 Core Superpowers (Value Proposition) -->
+        <div class="genesis-superpowers-grid">
+          <div class="superpower-card">
+            <div class="superpower-icon" style="color: #38bdf8;">⚡</div>
+            <h3>10x Smarter AI Agent Context</h3>
+            <p>Feed bounded subgraphs to Claude, Cursor, and Antigravity instead of bloated full-repo dumps. Cut token waste by 70%+ and prevent agent hallucination.</p>
+          </div>
+          <div class="superpower-card">
+            <div class="superpower-icon" style="color: #10b981;">🛡️</div>
+            <h3>Spaghetti-Proof Guardrails</h3>
+            <p>Prevent circular imports, tight coupling, and illegal architectural crossings from day one before breaking changes ever get committed.</p>
+          </div>
+          <div class="superpower-card">
+            <div class="superpower-icon" style="color: #c084fc;">🗺️</div>
+            <h3>Living Architecture as Code</h3>
+            <p>Your C4 architecture maps and dependency graphs write and update themselves from code. No stale draw.io diagrams or manual wiki syncs.</p>
+          </div>
+        </div>
+
+        <!-- Inline Findings & Next Steps -->
+        <div class="findings-section">
+          <div class="findings-header">
+            <span>🔎</span> Current Findings &amp; What to Do Next
+          </div>
+          <div class="findings-list" id="genesis-findings-list">
+            <!-- Dynamic findings rendered here -->
+          </div>
+        </div>
+
+        <!-- Genesis Action Bar -->
+        <div class="genesis-action-bar">
+          <button id="btn-enforce-agents" class="primary-action-btn" type="button">
+            <span>🤖</span> 1-Click: Enforce on AI Agents (AGENTS.md &amp; CLAUDE.md)
+          </button>
+          <button id="btn-preview-cockpit" class="secondary-action-btn" type="button">
+            <span>👁️</span> Preview Full Architecture Cockpit &rarr;
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 0B. EXECUTIVE LANDING VIEW: Architecture Command Center Overview -->
+    <div class="view-panel" id="view-overview">
       <div class="overview-banner">
         <div class="overview-banner-text">
-          <h1><span>🏛️</span> Architecture Command Center</h1>
-          <p>Deterministic structural intelligence, automated governance, and delivery verification for Agtoosa2. Gain instant clarity into architecture health, dependency topology, and release readiness.</p>
+          <h1><span>🏛️</span> <span id="ov-workspace-title">Architecture Command Center</span></h1>
+          <p id="ov-workspace-desc">Deterministic structural intelligence, automated governance, and delivery verification for your workspace.</p>
         </div>
         <div class="overview-banner-badge">
           <span class="status-indicator-dot"></span>
-          <span>Production Ready &bull; v0.9.7</span>
+          <span>Production Ready &bull; v0.9.8</span>
         </div>
       </div>
 
@@ -108,31 +164,41 @@
       <div class="overview-metrics-grid">
         <div class="overview-metric-card">
           <span class="overview-metric-label">Architecture Grade</span>
-          <div class="overview-metric-value" style="color: #34d399;">A+ (94/100)</div>
-          <div class="overview-metric-footer">
+          <div class="overview-metric-value" id="ov-grade-val" style="color: #34d399;">A+ (94/100)</div>
+          <div class="overview-metric-footer" id="ov-grade-footer">
             <span style="color: #34d399; font-weight: 700;">+2.4%</span> vs baseline &bull; Zero structural drift
           </div>
         </div>
         <div class="overview-metric-card">
           <span class="overview-metric-label">Structural Integrity</span>
-          <div class="overview-metric-value" style="color: #38bdf8;">100% DAG Clean</div>
-          <div class="overview-metric-footer">
+          <div class="overview-metric-value" id="ov-dag-val" style="color: #38bdf8;">100% DAG Clean</div>
+          <div class="overview-metric-footer" id="ov-dag-footer">
             <span style="color: #38bdf8; font-weight: 700;">0 Cycles</span> &bull; 3-tier layering enforced
           </div>
         </div>
         <div class="overview-metric-card">
           <span class="overview-metric-label">Delivery Traceability</span>
-          <div class="overview-metric-value" style="color: #c084fc;">39 Stories</div>
-          <div class="overview-metric-footer">
-            <span style="color: #c084fc; font-weight: 700;">100% Mapped</span> &bull; 162 criteria AST verified
+          <div class="overview-metric-value" id="ov-trace-val" style="color: #c084fc;">0 Stories</div>
+          <div class="overview-metric-footer" id="ov-trace-footer">
+            <span style="color: #c084fc; font-weight: 700;">100% Mapped</span> &bull; AST verified
           </div>
         </div>
         <div class="overview-metric-card">
           <span class="overview-metric-label">Blast Radius Control</span>
-          <div class="overview-metric-value" style="color: #a5b4fc;">~74% Token Cut</div>
-          <div class="overview-metric-footer">
-            <span style="color: #a5b4fc; font-weight: 700;">5 Critical Hubs</span> &bull; Bounded AI context
+          <div class="overview-metric-value" id="ov-blast-val" style="color: #a5b4fc;">0 Critical Hubs</div>
+          <div class="overview-metric-footer" id="ov-blast-footer">
+            <span style="color: #a5b4fc; font-weight: 700;">Bounded</span> &bull; Token efficiency
           </div>
+        </div>
+      </div>
+
+      <!-- Inline Plain-English Findings & Next Steps (DEV-058) -->
+      <div class="findings-section">
+        <div class="findings-header">
+          <span>🔎</span> Project Findings &amp; Recommended Next Steps
+        </div>
+        <div class="findings-list" id="overview-findings-list">
+          <!-- Dynamic findings rendered here -->
         </div>
       </div>
 
@@ -148,7 +214,7 @@
               <div class="portal-icon" style="color: #38bdf8;">🏛️</div>
               <div class="portal-title-block">
                 <h3>Architecture Blueprint</h3>
-                <p>Inspect container boundaries, 3-tier layering, and encapsulation rules across the 8 core Agtoosa subsystems.</p>
+                <p id="portal-subsystems-desc">Inspect container boundaries, 3-tier layering, and encapsulation rules across discovered subsystems.</p>
               </div>
             </div>
             <button class="portal-action-btn" type="button">
@@ -176,7 +242,7 @@
               <div class="portal-icon" style="color: #34d399;">🛡️</div>
               <div class="portal-title-block">
                 <h3>Delivery Assurance Board</h3>
-                <p>Trace all 39 specifications, acceptance criteria, test proofs, and lifecycle readiness for production release.</p>
+                <p id="portal-pipeline-desc">Trace engineering specifications, acceptance criteria, test proofs, and lifecycle readiness.</p>
               </div>
             </div>
             <button class="portal-action-btn" type="button">

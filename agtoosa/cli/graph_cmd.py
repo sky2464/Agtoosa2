@@ -184,7 +184,7 @@ def cmd_graph_view(args: Any, workspace_root: Path) -> int:
 
     from agtoosa.graph.visualizer import VisualizerEngine
     store = GraphStore(db_path)
-    visualizer = VisualizerEngine(store)
+    visualizer = VisualizerEngine(store, workspace_root=workspace_root)
 
     output_path = getattr(args, "output", None)
     if output_path:

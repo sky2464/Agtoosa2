@@ -6,7 +6,11 @@
 
       document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
       if (viewName === "overview") {
-        document.getElementById("view-overview")?.classList.add("active");
+        if (workspaceMetadata.isGenesis && !window.cockpitUnlocked) {
+          document.getElementById("view-genesis")?.classList.add("active");
+        } else {
+          document.getElementById("view-overview")?.classList.add("active");
+        }
       } else if (viewName === "c4") {
         document.getElementById("view-c4")?.classList.add("active");
       } else if (viewName === "network") {
@@ -110,3 +114,146 @@
     welcomeModal.addEventListener("click", e => {
       if (e.target === welcomeModal) welcomeModal.classList.remove("show");
     });
+
+    // Mode Switcher (DEV-058)
+    const btnModeToggle = document.getElementById("btn-mode-toggle");
+    const modeIcon = document.getElementById("mode-icon");
+    const modeText = document.getElementById("mode-text");
+
+    function applyMode(mode) {
+      currentMode = mode;
+      localStorage.setItem("agtoosa_mode", mode);
+      if (mode === "advanced") {
+        document.body.classList.add("advanced-mode");
+        if (modeIcon) modeIcon.textContent = "⚡";
+        if (modeText) modeText.textContent = "Advanced Mode";
+      } else {
+        document.body.classList.remove("advanced-mode");
+        if (modeIcon) modeIcon.textContent = "🌿";
+        if (modeText) modeText.textContent = "Simple Mode";
+      }
+    }
+
+    if (btnModeToggle) {
+      applyMode(currentMode);
+      btnModeToggle.addEventListener("click", () => {
+        const nextMode = (currentMode === "simple") ? "advanced" : "simple";
+        applyMode(nextMode);
+        showToast(nextMode === "advanced" ? "⚡ Advanced Architect Mode enabled" : "🌿 Simple Developer Mode enabled");
+      });
+    }
+
+    // Dynamic Findings Renderer (DEV-058)
+    function renderFindings(containerId, findings) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      if (!findings || findings.length === 0) {
+        container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem; padding: 12px; text-align: center;">✅ No active warnings. Architecture health is optimal.</div>`;
+        return;
+      }
+
+      container.innerHTML = findings.map(f => {
+        const sevClass = f.severity ? `severity-${f.severity}` : 'severity-info';
+        const actionBtn = f.action_label ? `
+          <div class="finding-action-col">
+            <button class="finding-action-btn" type="button" onclick="handleFindingAction('${escapeHtml(f.id)}')">
+              ${escapeHtml(f.action_label)}
+            </button>
+            ${f.action_hint ? `<span class="finding-hint">${escapeHtml(f.action_hint)}</span>` : ''}
+          </div>
+        ` : '';
+
+        return `
+          <div class="finding-card ${sevClass}" id="finding-card-${escapeHtml(f.id)}">
+            <div class="finding-card-content">
+              <div class="finding-title-row">
+                <span style="font-size: 1.1rem;">${f.icon || '📌'}</span>
+                <span class="finding-title">${escapeHtml(f.title)}</span>
+              </div>
+              <div class="finding-desc">${escapeHtml(f.description)}</div>
+            </div>
+            ${actionBtn}
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.handleFindingAction = async function(findingId) {
+      const finding = plainEnglishFindings.find(f => f.id === findingId);
+      if (!finding) return;
+
+      if (finding.action_endpoint) {
+        try {
+          const res = await fetch(finding.action_endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ with_git_hooks: true })
+          });
+          const data = await res.json();
+          showToast("🤖 AI Agent instructions successfully generated in AGENTS.md & CLAUDE.md!");
+          const card = document.getElementById(`finding-card-${findingId}`);
+          if (card) {
+            card.className = "finding-card severity-success";
+            const btn = card.querySelector(".finding-action-btn");
+            if (btn) {
+              btn.textContent = "✅ Enforced";
+              btn.disabled = true;
+            }
+          }
+        } catch (err) {
+          showToast("⚠️ Could not contact server: " + err.message);
+        }
+      } else if (finding.action_command) {
+        navigator.clipboard?.writeText(finding.action_command);
+        showToast(`📋 Copied command: ${finding.action_command}`);
+      }
+    };
+
+    // 1-Click Enforce AI Agents Button Handler
+    const btnEnforceAgents = document.getElementById("btn-enforce-agents");
+    if (btnEnforceAgents) {
+      btnEnforceAgents.addEventListener("click", async () => {
+        try {
+          const res = await fetch("/api/agent/enforce", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ with_git_hooks: true })
+          });
+          const data = await res.json();
+          showToast("🤖 AI Agent rules installed into AGENTS.md & CLAUDE.md!");
+          btnEnforceAgents.innerHTML = "<span>✅</span> AI Agents Enforced (AGENTS.md &amp; CLAUDE.md)";
+          btnEnforceAgents.style.background = "#10b981";
+        } catch (e) {
+          showToast("⚠️ Failed to enforce rules: " + e.message);
+        }
+      });
+    }
+
+    // Genesis Preview Cockpit Button
+    const btnPreviewCockpit = document.getElementById("btn-preview-cockpit");
+    if (btnPreviewCockpit) {
+      btnPreviewCockpit.addEventListener("click", () => {
+        window.cockpitUnlocked = true;
+        document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+        document.getElementById("view-overview")?.classList.add("active");
+        showToast("👁️ Viewing Full Architecture Cockpit");
+      });
+    }
+
+    // Initial View Setup (Genesis vs Grown Codebase)
+    const genesisWsName = document.getElementById("genesis-workspace-name");
+    if (genesisWsName) genesisWsName.textContent = workspaceMetadata.workspaceName || "Your Workspace";
+    const genesisBadgeText = document.getElementById("genesis-badge-text");
+    if (genesisBadgeText) {
+      genesisBadgeText.textContent = `🌱 Project Genesis Stage: ${workspaceMetadata.docFileCount || 0} Document(s) &bull; Ready for Code`;
+    }
+
+    renderFindings("genesis-findings-list", plainEnglishFindings);
+    renderFindings("overview-findings-list", plainEnglishFindings);
+
+    if (workspaceMetadata.isGenesis) {
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.getElementById("view-genesis")?.classList.add("active");
+    }
+
