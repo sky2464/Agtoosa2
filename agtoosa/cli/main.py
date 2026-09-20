@@ -97,7 +97,23 @@ def cmd_update(args: Any, workspace_root: Path) -> int:
     print("🚀 Checking for Agtoosa2 updates...")
     repo_url = "git+https://github.com/sky2464/Agtoosa2.git"
 
-    # 1. Check if running inside local cloned Agtoosa git repo
+    # 1. Check if running as a uv tool
+    if ("uv/tools" in sys.executable or "uv/tools" in sys.prefix) and shutil.which("uv"):
+        print("   • Detected uv tool environment. Updating via uv tool...")
+        res = subprocess.run(["uv", "tool", "install", "--force", repo_url])
+        if res.returncode == 0:
+            print("✅ Agtoosa2 updated successfully to latest version via uv!")
+            return 0
+
+    # 2. Check if running as a pipx tool
+    if ("pipx" in sys.executable or "pipx" in sys.prefix) and shutil.which("pipx"):
+        print("   • Detected pipx environment. Updating via pipx...")
+        res = subprocess.run(["pipx", "install", "--force", repo_url])
+        if res.returncode == 0:
+            print("✅ Agtoosa2 updated successfully to latest version via pipx!")
+            return 0
+
+    # 3. Check if running inside local cloned Agtoosa git repo
     pkg_toml = workspace_root / "pyproject.toml"
     if pkg_toml.exists() and 'name = "agtoosa"' in pkg_toml.read_text(encoding="utf-8", errors="ignore"):
         print("   • Detected local repository. Pulling latest commits...")
@@ -110,7 +126,7 @@ def cmd_update(args: Any, workspace_root: Path) -> int:
             print("✅ Agtoosa2 updated successfully from local git repository!")
             return 0
 
-    # 2. Check if installed via uv tool
+    # 4. Check if installed via uv tool
     if shutil.which("uv"):
         print("   • Updating via uv tool...")
         res = subprocess.run(["uv", "tool", "install", "--force", repo_url])
@@ -118,7 +134,7 @@ def cmd_update(args: Any, workspace_root: Path) -> int:
             print("✅ Agtoosa2 updated successfully to latest version via uv!")
             return 0
 
-    # 3. Check if installed via pipx
+    # 5. Check if installed via pipx
     if shutil.which("pipx"):
         print("   • Updating via pipx...")
         res = subprocess.run(["pipx", "install", "--force", repo_url])
@@ -126,14 +142,14 @@ def cmd_update(args: Any, workspace_root: Path) -> int:
             print("✅ Agtoosa2 updated successfully to latest version via pipx!")
             return 0
 
-    # 4. Fallback to pip
+    # 6. Fallback to pip
     print("   • Updating via pip...")
     res = subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", repo_url])
     if res.returncode == 0:
         print("✅ Agtoosa2 updated successfully to latest version via pip!")
         return 0
 
-    # 5. Last resort: run install.sh
+    # 7. Last resort: run install.sh
     print("   • Running universal installer...")
     install_cmd = "curl -fsSL https://raw.githubusercontent.com/sky2464/Agtoosa2/main/install.sh | bash"
     res = subprocess.run(install_cmd, shell=True)
