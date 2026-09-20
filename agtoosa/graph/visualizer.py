@@ -169,6 +169,21 @@ class VisualizerEngine:
         top_hubs = {h["id"]: h for h in metrics_report["top_hubs"]}
         cycles = metrics_report["cycles"]
 
+        # Historical delta calculation (DEV-059)
+        current_score = health_scorecard["score"]
+        prev_score_str = self.store.get_metadata("baseline_health_score")
+        if prev_score_str is not None:
+            try:
+                prev_score = int(prev_score_str)
+                score_delta = current_score - prev_score
+            except ValueError:
+                score_delta = None
+        else:
+            self.store.set_metadata("baseline_health_score", str(current_score))
+            score_delta = None
+
+        health_scorecard["score_delta"] = score_delta
+
         # Domain breakdown
         domain_counts: Dict[str, int] = defaultdict(int)
         domain_nodes_map: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
@@ -465,7 +480,9 @@ class VisualizerEngine:
                 "totalEdgeCount": len(edges),
                 "agentRulesInstalled": agent_rules_installed,
                 "storyCount": len(story_cards),
-                "subsystemCount": len(subsystems_data)
+                "subsystemCount": len(subsystems_data),
+                "traceabilityStatus": "AST Verified" if (len(story_cards) > 0 and all(s.get("criteria_count", 0) > 0 for s in story_cards)) else ("Awaiting Specs" if len(story_cards) == 0 else "Partial Proof"),
+                "traceabilityDesc": ("0 Mapped • Awaiting Specs" if len(story_cards) == 0 else (f"100% Mapped • AST Verified" if all(s.get("criteria_count", 0) > 0 for s in story_cards) else f"{len(story_cards)} Mapped • Partial Proof"))
             },
             "plainEnglishFindings": plain_english_findings
         }

@@ -244,7 +244,7 @@ class TestMarkdownDocParserParity(unittest.TestCase):
 
         parser = MarkdownDocParser()
         spec_files = list(specs_dir.glob("*.md"))
-        self.assertEqual(len(spec_files), 41)
+        self.assertEqual(len(spec_files), 42)
 
         story_ids = set()
         for p in spec_files:
@@ -266,7 +266,8 @@ class TestMarkdownDocParserParity(unittest.TestCase):
         self.assertIn("DEV-056", story_ids)
         self.assertIn("DEV-057", story_ids)
         self.assertIn("DEV-058", story_ids)
-        self.assertEqual(len(story_ids), 41)
+        self.assertIn("DEV-059", story_ids)
+        self.assertEqual(len(story_ids), 42)
 
 
 if __name__ == "__main__":

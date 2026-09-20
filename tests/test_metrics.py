@@ -116,7 +116,37 @@ class TestMetrics(unittest.TestCase):
             Node(id=f"func:app.py:f{i}", name=f"f{i}", node_type=NodeType.FUNCTION, path="app.py")
             for i in range(6)
         ]
-        # Test node calling code nodes f0 and f1 (>20% verification)
+        # Test node verifying code nodes f0, f1, f2, f3, f4 (5/6 = 83% >= 80% verification)
+        test_node = Node(id="func:tests/test_app.py:test_f0", name="test_f0", node_type=NodeType.FUNCTION, path="tests/test_app.py")
+        nodes.append(test_node)
+
+        edges = [
+            Edge(source_id="func:tests/test_app.py:test_f0", target_id="func:app.py:f0", edge_type=EdgeType.VERIFIES),
+            Edge(source_id="func:tests/test_app.py:test_f0", target_id="func:app.py:f1", edge_type=EdgeType.CALLS),
+            Edge(source_id="func:tests/test_app.py:test_f0", target_id="func:app.py:f2", edge_type=EdgeType.VERIFIES),
+            Edge(source_id="func:tests/test_app.py:test_f0", target_id="func:app.py:f3", edge_type=EdgeType.CALLS),
+            Edge(source_id="func:tests/test_app.py:test_f0", target_id="func:app.py:f4", edge_type=EdgeType.VERIFIES),
+            Edge(source_id="func:app.py:f0", target_id="func:app.py:f5", edge_type=EdgeType.CALLS),
+        ]
+        self.store.insert_batch(nodes, edges)
+
+        engine = MetricsEngine(self.store)
+        report = engine.compute_all()
+        health = report["health_scorecard"]
+
+        self.assertEqual(health["grade"], "A+")
+        self.assertEqual(health["score"], 100)
+        self.assertEqual(health["isolated_count"], 0)
+        self.assertGreaterEqual(health["verified_units_ratio"], 0.80)
+        self.assertEqual(len(health["warnings"]), 0)
+        self.assertIn("ai_context_cut_pct", health)
+
+    def test_health_scorecard_calibrated_deductions_for_low_coverage(self):
+        # 6 code nodes with only 2 verified (33% verification -> DEV-059 deduction -20)
+        nodes = [
+            Node(id=f"func:app.py:f{i}", name=f"f{i}", node_type=NodeType.FUNCTION, path="app.py")
+            for i in range(6)
+        ]
         test_node = Node(id="func:tests/test_app.py:test_f0", name="test_f0", node_type=NodeType.FUNCTION, path="tests/test_app.py")
         nodes.append(test_node)
 
@@ -134,11 +164,15 @@ class TestMetrics(unittest.TestCase):
         report = engine.compute_all()
         health = report["health_scorecard"]
 
-        self.assertEqual(health["grade"], "A+")
-        self.assertEqual(health["score"], 100)
-        self.assertEqual(health["isolated_count"], 0)
-        self.assertGreaterEqual(health["verified_units_ratio"], 0.2)
-        self.assertEqual(len(health["warnings"]), 0)
+        # 33% verified: -20 deduction -> Score: 80, Grade: B
+        self.assertEqual(health["score"], 80)
+        self.assertEqual(health["grade"], "B")
+        self.assertTrue(any("test verification" in w.lower() for w in health["warnings"]))
+
+    def test_metadata_persistence_and_delta_tracking(self):
+        self.assertIsNone(self.store.get_metadata("baseline_health_score"))
+        self.store.set_metadata("baseline_health_score", "90")
+        self.assertEqual(self.store.get_metadata("baseline_health_score"), "90")
 
 
 if __name__ == "__main__":

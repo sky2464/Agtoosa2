@@ -763,6 +763,17 @@ class GraphStore:
                 "edges": edges
             }
 
+    def get_metadata(self, key: str) -> Optional[str]:
+        """Retrieve a value from the metadata key-value table."""
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT value FROM metadata WHERE key = ?;", (key,)).fetchone()
+            return row[0] if row else None
+
+    def set_metadata(self, key: str, value: str) -> None:
+        """Set a value in the metadata key-value table."""
+        with self._get_connection() as conn:
+            conn.execute("INSERT OR REPLACE INTO metadata (key, value) VALUES (?, ?);", (key, str(value)))
+
 
 if __name__ == "__main__":
     db_file = repo_root / ".agtoosa" / "graph.db"

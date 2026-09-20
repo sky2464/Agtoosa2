@@ -52,6 +52,41 @@
     const scoreGrade = document.getElementById("score-grade");
     if (scoreGrade) scoreGrade.textContent = healthData.grade || 'A+';
 
+    // Dynamic Commit / Snapshot Delta (DEV-059)
+    const kpiGradeDelta = document.getElementById("kpi-grade-delta");
+    const delta = healthData.score_delta;
+    let deltaText = "Baseline Active";
+    let deltaColor = "var(--text-dim, #94a3b8)";
+
+    if (delta !== null && delta !== undefined) {
+      if (delta > 0) {
+        deltaText = `+${delta}% vs baseline`;
+        deltaColor = "#34d399";
+      } else if (delta < 0) {
+        deltaText = `${delta}% vs baseline`;
+        deltaColor = "var(--danger, #f43f5e)";
+      } else {
+        deltaText = "0% vs baseline • Zero drift";
+        deltaColor = "var(--text-dim, #94a3b8)";
+      }
+    }
+
+    if (kpiGradeDelta) {
+      kpiGradeDelta.textContent = deltaText;
+      kpiGradeDelta.style.color = deltaColor;
+    }
+
+    // Empirical AI Context Cut (DEV-059)
+    const kpiAiCut = document.getElementById("kpi-ai-cut");
+    if (kpiAiCut) {
+      const cutPct = healthData.ai_context_cut_pct;
+      if (cutPct !== undefined && cutPct !== null && cutPct > 0) {
+        kpiAiCut.textContent = `~${cutPct}% Saved`;
+      } else {
+        kpiAiCut.textContent = "Bounded Subgraph";
+      }
+    }
+
     const kpiCycles = document.getElementById("kpi-cycles");
     if (kpiCycles) {
       kpiCycles.textContent = `${cycleData.length} Cycles (${cycleData.length === 0 ? 'Clean' : 'Warning'})`;
@@ -81,6 +116,11 @@
     if (ovGradeVal) {
       ovGradeVal.textContent = `${healthData.grade || 'A+'} (${healthData.score || 94}/100)`;
     }
+    const ovGradeFooter = document.getElementById("ov-grade-footer");
+    if (ovGradeFooter) {
+      ovGradeFooter.innerHTML = `<span style="color: ${deltaColor}; font-weight: 700;">${deltaText}</span> • Architectural integrity`;
+    }
+
     const ovDagVal = document.getElementById("ov-dag-val");
     if (ovDagVal) {
       ovDagVal.textContent = `${cycleData.length === 0 ? '100% DAG Clean' : cycleData.length + ' Cycles Warning'}`;
@@ -96,7 +136,12 @@
     }
     const ovTraceFooter = document.getElementById("ov-trace-footer");
     if (ovTraceFooter) {
-      ovTraceFooter.innerHTML = `<span style="color: #c084fc; font-weight: 700;">${workspaceMetadata.storyCount > 0 ? '100% Mapped' : '0 Mapped'}</span> • Verified`;
+      if (!workspaceMetadata.storyCount || workspaceMetadata.storyCount === 0) {
+        ovTraceFooter.innerHTML = `<span style="color: var(--text-dim, #94a3b8); font-weight: 700;">0 Mapped</span> • Awaiting specs`;
+      } else {
+        const desc = workspaceMetadata.traceabilityDesc || '100% Mapped • AST verified';
+        ovTraceFooter.innerHTML = `<span style="color: #c084fc; font-weight: 700;">${escapeHtml(desc)}</span>`;
+      }
     }
     const ovBlastVal = document.getElementById("ov-blast-val");
     if (ovBlastVal) {

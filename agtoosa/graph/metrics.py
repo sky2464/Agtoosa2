@@ -94,6 +94,28 @@ class MetricsEngine:
         curvature_eng = CurvatureEngine(nodes, edges)
         curvature_data = curvature_eng.compute_forman_ricci_curvature()
 
+        # 7. Empirical AI Context Cut (DEV-059)
+        code_node_ids = [n["id"] for n in nodes if n.get("node_type") in ("function", "class", "module", "service")]
+        if len(code_node_ids) > 5:
+            sample_ids = code_node_ids[:30]
+            neighborhood_sizes = []
+            for start_id in sample_ids:
+                visited_2hop = {start_id}
+                hop1 = set(adj_out[start_id]) | set(adj_in[start_id])
+                visited_2hop.update(hop1)
+                for h1 in hop1:
+                    visited_2hop.update(adj_out[h1])
+                    visited_2hop.update(adj_in[h1])
+                code_in_neighborhood = visited_2hop.intersection(code_node_ids)
+                neighborhood_sizes.append(len(code_in_neighborhood))
+            avg_subgraph = sum(neighborhood_sizes) / len(neighborhood_sizes) if neighborhood_sizes else 0
+            ratio = max(0.0, min(0.95, 1.0 - (avg_subgraph / max(1, len(code_node_ids)))))
+            ai_context_cut = round(ratio * 100)
+        else:
+            ai_context_cut = 0
+
+        health["ai_context_cut_pct"] = ai_context_cut
+
         return {
             "stats": {
                 "total_nodes": len(nodes),
@@ -292,7 +314,11 @@ class MetricsEngine:
             deductions += min(35, len(cycles) * 10)
 
         # Check verified code symbols
-        code_nodes = [n for n in nodes if n["node_type"] in ("function", "class")]
+        code_nodes = [
+            n for n in nodes
+            if n["node_type"] in ("function", "class")
+            and not (n.get("path", "").startswith(("tests/", "test/")) or "/tests/" in n.get("path", "") or "test_" in n.get("path", ""))
+        ]
         test_edges = [
             e for e in edges
             if e["edge_type"] in ("verifies", "evidenced_by")
@@ -302,9 +328,22 @@ class MetricsEngine:
         tested_count = sum(1 for c in code_nodes if c["id"] in verified_targets)
         test_ratio = round(tested_count / len(code_nodes), 2) if code_nodes else 1.0
 
-        if test_ratio < 0.2 and len(code_nodes) > 5:
-            warnings.append(f"Low test verification coverage: {int(test_ratio * 100)}% of code units verified.")
-            deductions += 10
+        # Calibrated verification curve (DEV-059)
+        if len(code_nodes) > 5:
+            if test_ratio >= 0.80:
+                pass  # Full trust: 0 deduction
+            elif test_ratio >= 0.60:
+                warnings.append(f"Minor test verification gap: {int(test_ratio * 100)}% of code units verified (target: >=80%).")
+                deductions += 5
+            elif test_ratio >= 0.40:
+                warnings.append(f"Moderate test verification gap: only {int(test_ratio * 100)}% of code units verified.")
+                deductions += 12
+            elif test_ratio >= 0.20:
+                warnings.append(f"High test verification risk: only {int(test_ratio * 100)}% of code units verified.")
+                deductions += 20
+            else:
+                warnings.append(f"Severe test verification debt: only {int(test_ratio * 100)}% of code units verified.")
+                deductions += 30
 
         # Score computation
         score = max(0, 100 - deductions)

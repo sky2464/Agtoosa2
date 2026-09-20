@@ -80,6 +80,11 @@ class TestGenesisOnboarding(unittest.TestCase):
             self.assertNotIn("39 Stories", html)
             self.assertNotIn("8 core Agtoosa subsystems", html)
 
+            # Verify no hardcoded "+2.4% vs last commit" or static "~74% Saved" (DEV-059)
+            self.assertNotIn("+2.4% vs last commit", html)
+            self.assertNotIn("~74% Saved", html)
+            self.assertIn("kpi-grade-delta", html)
+
     def test_server_agent_enforce_endpoint(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
