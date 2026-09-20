@@ -49,6 +49,16 @@ def cmd_graph_build(args: Any, workspace_root: Path) -> int:
         for ntype, count in sorted(stats.node_counts_by_type.items()):
             print(f"     - {ntype}: {count}")
 
+    if stats.files_indexed == 0:
+        print("\nℹ️  Note: No source files (.py, .ts, .js, .go, etc.) found in this directory.")
+
+    print("\n🚀 Next Step:")
+    print("   Launch the interactive visual studio in your browser:")
+    print("   👉 agtoosa graph view --serve --open")
+    print("\n💡 Other useful commands:")
+    print("   • agtoosa review                  # Verify layer boundaries and zero cycles")
+    print("   • agtoosa graph impact <symbol>   # Trace blast radius before modifying code")
+
     return 0
 
 
