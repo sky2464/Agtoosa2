@@ -88,7 +88,7 @@
     }
     const ovDagFooter = document.getElementById("ov-dag-footer");
     if (ovDagFooter) {
-      ovDagFooter.innerHTML = `<span style="font-weight: 700;">${cycleData.length} Cycles</span> &bull; ${cycleData.length === 0 ? 'Strict DAG' : 'Decoupling needed'}`;
+      ovDagFooter.innerHTML = `<span style="font-weight: 700;">${cycleData.length} Cycles</span> • ${cycleData.length === 0 ? 'Strict DAG' : 'Decoupling needed'}`;
     }
     const ovTraceVal = document.getElementById("ov-trace-val");
     if (ovTraceVal) {
@@ -96,7 +96,7 @@
     }
     const ovTraceFooter = document.getElementById("ov-trace-footer");
     if (ovTraceFooter) {
-      ovTraceFooter.innerHTML = `<span style="color: #c084fc; font-weight: 700;">${workspaceMetadata.storyCount > 0 ? '100% Mapped' : '0 Mapped'}</span> &bull; Verified`;
+      ovTraceFooter.innerHTML = `<span style="color: #c084fc; font-weight: 700;">${workspaceMetadata.storyCount > 0 ? '100% Mapped' : '0 Mapped'}</span> • Verified`;
     }
     const ovBlastVal = document.getElementById("ov-blast-val");
     if (ovBlastVal) {
@@ -104,7 +104,7 @@
     }
     const ovBlastFooter = document.getElementById("ov-blast-footer");
     if (ovBlastFooter) {
-      ovBlastFooter.innerHTML = `<span style="color: #a5b4fc; font-weight: 700;">${topHubsData.length} Monitored</span> &bull; Bounded context`;
+      ovBlastFooter.innerHTML = `<span style="color: #a5b4fc; font-weight: 700;">${topHubsData.length} Monitored</span> • Bounded context`;
     }
 
     // Map & index elements

@@ -316,7 +316,7 @@
         if (found) {
           netTooltip.innerHTML = `
             <div style="font-weight: 800; color: ${found.color}; font-size: 0.88rem;">${escapeHtml(found.name)}</div>
-            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">${escapeHtml(found.type)} &bull; ${escapeHtml(found.domain)}</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">${escapeHtml(found.type)} • ${escapeHtml(found.domain)}</div>
             <div style="font-size: 0.72rem; color: var(--text-dim); font-family: monospace; margin-top: 3px;">${escapeHtml(found.path || '')}</div>
             <div style="font-size: 0.7rem; color: #a5b4fc; margin-top: 4px;">Click to inspect details &rarr;</div>
           `;

@@ -83,7 +83,7 @@
 
       document.getElementById("blast-ingress-list").innerHTML = inList.map(e => `
         <div class="blast-item" onclick="selectBlastNode('${e.source.id}')">
-          <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase;">${e.source.domain} &bull; ${e.source.type}</div>
+          <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase;">${e.source.domain} • ${e.source.type}</div>
           <div style="font-weight: 700; color: #38bdf8; margin: 2px 0;">${e.source.name}</div>
           <div style="font-size: 0.7rem; color: var(--text-dim); font-family: monospace;">${e.type} ➔</div>
           ${formatTelemBadge(e.source.id)}
@@ -92,7 +92,7 @@
 
       document.getElementById("blast-egress-list").innerHTML = outList.map(e => `
         <div class="blast-item" onclick="selectBlastNode('${e.target.id}')">
-          <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase;">${e.target.domain} &bull; ${e.target.type}</div>
+          <div style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase;">${e.target.domain} • ${e.target.type}</div>
           <div style="font-weight: 700; color: #f59e0b; margin: 2px 0;">${e.target.name}</div>
           <div style="font-size: 0.7rem; color: var(--text-dim); font-family: monospace;">➔ ${e.type}</div>
           ${formatTelemBadge(e.target.id)}

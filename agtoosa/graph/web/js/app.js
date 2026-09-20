@@ -263,42 +263,97 @@
     }
 
     // Conversational Copilot Advice Box Setup
-    const copilotMsg = document.getElementById("copilot-message");
-    const copilotIndicator = document.getElementById("copilot-step-indicator");
-    const wsName = workspaceMetadata.workspaceName || "this project";
-    const docCount = workspaceMetadata.docFileCount || 0;
-    const codeCount = workspaceMetadata.codeFileCount || 0;
-    const isEnforced = workspaceMetadata.agentRulesInstalled;
+    function setupCopilotAdvice() {
+      const wsName = workspaceMetadata.workspaceName || "this project";
+      const docCount = workspaceMetadata.docFileCount || 0;
+      const codeCount = workspaceMetadata.codeFileCount || 0;
+      const isEnforced = workspaceMetadata.agentRulesInstalled;
+      const cycles = cycleData.length || 0;
 
-    if (copilotMsg) {
-      if (codeCount === 0) {
+      // 1. Genesis Copilot Setup
+      const genesisMsg = document.getElementById("copilot-message");
+      const genesisIndicator = document.getElementById("copilot-step-indicator");
+      const genesisActions = document.getElementById("copilot-quick-actions");
+
+      if (genesisMsg) {
         if (!isEnforced) {
-          if (copilotIndicator) copilotIndicator.textContent = "Step 1 of 3: Guard AI Agents";
-          copilotMsg.innerHTML = `
+          if (genesisIndicator) genesisIndicator.textContent = "Step 1 of 3: Guard AI Agents";
+          genesisMsg.innerHTML = `
             👋 Welcome to <strong>${escapeHtml(wsName)}</strong>! We found <strong>${docCount} design document(s)</strong> and 0 code files.<br>
             Before you start writing code, <strong>enforce Agtoosa guardrails on your AI agents</strong> (Antigravity, Claude Code, Cursor, Copilot). This tells them to query subgraphs before making changes and verify zero circular imports.
           `;
+          if (genesisActions) {
+            genesisActions.innerHTML = `
+              <button class="btn-copy-cmd primary" data-copy="agtoosa agent-init" type="button">📋 Copy: agtoosa agent-init</button>
+              <button class="btn-copy-cmd" data-copy="touch main.py &amp;&amp; agtoosa graph build" type="button">📋 Copy: touch main.py &amp;&amp; agtoosa graph build</button>
+            `;
+          }
         } else {
-          if (copilotIndicator) copilotIndicator.textContent = "Step 2 of 3: Start Developing";
-          copilotMsg.innerHTML = `
+          if (genesisIndicator) genesisIndicator.textContent = "Step 2 of 3: Start Developing";
+          genesisMsg.innerHTML = `
             🎉 Great job! AI agent guardrails (<code>AGENTS.md</code> &amp; <code>CLAUDE.md</code>) are active in <strong>${escapeHtml(wsName)}</strong>.<br>
             <strong>Your next step:</strong> Start writing code! Create your first source file (e.g. <code>main.py</code> or <code>index.ts</code>) or prompt your AI agent to implement your first feature. Then run <code>agtoosa graph build</code> to see your architecture live.
           `;
+          if (genesisActions) {
+            genesisActions.innerHTML = `
+              <button class="btn-copy-cmd primary" data-copy="touch main.py &amp;&amp; agtoosa graph build" type="button">📋 Copy: touch main.py &amp;&amp; agtoosa graph build</button>
+              <button class="btn-copy-cmd" data-copy="agtoosa review" type="button">📋 Copy: agtoosa review</button>
+            `;
+          }
         }
-      } else {
-        if (copilotIndicator) copilotIndicator.textContent = "Active Development";
-        copilotMsg.innerHTML = `
-          🏛️ Agtoosa is tracking <strong>${codeCount} code file(s)</strong> and <strong>${workspaceMetadata.totalNodeCount || 0} symbols</strong> in <strong>${escapeHtml(wsName)}</strong>.<br>
-          <strong>Keep your engineering loop active:</strong> Query context with <code>agtoosa query</code>, sync with <code>agtoosa graph build</code>, and verify zero cycles with <code>agtoosa review</code>.
-        `;
+      }
+
+      // 2. Overview / Active Codebase Copilot Setup
+      const ovMsg = document.getElementById("overview-copilot-message");
+      const ovIndicator = document.getElementById("overview-copilot-step-indicator");
+      const ovActions = document.getElementById("overview-copilot-quick-actions");
+
+      if (ovMsg) {
+        if (cycles > 0) {
+          if (ovIndicator) {
+            ovIndicator.textContent = `⚠️ Warning: ${cycles} Cycle(s)`;
+            ovIndicator.style.background = "rgba(239, 68, 68, 0.15)";
+            ovIndicator.style.borderColor = "rgba(239, 68, 68, 0.35)";
+            ovIndicator.style.color = "#f87171";
+          }
+          ovMsg.innerHTML = `
+            🚨 Agtoosa detected <strong>${cycles} circular dependency loop(s)</strong> in <strong>${escapeHtml(wsName)}</strong>.<br>
+            Circular dependencies create fragile coupling and bloat AI agent context windows. <strong>Recommended next step:</strong> Decouple cycles or run an architecture review to inspect the affected call paths.
+          `;
+          if (ovActions) {
+            ovActions.innerHTML = `
+              <button class="btn-copy-cmd primary" data-copy="agtoosa refactor decouple" type="button">📋 Copy: agtoosa refactor decouple</button>
+              <button class="btn-copy-cmd" data-copy="agtoosa review" type="button">📋 Copy: agtoosa review</button>
+              <button class="btn-copy-cmd" data-copy="agtoosa status" type="button">📋 Copy: agtoosa status</button>
+            `;
+          }
+        } else {
+          if (ovIndicator) {
+            ovIndicator.textContent = `✅ Strict DAG Architecture (${healthData.grade || 'Grade A+'})`;
+          }
+          ovMsg.innerHTML = `
+            🏛️ Agtoosa is actively monitoring <strong>${codeCount} code file(s)</strong> and <strong>${workspaceMetadata.totalNodeCount || 0} symbols</strong> in <strong>${escapeHtml(wsName)}</strong> with <strong>zero circular dependencies</strong>.<br>
+            <strong>Your continuous engineering loop:</strong><br>
+            • <strong>Develop:</strong> Query bounded context with <code>agtoosa query "&lt;feature&gt;"</code> before prompting AI coding agents.<br>
+            • <strong>Update:</strong> Sync your AST knowledge graph with <code>agtoosa graph build</code> when files change.<br>
+            • <strong>Verify:</strong> Run <code>agtoosa review</code> before committing to enforce layer boundaries.
+          `;
+          if (ovActions) {
+            ovActions.innerHTML = `
+              <button class="btn-copy-cmd primary" data-copy="agtoosa review" type="button">📋 Copy: agtoosa review</button>
+              <button class="btn-copy-cmd" data-copy="agtoosa graph build" type="button">📋 Copy: agtoosa graph build</button>
+              <button class="btn-copy-cmd" data-copy="agtoosa status" type="button">📋 Copy: agtoosa status</button>
+              <button class="btn-copy-cmd" data-copy='agtoosa query "service"' type="button">📋 Copy: agtoosa query "service"</button>
+            `;
+          }
+        }
       }
     }
 
+    setupCopilotAdvice();
     renderFindings("genesis-findings-list", plainEnglishFindings);
     renderFindings("overview-findings-list", plainEnglishFindings);
 
-    if (workspaceMetadata.isGenesis) {
-      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
-      document.getElementById("view-genesis")?.classList.add("active");
-    }
+    // Explicitly initialize and activate default landing view
+    switchView("overview");
 

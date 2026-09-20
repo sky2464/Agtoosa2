@@ -53,7 +53,7 @@
             </div>
             <div class="c4-card-footer">
               <div class="c4-io-tag">
-                <span>📥 ${sub.inbound_count} in</span> &bull; <span>📤 ${sub.outbound_count} out</span>
+                <span>📥 ${sub.inbound_count} in</span> • <span>📤 ${sub.outbound_count} out</span>
               </div>
               <button class="btn-inspect-subsystem" onclick="event.stopPropagation(); inspectSubsystem('${sub.name}')">
                 Inspect Subsystem ➔
