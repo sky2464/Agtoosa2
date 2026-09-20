@@ -50,7 +50,7 @@ class TestVisualizer(unittest.TestCase):
         self.assertIn("graph-btn-bottlenecks", html)
         self.assertIn("view-overview", html)
         self.assertIn("radar-subnav", html)
-        self.assertIn("v0.9.10", html)
+        self.assertIn("v0.9.11", html)
         self.assertIn('class="view-panel active"', html)
         self.assertIn("overview-copilot-card", html)
         self.assertIn("How Agtoosa Operates on Autopilot in the Background", html)
