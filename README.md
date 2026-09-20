@@ -20,11 +20,14 @@ Choose your preferred installation method:
 
 **Global CLI (Recommended — use on any project without managing venvs):**
 ```bash
-# Using uv (fastest):
+# Option A: Using uv (fastest & recommended):
 uv tool install git+https://github.com/sky2464/Agtoosa2.git
 
-# Or using pipx:
+# Option B: Using pipx (requires pipx: 'brew install pipx' on macOS):
 pipx install git+https://github.com/sky2464/Agtoosa2.git
+
+# Option C: Using standard pip:
+python3 -m pip install git+https://github.com/sky2464/Agtoosa2.git
 ```
 
 **Or From Source (for contributors & developers):**
@@ -126,6 +129,26 @@ agtoosa ship DEV-001
 
 ---
 
+### 5. "Did I break architectural rules or introduce cycles?" (Architecture Review)
+```bash
+agtoosa review
+```
+```text
+🔍 Agtoosa2 Architecture Review Verdict: ✅ [APPROVED]
+   • Modified Files Checked: 2
+   ✨ Zero architectural drift detected! Layer boundaries and cycles clean.
+```
+Audit working tree or Git PR branches against layer boundaries, cycles, and blast radius:
+```bash
+# Review current working tree against a base branch:
+agtoosa review --diff main
+
+# Record project architectural rules into persistent memory:
+agtoosa review remember "services must never directly query sqlite tables without repository layer"
+```
+
+---
+
 ## 🤖 Works With Your AI Tools (Native MCP)
 
 Agtoosa runs a native **Model Context Protocol (MCP)** server so AI assistants in **Claude Code, Cursor, Windsurf, or Copilot** can query your codebase map directly.
@@ -159,6 +182,8 @@ Add this to your `claude_desktop_config.json`:
 | `agtoosa graph build [--clean]` | Index or re-index the project into local `.agtoosa/graph.db` |
 | `agtoosa graph status` | Check graph stats (files, nodes, connections, freshness) |
 | `agtoosa graph view --serve --open` | Launch the interactive visual web studio (port 8080 with auto-port fallback) |
+| `agtoosa review [--diff main]` | Audit working tree / PR diff for layer violations, cycles, and blast radius |
+| `agtoosa review remember "<rule>"` | Store project architectural rules and invariants into codebase memory |
 | `agtoosa graph impact <symbol>` | Calculate blast radius and upstream caller chain |
 | `agtoosa graph query "<query>"` | Search symbols, types, and concepts with FTS5 lexical ranking |
 | `agtoosa query "<target>" --budget 1500` | Compile surgical AI context pack under a token limit |

@@ -88,6 +88,7 @@ class ReviewIntelligenceEngine:
     def check_layer_invariants(self) -> List[DriftFinding]:
         """Verify architectural tiers (e.g. low-level Graph Store must never import high-level CLI/MCP)."""
         findings: List[DriftFinding] = []
+        nodes_by_id = {node["id"]: node for node in self.store.get_all_nodes()}
         edges = self.store.get_all_edges()
 
         for edge in edges:
@@ -97,8 +98,8 @@ class ReviewIntelligenceEngine:
             src_id = edge["source_id"]
             tgt_id = edge["target_id"]
 
-            src_node = self.store.get_node(src_id)
-            tgt_node = self.store.get_node(tgt_id)
+            src_node = nodes_by_id.get(src_id)
+            tgt_node = nodes_by_id.get(tgt_id)
 
             if not src_node or not tgt_node:
                 continue
