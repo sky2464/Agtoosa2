@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agtoosa"
-version = "0.9.8"
+version = "0.10.0"
 description = "Agtoosa2: Unified Graph-Native Engineering Operating System"
 readme = "README.md"
 requires-python = ">=3.11"

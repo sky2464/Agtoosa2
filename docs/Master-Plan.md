@@ -10,7 +10,7 @@
 |---|---|
 | Product | `Agtoosa2` |
 | Repository | `https://github.com/sky2464/Agtoosa2` |
-| Version | `0.9.7` (Active Frontier) |
+| Version | `0.10.0` (Active Frontier) |
 | Core Engine | Python 3.11+ (SQLite FTS5, Zero-Dependency Standard Library) |
 | Active Milestone | `v0.9.5` — **Milestone 18 (DEV-052–DEV-055) Delivered & Shipped (100% Complete)** |
 | Foundation Gate | [**EPIC-001 — Trusted Knowledge Intelligence**](specs/epic-001-trusted-knowledge-intelligence.md) (DEV-040–049) — ✅ **CLEARED & VERIFIED (100% Precision)** |
@@ -91,7 +91,7 @@ All previous milestones and foundation gates have been delivered, verified, and 
 | **Milestone 18 (v0.9.5)** | DEV-055 | Causal Architecture Inference and Pearl's Do-Calculus | `test_causal.py` | [Spec](specs/spec-DEV-055-causal-architecture-inference.md) |
 | **Milestone 19 (v0.9.7)** | DEV-056 | Executive Studio Progressive Disclosure & Clean Command Center | `test_visualizer.py` | [Spec](specs/spec-DEV-056-executive-studio-progressive-disclosure.md) |
 | **Milestone 19 (v0.9.7)** | DEV-057 | Enterprise Polyglot Noise Exclusion & Precision Scanning | `test_enterprise_scanner.py` | [Spec](specs/spec-DEV-057-enterprise-codebase-scanning-and-report-fidelity.md) |
-| **Milestone 19 (v0.9.8)** | DEV-058 | Adaptive Onboarding, Genesis Dashboard & Agentic AI Workflow Enforcement | `test_agent_rules.py`, `test_genesis_onboarding.py` | [Spec](specs/spec-DEV-058-adaptive-onboarding-and-progressive-disclosure.md) |
+| **Milestone 19 (v0.10.0)** | DEV-058 | Adaptive Onboarding, Genesis Dashboard & Agentic AI Workflow Enforcement | `test_agent_rules.py`, `test_genesis_onboarding.py` | [Spec](specs/spec-DEV-058-adaptive-onboarding-and-progressive-disclosure.md) |
 
 ---
 
