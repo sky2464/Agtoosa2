@@ -16,39 +16,60 @@
 
 ### 1. Install Agtoosa
 
-**One-Line Automated Install (Recommended — macOS & Linux):**
+**One-Line Automated Install:**
+
+*macOS & Linux:*
 ```bash
 curl -fsSL https://raw.githubusercontent.com/sky2464/Agtoosa2/main/install.sh | bash
 ```
 
-**Or Global CLI via Package Manager:**
+*Windows (PowerShell):*
+```powershell
+irm https://raw.githubusercontent.com/sky2464/Agtoosa2/main/install.ps1 | iex
+```
+
+**Or Global CLI via Package Manager (Cross-Platform):**
 ```bash
-# Using uv (fastest):
+# Using uv (fastest on macOS, Linux, and Windows):
 uv tool install --force git+https://github.com/sky2464/Agtoosa2.git
 
-# Or using pipx (always use --force to cleanly overwrite ~/.local/bin symlinks):
+# Or using pipx (always use --force to cleanly overwrite CLI symlinks):
 pipx install --force git+https://github.com/sky2464/Agtoosa2.git
 
 # Or using standard pip:
+# macOS & Linux:
 python3 -m pip install --upgrade git+https://github.com/sky2464/Agtoosa2.git
+
+# Windows:
+py -m pip install --upgrade git+https://github.com/sky2464/Agtoosa2.git
 ```
-> 💡 **Tip:** If switching between `uv` and `pipx`, always specify `--force` so the installer overwrites the existing CLI symlink in `~/.local/bin/` without warning.
+> 💡 **Tip:** If switching between `uv` and `pipx`, always specify `--force` so the installer overwrites the existing CLI binary without warning.
 
 **Or From Source (for contributors & developers):**
 ```bash
 git clone https://github.com/sky2464/Agtoosa2.git
 cd Agtoosa2
+
+# macOS & Linux:
 ./install.sh
-# (Or manually: uv venv && source .venv/bin/activate && uv pip install -e '.[full]')
+# (Manual venv: uv venv && source .venv/bin/activate && uv pip install -e '.[full]')
+
+# Windows (PowerShell):
+.\install.ps1
+# (Manual venv: py -m venv .venv && .venv\Scripts\Activate.ps1 && pip install -e ".[full]")
 ```
 
 **To Update Agtoosa to Latest at Any Time:**
 ```bash
-# Built-in self update:
+# Built-in self update (macOS, Linux, and Windows):
 agtoosa update
 
 # Or re-run the universal installer:
+# macOS & Linux:
 curl -fsSL https://raw.githubusercontent.com/sky2464/Agtoosa2/main/install.sh | bash
+
+# Windows (PowerShell):
+irm https://raw.githubusercontent.com/sky2464/Agtoosa2/main/install.ps1 | iex
 ```
 
 ---
@@ -58,12 +79,15 @@ curl -fsSL https://raw.githubusercontent.com/sky2464/Agtoosa2/main/install.sh | 
 Navigate to **your project directory** (e.g. your Python, TypeScript, Go, or multi-language repo) and index it:
 
 ```bash
-cd /path/to/your/project
+cd /path/to/your/project      # (or cd C:\path\to\your\project on Windows)
+
+# Turn on Autopilot (governs Claude, Cursor, Antigravity, Copilot and sets up git hooks)
+agtoosa autopilot
 
 # Build the knowledge graph (creates .agtoosa/graph.db locally)
 agtoosa graph build
 
-# Launch the interactive 2D/3D visual studio in your browser
+# Launch the interactive visual web studio in your default browser
 agtoosa graph view --serve --open
 ```
 
@@ -179,6 +203,7 @@ Add this to your `claude_desktop_config.json`:
   }
 }
 ```
+> 💡 **Windows Tip:** In `claude_desktop_config.json` on Windows, format `"cwd"` with forward slashes (e.g. `"C:/Users/username/my-project"`) or escaped backslashes (`"C:\\Users\\username\\my-project"`).
 
 **Native Tools Provided to Your AI:**
 - `agtoosa_search_graph` — Search symbols and architectural concepts.
@@ -192,6 +217,7 @@ Add this to your `claude_desktop_config.json`:
 
 | Command | What It Does |
 |---|---|
+| `agtoosa autopilot` | Turn on zero-friction architecture autopilot for AI agents (Claude, Cursor, Copilot) & git hooks |
 | `agtoosa graph build [--clean]` | Index or re-index the project into local `.agtoosa/graph.db` |
 | `agtoosa graph status` | Check graph stats (files, nodes, connections, freshness) |
 | `agtoosa graph view --serve --open` | Launch the interactive visual web studio (port 8080 with auto-port fallback) |

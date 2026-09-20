@@ -97,8 +97,11 @@ def cmd_update(args: Any, workspace_root: Path) -> int:
     print("🚀 Checking for Agtoosa2 updates...")
     repo_url = "git+https://github.com/sky2464/Agtoosa2.git"
 
+    exe_norm = sys.executable.replace("\\", "/").lower()
+    prefix_norm = sys.prefix.replace("\\", "/").lower()
+
     # 1. Check if running as a uv tool
-    if ("uv/tools" in sys.executable or "uv/tools" in sys.prefix) and shutil.which("uv"):
+    if ("uv/tools" in exe_norm or "uv/tools" in prefix_norm) and shutil.which("uv"):
         print("   • Detected uv tool environment. Updating via uv tool...")
         res = subprocess.run(["uv", "tool", "install", "--force", repo_url])
         if res.returncode == 0:
@@ -106,7 +109,7 @@ def cmd_update(args: Any, workspace_root: Path) -> int:
             return 0
 
     # 2. Check if running as a pipx tool
-    if ("pipx" in sys.executable or "pipx" in sys.prefix) and shutil.which("pipx"):
+    if ("pipx" in exe_norm or "pipx" in prefix_norm) and shutil.which("pipx"):
         print("   • Detected pipx environment. Updating via pipx...")
         res = subprocess.run(["pipx", "install", "--force", repo_url])
         if res.returncode == 0:
@@ -149,9 +152,12 @@ def cmd_update(args: Any, workspace_root: Path) -> int:
         print("✅ Agtoosa2 updated successfully to latest version via pip!")
         return 0
 
-    # 7. Last resort: run install.sh
+    # 7. Last resort: run universal installer (cross-platform)
     print("   • Running universal installer...")
-    install_cmd = "curl -fsSL https://raw.githubusercontent.com/sky2464/Agtoosa2/main/install.sh | bash"
+    if sys.platform == "win32":
+        install_cmd = 'powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/sky2464/Agtoosa2/main/install.ps1 | iex"'
+    else:
+        install_cmd = "curl -fsSL https://raw.githubusercontent.com/sky2464/Agtoosa2/main/install.sh | bash"
     res = subprocess.run(install_cmd, shell=True)
     return res.returncode
 
