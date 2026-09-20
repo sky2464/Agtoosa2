@@ -16,26 +16,30 @@
 
 ### 1. Install Agtoosa
 
-Choose your preferred installation method:
-
-**Global CLI (Recommended — use on any project without managing venvs):**
+**One-Line Automated Install (Recommended — macOS & Linux):**
 ```bash
-# Option A: Using uv (fastest & recommended):
-uv tool install git+https://github.com/sky2464/Agtoosa2.git
-
-# Option B: Using pipx (requires pipx: 'brew install pipx' on macOS):
-pipx install git+https://github.com/sky2464/Agtoosa2.git
-
-# Option C: Using standard pip:
-python3 -m pip install git+https://github.com/sky2464/Agtoosa2.git
+curl -fsSL https://raw.githubusercontent.com/sky2464/Agtoosa2/main/install.sh | bash
 ```
+
+**Or Global CLI via Package Manager:**
+```bash
+# Using uv (fastest):
+uv tool install --force git+https://github.com/sky2464/Agtoosa2.git
+
+# Or using pipx (always use --force to cleanly overwrite ~/.local/bin symlinks):
+pipx install --force git+https://github.com/sky2464/Agtoosa2.git
+
+# Or using standard pip:
+python3 -m pip install --upgrade git+https://github.com/sky2464/Agtoosa2.git
+```
+> 💡 **Tip:** If switching between `uv` and `pipx`, always specify `--force` so the installer overwrites the existing CLI symlink in `~/.local/bin/` without warning.
 
 **Or From Source (for contributors & developers):**
 ```bash
 git clone https://github.com/sky2464/Agtoosa2.git
 cd Agtoosa2
-uv venv && source .venv/bin/activate
-uv pip install -e '.[full]'
+./install.sh
+# (Or manually: uv venv && source .venv/bin/activate && uv pip install -e '.[full]')
 ```
 
 ---

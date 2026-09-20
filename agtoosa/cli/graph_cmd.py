@@ -166,8 +166,11 @@ def cmd_graph_view(args: Any, workspace_root: Path) -> int:
     """Generate standalone offline HTML visualizer."""
     db_path = get_default_db_path(workspace_root)
     if not db_path.exists():
-        print(f"⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
-        return 1
+        print(f"ℹ️  Knowledge graph not found at {db_path}. Automatically indexing workspace...\n")
+        ret = cmd_graph_build(args, workspace_root)
+        if ret != 0:
+            return ret
+        print()
 
     from agtoosa.graph.visualizer import VisualizerEngine
     store = GraphStore(db_path)

@@ -49,8 +49,12 @@ def cmd_lifecycle_review(args: Any, workspace_root: Path) -> int:
 
     db_path = get_default_db_path(workspace_root)
     if not db_path.exists():
-        print("⚠️  Knowledge graph not found. Run 'agtoosa graph build' first.")
-        return 1
+        print(f"ℹ️  Knowledge graph not found at {db_path}. Automatically indexing workspace...\n")
+        from agtoosa.cli.graph_cmd import cmd_graph_build
+        ret = cmd_graph_build(args, workspace_root)
+        if ret != 0:
+            return ret
+        print()
 
     store = GraphStore(db_path)
     engine = ReviewIntelligenceEngine(store, workspace_root)
