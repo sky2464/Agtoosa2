@@ -41,9 +41,11 @@ class TestCLI(unittest.TestCase):
         db_path = self.workspace / ".agtoosa" / "graph.db"
         self.assertTrue(db_path.exists())
 
-        # Check status
+        # Check status (via graph status and top-level alias)
         ret = main(["-C", str(self.workspace), "graph", "status"])
         self.assertEqual(ret, 0)
+        ret_alias = main(["-C", str(self.workspace), "status"])
+        self.assertEqual(ret_alias, 0)
 
     def test_cli_query(self):
         main(["-C", str(self.workspace), "graph", "build"])

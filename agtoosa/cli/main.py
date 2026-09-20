@@ -342,6 +342,9 @@ def main(argv=None) -> int:
     top_build_p.add_argument("--clean", action="store_true", help="Clean rebuild of all graph tables")
     top_build_p.add_argument("target", nargs="?", default="all", help="Build target (default: all)")
 
+    # agtoosa status (alias for agtoosa graph status)
+    subparsers.add_parser("status", help="Display knowledge graph status and health metrics (alias for 'agtoosa graph status')")
+
     # agtoosa ingest <target> (DEV-033)
     ingest_p = subparsers.add_parser("ingest", help="Ingest multimodal diagram, markdown, or URL")
     ingest_p.add_argument("target", type=str, help="Path to diagram, doc, or URL")
@@ -702,6 +705,9 @@ def main(argv=None) -> int:
     elif args.command == "build":
         from agtoosa.cli.graph_cmd import cmd_graph_build
         return cmd_graph_build(args, workspace_root)
+    elif args.command == "status":
+        from agtoosa.cli.graph_cmd import cmd_graph_status
+        return cmd_graph_status(args, workspace_root)
     elif args.command == "ingest":
         from agtoosa.cli.graph_cmd import cmd_ingest
         return cmd_ingest(args, workspace_root)
