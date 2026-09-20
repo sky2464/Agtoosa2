@@ -51,7 +51,7 @@ class TestVisualizer(unittest.TestCase):
         self.assertIn("view-overview", html)
         self.assertIn("radar-subnav", html)
         self.assertIn("radar-pane", html)
-        self.assertIn("v0.9.6", html)
+        self.assertIn("v0.9.7", html)
 
     def test_filter_type(self):
         html_filtered = self.visualizer.generate_html(filter_type="class")
