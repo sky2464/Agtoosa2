@@ -125,6 +125,89 @@
           </div>
         </div>
 
+        <!-- The 3-Step Lifecycle: Develop, Update & Verify (DEV-058) -->
+        <div class="genesis-workflow-section">
+          <div class="workflow-title-row">
+            <h2><span>🔄</span> The Agtoosa Engineering Loop: Develop, Update &amp; Verify</h2>
+            <p>Agtoosa isn't just a static diagram — it's your active architecture copilot. Here is your daily development cycle:</p>
+          </div>
+
+          <div class="workflow-steps-grid">
+            <!-- Phase 1: Develop -->
+            <div class="workflow-step-card">
+              <div class="step-badge">Phase 1: Develop</div>
+              <div class="step-header">
+                <span style="font-size: 1.4rem;">💻</span>
+                <h3>Develop with Context</h3>
+              </div>
+              <p>Write your code manually or prompt AI coding agents (Claude, Cursor, Antigravity). Query bounded subgraphs instead of feeding bloated repos.</p>
+              <div class="step-command-box">
+                <code>agtoosa query "&lt;feature&gt;"</code>
+                <button class="btn-copy-cmd" data-copy='agtoosa query "auth"' title="Copy command" type="button">📋 Copy</button>
+              </div>
+              <div class="step-explanation">
+                <strong>Why it matters:</strong> Slashes token usage by 70% and gives your AI the exact callers and types needed to avoid hallucinations.
+              </div>
+            </div>
+
+            <!-- Phase 2: Update -->
+            <div class="workflow-step-card">
+              <div class="step-badge">Phase 2: Update</div>
+              <div class="step-header">
+                <span style="font-size: 1.4rem;">🧠</span>
+                <h3>Update Living Graph</h3>
+              </div>
+              <p>Whenever you or your AI agent creates, modifies, or renames files, sync your AST knowledge graph so your architecture map stays 100% current.</p>
+              <div class="step-command-box">
+                <code>agtoosa graph build</code>
+                <button class="btn-copy-cmd" data-copy="agtoosa graph build" title="Copy command" type="button">📋 Copy</button>
+              </div>
+              <div class="step-explanation">
+                <strong>Why it matters:</strong> Completely eliminates manual documentation drift. Symbols, classes, and calls are re-indexed in milliseconds.
+              </div>
+            </div>
+
+            <!-- Phase 3: Verify -->
+            <div class="workflow-step-card">
+              <div class="step-badge">Phase 3: Verify</div>
+              <div class="step-header">
+                <span style="font-size: 1.4rem;">🛡️</span>
+                <h3>Verify Guardrails</h3>
+              </div>
+              <p>Before committing or completing a task, run architectural review. Verify zero circular imports and strict layer boundary invariants.</p>
+              <div class="step-command-box">
+                <code>agtoosa review</code>
+                <button class="btn-copy-cmd" data-copy="agtoosa review" title="Copy command" type="button">📋 Copy</button>
+              </div>
+              <div class="step-explanation">
+                <strong>Why it matters:</strong> Traps architectural debt, circular imports, and unauthorized layer crossing before merging code.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conversational Copilot Advice Box -->
+        <div class="copilot-advice-box" id="genesis-copilot-card">
+          <div class="copilot-icon">💬</div>
+          <div class="copilot-content">
+            <div class="copilot-title-row">
+              <span class="copilot-title" id="copilot-title">Agtoosa Copilot: What to Do Next</span>
+              <span class="copilot-step-indicator" id="copilot-step-indicator">Step 1 of 3: Planning Stage</span>
+            </div>
+            <div class="copilot-message" id="copilot-message">
+              <!-- Dynamically populated based on project state -->
+            </div>
+            <div class="copilot-quick-actions" id="copilot-quick-actions">
+              <button class="btn-copy-cmd primary" id="btn-copilot-action1" data-copy="touch main.py &amp;&amp; agtoosa graph build" type="button">
+                📋 Copy: touch main.py &amp;&amp; agtoosa graph build
+              </button>
+              <button class="btn-copy-cmd" id="btn-copilot-action2" data-copy="agtoosa review" type="button">
+                📋 Copy: agtoosa review
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Inline Findings & Next Steps -->
         <div class="findings-section">
           <div class="findings-header">

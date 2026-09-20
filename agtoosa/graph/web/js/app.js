@@ -241,12 +241,57 @@
       });
     }
 
+    // Global copy button handler for code snippets
+    document.addEventListener("click", (e) => {
+      const copyBtn = e.target.closest(".btn-copy-cmd");
+      if (copyBtn) {
+        const cmd = copyBtn.getAttribute("data-copy");
+        if (cmd) {
+          navigator.clipboard?.writeText(cmd);
+          const toastFn = window.showToast || showToast;
+          if (toastFn) toastFn(`📋 Copied: ${cmd}`);
+        }
+      }
+    });
+
     // Initial View Setup (Genesis vs Grown Codebase)
     const genesisWsName = document.getElementById("genesis-workspace-name");
     if (genesisWsName) genesisWsName.textContent = workspaceMetadata.workspaceName || "Your Workspace";
     const genesisBadgeText = document.getElementById("genesis-badge-text");
     if (genesisBadgeText) {
-      genesisBadgeText.textContent = `🌱 Project Genesis Stage: ${workspaceMetadata.docFileCount || 0} Document(s) &bull; Ready for Code`;
+      genesisBadgeText.textContent = `🌱 Project Genesis Stage: ${workspaceMetadata.docFileCount || 0} Document(s) • Ready for Code`;
+    }
+
+    // Conversational Copilot Advice Box Setup
+    const copilotMsg = document.getElementById("copilot-message");
+    const copilotIndicator = document.getElementById("copilot-step-indicator");
+    const wsName = workspaceMetadata.workspaceName || "this project";
+    const docCount = workspaceMetadata.docFileCount || 0;
+    const codeCount = workspaceMetadata.codeFileCount || 0;
+    const isEnforced = workspaceMetadata.agentRulesInstalled;
+
+    if (copilotMsg) {
+      if (codeCount === 0) {
+        if (!isEnforced) {
+          if (copilotIndicator) copilotIndicator.textContent = "Step 1 of 3: Guard AI Agents";
+          copilotMsg.innerHTML = `
+            👋 Welcome to <strong>${escapeHtml(wsName)}</strong>! We found <strong>${docCount} design document(s)</strong> and 0 code files.<br>
+            Before you start writing code, <strong>enforce Agtoosa guardrails on your AI agents</strong> (Antigravity, Claude Code, Cursor, Copilot). This tells them to query subgraphs before making changes and verify zero circular imports.
+          `;
+        } else {
+          if (copilotIndicator) copilotIndicator.textContent = "Step 2 of 3: Start Developing";
+          copilotMsg.innerHTML = `
+            🎉 Great job! AI agent guardrails (<code>AGENTS.md</code> &amp; <code>CLAUDE.md</code>) are active in <strong>${escapeHtml(wsName)}</strong>.<br>
+            <strong>Your next step:</strong> Start writing code! Create your first source file (e.g. <code>main.py</code> or <code>index.ts</code>) or prompt your AI agent to implement your first feature. Then run <code>agtoosa graph build</code> to see your architecture live.
+          `;
+        }
+      } else {
+        if (copilotIndicator) copilotIndicator.textContent = "Active Development";
+        copilotMsg.innerHTML = `
+          🏛️ Agtoosa is tracking <strong>${codeCount} code file(s)</strong> and <strong>${workspaceMetadata.totalNodeCount || 0} symbols</strong> in <strong>${escapeHtml(wsName)}</strong>.<br>
+          <strong>Keep your engineering loop active:</strong> Query context with <code>agtoosa query</code>, sync with <code>agtoosa graph build</code>, and verify zero cycles with <code>agtoosa review</code>.
+        `;
+      }
     }
 
     renderFindings("genesis-findings-list", plainEnglishFindings);

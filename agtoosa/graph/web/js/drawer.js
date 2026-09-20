@@ -107,10 +107,12 @@
     // AI Context Pack Exporter
     function showToast(msg) {
       const toast = document.getElementById("toast");
+      if (!toast) return;
       toast.textContent = msg;
       toast.classList.add("show");
       setTimeout(() => toast.classList.remove("show"), 2800);
     }
+    window.showToast = showToast;
 
     window.copyAiContext = function(targetId) {
       const n = nodeMap.get(targetId) || currentSelectedEntity;

@@ -67,6 +67,15 @@ class TestGenesisOnboarding(unittest.TestCase):
             self.assertIn("btn-preview-cockpit", html)
             self.assertIn("advanced-tab", html)
 
+            # Verify presence of Engineering Loop and Copilot guidance elements
+            self.assertIn("genesis-workflow-section", html)
+            self.assertIn("The Agtoosa Engineering Loop: Develop, Update &amp; Verify", html)
+            self.assertIn("Phase 1: Develop", html)
+            self.assertIn("Phase 2: Update", html)
+            self.assertIn("Phase 3: Verify", html)
+            self.assertIn("genesis-copilot-card", html)
+            self.assertIn("btn-copy-cmd", html)
+
             # Verify no hardcoded "39 Stories" or "8 core Agtoosa subsystems"
             self.assertNotIn("39 Stories", html)
             self.assertNotIn("8 core Agtoosa subsystems", html)
