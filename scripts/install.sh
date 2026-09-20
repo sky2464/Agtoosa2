@@ -17,6 +17,7 @@ BOLD="\033[1m"
 GREEN="\033[32m"
 YELLOW="\033[33m"
 BLUE="\033[34m"
+CYAN="\033[36m"
 RED="\033[31m"
 RESET="\033[0m"
 
@@ -108,9 +109,23 @@ fi
 echo -e "${BOLD}${GREEN}✅ Agtoosa2 installed successfully!${RESET}"
 "$AGTOOSA_CMD" version 2>/dev/null || true
 
-echo -e "\n${BOLD}Quick Start:${RESET}"
-echo "  1. Navigate to your project:  cd /path/to/project"
-echo "  2. Build knowledge graph:     agtoosa graph build"
-echo "  3. Launch visual studio:      agtoosa graph view --serve --open"
-echo "  4. Review architecture:       agtoosa review"
+ACTIVE_DIR="$(pwd)"
+ACTIVE_NAME="$(basename "$ACTIVE_DIR")"
+
+echo -e "\n${BOLD}${GREEN}🎯 Quick Start for active workspace:${RESET} ${BOLD}${CYAN}$ACTIVE_DIR${RESET}"
+if [ -f "$ACTIVE_DIR/.agtoosa/graph.db" ]; then
+    echo -e "   ${GREEN}• Knowledge graph already indexed!${RESET}"
+    echo -e "   1. Launch Visual Studio:  ${BOLD}agtoosa graph view --serve --open${RESET}"
+    echo -e "   2. Architecture Review:   ${BOLD}agtoosa review${RESET}"
+    echo -e "   3. Refresh Index:         ${BOLD}agtoosa graph build${RESET}"
+else
+    echo -e "   ${BOLD}Run these commands right now in this directory:${RESET}"
+    echo -e "   1. Build knowledge graph:  ${BOLD}agtoosa graph build${RESET}"
+    echo -e "   2. Launch visual studio:   ${BOLD}agtoosa graph view --serve --open${RESET}"
+    echo -e "   3. Review architecture:    ${BOLD}agtoosa review${RESET}"
+fi
+
+echo ""
+echo -e "   ${YELLOW}💡 Tip:${RESET} To map any other project instead:"
+echo -e "      ${BOLD}cd /path/to/other-project && agtoosa graph build${RESET}"
 echo ""

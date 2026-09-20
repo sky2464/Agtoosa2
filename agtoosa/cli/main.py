@@ -82,7 +82,7 @@ def cmd_version(args, workspace_root: Path) -> int:
         kb_size = int(graph_info["size_bytes"]) / 1024
         print(f"   • Knowledge Graph:   {db_path.name} ({kb_size:.1f} KB, {graph_info['node_count']} nodes, {graph_info['edge_count']} edges)")
     else:
-        print(f"   • Knowledge Graph:   Not initialized (run 'agtoosa graph build')")
+        print(f"   • Knowledge Graph:   Not initialized (run 'agtoosa graph build' in '{workspace_root.name}')")
 
     return 0
 
