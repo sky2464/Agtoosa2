@@ -189,5 +189,47 @@ class TestCLIVersionDiagnostics(unittest.TestCase):
         self.assertIn("execution_mode", data)
 
 
+class TestStudioAssetsPackaging(unittest.TestCase):
+    """Verify web studio assets are packaged and resilient across distributions."""
+
+    def test_web_studio_assets_present(self):
+        web_dir = REPO_ROOT / "agtoosa" / "graph" / "web"
+        self.assertTrue((web_dir / "index.html").exists(), "index.html must exist")
+        self.assertTrue((web_dir / "css" / "layout.css").exists(), "layout.css must exist")
+        self.assertTrue((web_dir / "css" / "theme.css").exists(), "theme.css must exist")
+        self.assertTrue((web_dir / "css" / "views.css").exists(), "views.css must exist")
+        self.assertTrue((web_dir / "js" / "app.js").exists(), "app.js must exist")
+
+    def test_pyproject_package_data_configured(self):
+        pyproject_path = REPO_ROOT / "pyproject.toml"
+        with open(pyproject_path, "rb") as f:
+            data = tomllib.load(f)
+        pkg_data = data.get("tool", {}).get("setuptools", {}).get("package-data", {})
+        self.assertIn("agtoosa", pkg_data)
+        patterns = pkg_data["agtoosa"]
+        self.assertTrue(any("graph/web" in p for p in patterns))
+
+    def test_manifest_in_configured(self):
+        manifest_path = REPO_ROOT / "MANIFEST.in"
+        self.assertTrue(manifest_path.exists())
+        content = manifest_path.read_text(encoding="utf-8")
+        self.assertIn("recursive-include agtoosa/graph/web *", content)
+
+    def test_visualizer_html_fallback_on_missing_dir(self):
+        from agtoosa.graph.store import GraphStore
+        from agtoosa.graph.visualizer import VisualizerEngine
+
+        with tempfile.TemporaryDirectory() as td:
+            db_path = Path(td) / "test.db"
+            store = GraphStore(db_path)
+            vis = VisualizerEngine(store)
+            # Point to empty non-existent directory
+            vis.web_dir = Path(td) / "missing_web"
+            html = vis.generate_html()
+            self.assertIn("Agtoosa Studio", html)
+            self.assertIn("agtoosa update", html)
+
+
 if __name__ == "__main__":
     unittest.main()
+

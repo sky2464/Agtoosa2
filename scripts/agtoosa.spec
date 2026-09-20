@@ -12,8 +12,9 @@ repo_root = spec_root.parent
 a = Analysis(
     [str(repo_root / 'agtoosa' / '__main__.py')],
     pathex=[str(repo_root)],
-    binaries=[],
-    datas=[],
+    datas=[
+        (str(repo_root / 'agtoosa' / 'graph' / 'web'), 'agtoosa/graph/web'),
+    ],
     hiddenimports=[
         'agtoosa',
         'agtoosa.core',

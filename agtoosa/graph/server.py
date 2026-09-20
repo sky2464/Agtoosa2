@@ -71,10 +71,10 @@ class StudioHTTPHandler(BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
 
         if parsed.path in ("/", "/graph_view.html"):
-            visualizer = VisualizerEngine(self.store)
-            html = visualizer.generate_html()
-            payload = html.encode("utf-8")
             try:
+                visualizer = VisualizerEngine(self.store)
+                html = visualizer.generate_html()
+                payload = html.encode("utf-8")
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
                 self.send_header("Content-Length", str(len(payload)))
@@ -82,6 +82,8 @@ class StudioHTTPHandler(BaseHTTPRequestHandler):
                 self.wfile.write(payload)
             except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
                 pass
+            except Exception as e:
+                self.send_error(500, f"Error rendering graph studio: {e}")
             return
 
         elif parsed.path == "/favicon.ico":

@@ -358,7 +358,21 @@ class VisualizerEngine:
             return raw.replace("</", "<\\/")
 
         # Read template HTML
-        index_html = (self.web_dir / "index.html").read_text(encoding="utf-8")
+        index_file = self.web_dir / "index.html"
+        if not index_file.exists():
+            return f"""<!DOCTYPE html>
+<html>
+<head><title>Agtoosa Studio</title></head>
+<body style="font-family:system-ui,-apple-system,sans-serif;background:#0f172a;color:#f8fafc;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
+  <div style="text-align:center;padding:2rem;background:#1e293b;border-radius:12px;border:1px solid #334155;max-width:540px;">
+    <h2 style="margin-top:0;color:#38bdf8;">🏛️ Agtoosa Studio</h2>
+    <p>Studio web assets were not found at <code>{self.web_dir}</code>.</p>
+    <p style="color:#94a3b8;font-size:0.9rem;">Please run <code>agtoosa update</code> to update your installation.</p>
+  </div>
+</body>
+</html>"""
+
+        index_html = index_file.read_text(encoding="utf-8")
 
         # Bundle CSS
         css_files = ["theme.css", "layout.css", "views.css"]

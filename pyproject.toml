@@ -36,6 +36,12 @@ agtoosa = "agtoosa.cli.main:main"
 include = ["agtoosa*"]
 exclude = ["Formula*", "extension*", "tests*", "scripts*"]
 
+[tool.setuptools.package-data]
+"agtoosa" = [
+    "graph/web/*",
+    "graph/web/**/*",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
