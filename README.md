@@ -1,5 +1,7 @@
 # Agtoosa2 🚀
 
+![Agtoosa — graph-native engineering intelligence](docs/assets/agtoosa-hero.gif)
+
 **The Intelligent Codebase Map for Developers and AI Agents.**
 
 *Like a live GPS and structural blueprint for your code — know what breaks before you touch a line, slash AI token costs by >70%, and ship verified software with zero guesswork.*
