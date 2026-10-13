@@ -92,6 +92,9 @@ All previous milestones and foundation gates have been delivered, verified, and 
 | **Milestone 19 (v0.9.7)** | DEV-056 | Executive Studio Progressive Disclosure & Clean Command Center | `test_visualizer.py` | [Spec](specs/spec-DEV-056-executive-studio-progressive-disclosure.md) |
 | **Milestone 19 (v0.9.7)** | DEV-057 | Enterprise Polyglot Noise Exclusion & Precision Scanning | `test_enterprise_scanner.py` | [Spec](specs/spec-DEV-057-enterprise-codebase-scanning-and-report-fidelity.md) |
 | **Milestone 19 (v0.9.11)** | DEV-058 | Adaptive Onboarding, Genesis Dashboard & Agentic AI Workflow Enforcement | `test_agent_rules.py`, `test_genesis_onboarding.py` | [Spec](specs/spec-DEV-058-adaptive-onboarding-and-progressive-disclosure.md) |
+| **Milestone 19 (v1.0.0)** | DEV-059 | Truthful Architecture Metrics, Dynamic Commit Deltas & Honest Governance | `test_metrics.py`, `test_genesis_onboarding.py` | [Spec](specs/spec-DEV-059-truthful-metrics-and-honest-governance.md) |
+| **Milestone 19 (v0.9.10)** | DEV-060 | Zero-Friction Autopilot Governance (`autopilot` alias for `agent-init`) | `test_agent_rules.py`, `test_cli.py` | [Spec](specs/spec-DEV-060-zero-friction-autopilot-governance.md) |
+| **Milestone 19 (v0.9.11)** | DEV-061 | Self-Update CLI & Cross-Platform Distribution (`update`/`upgrade`, `install.ps1` parity) | `test_cli.py`, `test_distribution.py` | [Spec](specs/spec-DEV-061-self-update-and-cross-platform-distribution.md) |
 
 ---
 
